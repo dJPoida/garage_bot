@@ -1,0 +1,9 @@
+{
+    "name": "Hallway Monitor",
+    "short_name": "Hallway Monitor",
+    "theme_color": "#2c3c4f",
+    "background_color": "#2c3c4f",
+    "display": "fullscreen",
+    "scope": "/",
+    "start_url": "/"
+  }

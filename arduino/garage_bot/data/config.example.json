@@ -1,0 +1,12 @@
+{
+    "ssid": "",
+    "password": "",
+    "iftttEnabled": false,
+    "iftttServer": "maker.ifttt.com",
+    "iftttEndpoint": "/trigger/hallway_monitor_sensor_tripped/with/key/xxxxxxxxxxxxxxxxxx",
+    "nightlightOn": false,
+    "sensorEnabled": false,
+    "r": 255,
+    "g": 255,
+    "b": 255
+}

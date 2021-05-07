@@ -1,0 +1,14 @@
+.color-picker-popup {
+    position : absolute;
+    display : none;
+    background-color : rgb(225, 225, 225);
+    border : 1px solid rgb(191, 191, 191);
+    box-shadow : rgba(0, 0, 0, 0.24) 7px 7px 14px -3px;
+    border-radius : 4px;
+    padding : var(--universal-margin);
+    box-sizing : content-box;
+    border-radius: 100%;
+    top: 250px !important;
+    left: 50% !important;
+    transform: translateX(-50%);
+}

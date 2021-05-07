@@ -1,0 +1,151 @@
+[type="checkbox"].modal + div .card {
+  max-height: 80vh; }
+
+.onoffswitch {
+  position: relative;
+  width: 100px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none; }
+
+.onoffswitch-checkbox {
+  display: none; }
+
+.onoffswitch-label {
+  display: block;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid #999999;
+  border-radius: 20px;
+  padding: 0; }
+  .onoffswitch-label .onoffswitch-inner {
+    display: block;
+    width: 200%;
+    margin-left: -100%;
+    transition: margin 0.3s ease-in 0s; }
+    .onoffswitch-label .onoffswitch-inner:before, .onoffswitch-label .onoffswitch-inner:after {
+      display: block;
+      float: left;
+      width: 50%;
+      height: 30px;
+      padding: 0;
+      line-height: 30px;
+      font-size: 14px;
+      color: white;
+      font-family: Trebuchet, Arial, sans-serif;
+      font-weight: bold;
+      box-sizing: border-box; }
+    .onoffswitch-label .onoffswitch-inner:before {
+      content: "ON";
+      padding-left: 10px;
+      background-color: var(--color-warning);
+      color: #FFFFFF;
+      text-align: left; }
+      .alarm-switch .onoffswitch-label .onoffswitch-inner:before {
+        content: "ARMED";
+        background-color: var(--color-danger);
+        color: #FFFFFF; }
+    .onoffswitch-label .onoffswitch-inner:after {
+      content: "OFF";
+      padding-right: 10px;
+      background-color: transparent;
+      text-align: right; }
+      .alarm-switch .onoffswitch-label .onoffswitch-inner:after {
+        content: "SAFE";
+        background-color: var(--color-success);
+        color: #FFFFFF; }
+
+.onoffswitch-switch {
+  display: block;
+  width: 18px;
+  margin: 6px;
+  background: #FFFFFF;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 66px;
+  border: 2px solid #999999;
+  border-radius: 20px;
+  transition: all 0.3s ease-in 0s; }
+
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+  margin-left: 0; }
+
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
+  right: 0px; }
+
+.color-picker-popup {
+  position: absolute;
+  display: none;
+  background-color: #e1e1e1;
+  border: 1px solid #bfbfbf;
+  box-shadow: rgba(0, 0, 0, 0.24) 7px 7px 14px -3px;
+  border-radius: 4px;
+  padding: var(--universal-margin);
+  box-sizing: content-box;
+  border-radius: 100%;
+  top: 250px !important;
+  left: 50% !important;
+  transform: translateX(-50%); }
+
+:root {
+  --color-danger: #cc3333;
+  --color-warning: #ccaa33;
+  --color-success: #33aa33; }
+
+body {
+  text-align: center; }
+
+header {
+  height: 5rem;
+  padding: var(--universal-margin) calc(var(--universal-margin)*4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  white-space: normal; }
+  header .logo {
+    position: relative;
+    display: flex;
+    height: calc(100% - var(--universal-padding) * 3);
+    padding: 0; }
+    header .logo img {
+      height: 100%;
+      width: auto; }
+  header .title {
+    margin-left: var(--universal-margin);
+    text-align: right; }
+    header .title h1 {
+      margin: 0;
+      padding: 0; }
+
+section {
+  margin: calc(var(--universal-margin)*4); }
+
+.switchWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center; }
+
+.setting-label-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center; }
+
+.setting-value-wrapper {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center; }
+
+.spacer {
+  height: calc(var(--universal-margin)*4); }
+
+input[type="text"] {
+  width: 100%; }
+
+.nightlight-color-indicator {
+  height: 4em;
+  width: 4em;
+  border-radius: 0.5em;
+  background-color: grey;
+  border: 1px solid #fff; }

@@ -1,0 +1,73 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  
+  <title>Halway Monitor WiFi Setup</title>
+  <meta name="description" content="Hallway Monitor WiFi Setup Page">
+  <meta name="author" content="Peter Eldred">
+
+  <link rel="stylesheet" href="/css/mini-dark.min.css?v=1.0">
+  <link rel="stylesheet" href="/css/hallwaymonitor.css?v=1.0">
+  <link rel="manifest" href="/manifest.json">
+
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+  <link rel="icon" type="image/png" href="/img/favicon-16x16.png" sizes="16x16">
+  <link rel="icon" type="image/png" href="/img/favicon-32x32.png" sizes="32x32">
+  <link rel="icon" type="image/png" href="/img/pwa-192x192.png" sizes="192x192">
+  <link rel="icon" type="image/png" href="/img/pwa-512x512.png" sizes="512x512">
+  <link rel="apple-touch-icon" href="/img/touch-180x180.png" sizes="180x180">
+  <meta name="msapplication-config" content="/imgbrowserconfig.xml">
+
+</head>
+
+<body>
+    <!-- Page Title -->
+    <header>
+        <div class="logo" href="#">
+            <img src="/img/monkey.svg">
+        </div>
+        <div class="title">
+            <h1>Hallway Monitor</h1>
+        </div>
+    </header>    
+
+    <section>
+        <h2>Access Point Mode</h2>
+        <div>
+            <p>You're almost ready to go. The Hallway Montitor isn't configured to connect to an internet enabled WiFi Access Point.</p>
+            <p>Provide the details of your WiFi network below:</p>
+        </div>
+    </section>
+    <section>
+        <h3>WiFi Configuration</h3>
+        <form id="form_new_wifi_config">
+            <label for="input_wifiSSID">SSID</label>
+            <input type="text" id="input_wifiSSID" name="wifiSSID" placeholder="SSID"/>
+            <label for="input_wifiPassword">Password</label>
+            <input type="text" id="input_wifiPassword" name="wifiPassword" placeholder="Password"/>
+            <button id="button_save" class="primary">Save</button>
+        </form>
+    </section>
+
+    <!-- Dialog: Scanning -->
+    <input type="checkbox" id="modal_scanning" class="modal">
+    <div>
+        <div class="card">
+            <h3 class="section">Please Wait...</h3>
+            <div class="section">
+                <p>
+                    Searching for the Hallway Monitor
+                </p>
+                <div>
+                    <label id="label_searching">Please Wait...</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="apmode.js"></script>
+</body>
+</html>

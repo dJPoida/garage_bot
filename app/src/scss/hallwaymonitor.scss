@@ -1,0 +1,82 @@
+@import "mini_css";
+@import "switch";
+@import "color_picker";
+
+:root {
+    --color-danger: #cc3333;
+    --color-warning: #ccaa33;
+    --color-success: #33aa33;
+}
+
+body {
+    text-align: center;
+}
+
+header {    
+    height: 5rem;
+    padding: var(--universal-margin) calc(var(--universal-margin)*4);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    white-space: normal;
+
+    .logo {
+        position: relative;
+        display: flex;
+        height: calc(100% - var(--universal-padding) * 3);
+        padding: 0;
+
+        img {
+            height: 100%;
+            width: auto;
+        }
+    }
+
+    .title {
+        margin-left: var(--universal-margin);
+        text-align: right;
+        h1 {
+            margin: 0;
+            padding: 0;
+        }
+    }
+}
+
+section {
+    margin: calc(var(--universal-margin)*4);
+}
+
+.switchWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.setting-label-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.setting-value-wrapper {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.spacer {
+    height: calc(var(--universal-margin)*4);
+}
+
+input[type="text"] {
+    width:100%;
+}
+
+.nightlight-color-indicator {
+    height: 4em;
+    width: 4em;
+    border-radius: 0.5em;
+    background-color: grey;
+    border: 1px solid #fff;
+}
