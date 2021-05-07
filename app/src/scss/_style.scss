@@ -1,0 +1,18 @@
+@import "/node_modules/mini.css/dist/mini-dark.css";
+@import "components/.components";
+
+#app {
+  height: 100vh;
+  width: 100vw;
+
+  .app {
+    position: relative;
+    width: calc(100vw - (var(--universal-padding) * 2));
+    min-height: calc(100vh - (var(--universal-padding) * 2));
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: var(--universal-padding);
+  }
+}

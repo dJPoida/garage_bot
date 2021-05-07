@@ -1,3 +1,4 @@
+const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const { merge } = require('webpack-merge');
@@ -5,18 +6,21 @@ const { merge } = require('webpack-merge');
 const paths = require('./webpack.paths');
 const common = require('./webpack.config.common.js');
 
-const tsConfigPath = path.resolve(__dirname, 'tsconfig.dev.json');
+const tsConfigPath = path.resolve(__dirname, 'tsconfig.prod.json');
 
 module.exports = merge(common, {
   mode: 'production',
   devtool: false,
-  output: {
-    path: paths.build,
-    publicPath: '/',
-    filename: 'js/[name].[contenthash].bundle.js',
-  },
   module: {
     rules: [
+      {
+        test: /\.ts(x?)$/,
+        exclude: /node_modules/,
+        loader: 'ts-loader',
+        options: {
+          configFile: tsConfigPath
+        },
+      },
       {
         test: /\.(scss|css)$/,
         use: [
@@ -24,15 +28,32 @@ module.exports = merge(common, {
           {
             loader: 'css-loader',
             options: {
-              importLoaders: 2,
+              // importLoaders: 2,
               sourceMap: false,
-              modules: true,
+              // modules: true,
+              url: false,
             },
           },
-          'postcss-loader',
-          'sass-loader',
+          {
+            loader: 'sass-loader',
+            options: {
+              sourceMap: false,
+            },
+          },
         ],
       },
+
+       // Copy the build to the arduino data directory
+       {
+        apply: (compiler) => {
+            compiler.hooks.afterEmit.tap('AfterEmitPlugin', (compilation) => {
+                exec(path.normalize(__dirname + '/post_build_deploy.sh'), (err, stdout, stderr) => {
+                    if (stdout) process.stdout.write(stdout);
+                    if (stderr) process.stderr.write(stderr);
+                });
+            });
+        }
+      }
     ],
   },
   plugins: [

@@ -1,3 +1,5 @@
+const path = require('path');
+const webpack = require('webpack');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
@@ -15,7 +17,7 @@ const entry = (() => {
 
   entryPoints.forEach((entryPoint) => {
     result[entryPoint.name] = [
-      path.resolve(paths.src, `${entryPoint.fileName}.tsx`),
+      path.resolve(paths.src, `${entryPoint.jsFileName}.tsx`),
     ];
   });
   return result;
@@ -27,9 +29,9 @@ module.exports = {
 
   // Where webpack outputs the assets and bundles
   output: {
-    path: paths.build,
-    filename: '[name].bundle.js',
+    path: paths.dist,
     publicPath: '/',
+    filename: 'js/[name].[contenthash].bundle.js',
   },
   
   // Customize the webpack build process
@@ -45,25 +47,20 @@ module.exports = {
     new CleanWebpackPlugin(),
 
     // Copies files from target to destination folder
+    // Copy other static assets to our dist folder
     new CopyWebpackPlugin({
-      patterns: [
-        {
-          from: paths.public,
-          to: 'assets',
-          globOptions: {
-            ignore: ['*.DS_Store'],
-          },
-          noErrorOnMissing: true,
-        },
-      ],
+      patterns: [{
+        from: paths.public,
+        to: paths.dist,
+        toType: 'dir',
+      }],
     }),
 
     // Use HTML Webpack Plugin to copy and populate our html templates
     // Generates deprecation warning: https://github.com/jantimon/html-webpack-plugin/issues/1501
     ...entryPoints.map((entryPoint) => new HtmlWebpackPlugin({
-      title: packageJson.displayName,
-      template: path.resolve(paths.src, `${entryPoint.htmlFilename}.html`),
-      filename: path.resolve(paths.build, `${entryPoint.htmlFilename}.html`),
+      template: path.resolve(paths.src, `${entryPoint.templateFilename}.html`),
+      filename: path.resolve(paths.dist, `${entryPoint.outputFilename}.html`),
       chunks: [entryPoint.name],
       hash: true,
       templateParameters: {
@@ -81,20 +78,6 @@ module.exports = {
     // Prettier configuration
     new PrettierPlugin(),
   ],
-
-  // Determine how modules within the project are treated
-  module: {
-    rules: [
-      // JavaScript: Use Babel to transpile JavaScript files
-      { test: /\.js$/, use: ['babel-loader'] },
-
-      // Images: Copy image files to build folder
-      { test: /\.(?:ico|gif|png|jpg|jpeg)$/i, type: 'asset/resource' },
-
-      // Fonts and SVGs: Inline files
-      { test: /\.(woff(2)?|eot|ttf|otf|svg|)$/, type: 'asset/inline' },
-    ],
-  },
 
   resolve: {
     modules: [paths.src, 'node_modules'],

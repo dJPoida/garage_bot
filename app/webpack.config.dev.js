@@ -1,3 +1,4 @@
+const path = require('path');
 const webpack = require('webpack')
 const { merge } = require('webpack-merge')
 
@@ -16,15 +17,28 @@ module.exports = merge(common, {
   // Spin up a server for quick development
   devServer: {
     historyApiFallback: true,
-    contentBase: paths.build,
-    open: true,
+    contentBase: paths.dist,
     compress: true,
     hot: true,
-    port: 3000,
+    port: 3000
   },
 
   module: {
     rules: [
+      {
+        test: /\.ts(x?)$/,
+        exclude: /node_modules/,
+        loader: 'ts-loader',
+        options: {
+          configFile: tsConfigPath,
+        },
+      },
+      // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
+      {
+        enforce: 'pre',
+        test: /\.js$/,
+        loader: 'source-map-loader',
+      },
       // Styles: Inject CSS into the head with source maps
       {
         test: /\.(scss|css)$/,
@@ -32,10 +46,19 @@ module.exports = merge(common, {
           'style-loader',
           {
             loader: 'css-loader',
-            options: { sourceMap: true, importLoaders: 1, modules: true },
+            options: { 
+              sourceMap: true,
+              // importLoaders: 1,
+              // modules: true,
+              url: false,
+            },
           },
-          { loader: 'postcss-loader', options: { sourceMap: true } },
-          { loader: 'sass-loader', options: { sourceMap: true } },
+          { 
+            loader: 'sass-loader',
+            options: {
+              sourceMap: true
+            }
+          },
         ],
       },
     ],
