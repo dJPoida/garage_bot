@@ -2,7 +2,7 @@
  * Garage Bot - BotFS
  * Peter Eldred 2021-04
  * 
- * File System wrapper for simplifying interactions with SPIFFS
+ * File System wrapper for simplifying interactions with LITTLEFS
 \*============================================================================*/
 #ifndef BOTFS_H
 #define BOTFS_H

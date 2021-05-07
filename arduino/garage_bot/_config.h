@@ -7,6 +7,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include "Arduino.h"
+
 #define FIRMWARE_VERSION "0.0.1"
 
 // Comment out this line to remove serial debug from all files

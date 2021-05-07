@@ -15,7 +15,7 @@
 #include "Arduino.h"
 #include <DNSServer.h>
 #include <WiFi.h>
-#include "SPIFFS.h"
+#include <LITTLEFS.h>
 #include "AsyncTCP.h"
 #include "ESPAsyncWebServer.h"
 #include "_config.h"
@@ -185,9 +185,9 @@ void WiFiEngine::initRoutes() {
   // Route for root / web page (apmode.html)
   _webServer->on("/", HTTP_GET, [&](AsyncWebServerRequest *request){
     if (wifiEngineMode == WEM_AP) {
-      request->send(SPIFFS, "/ap-mode.html", String(), false, templateProcessor);
+      request->send(LITTLEFS, "/ap-mode.html", String(), false, templateProcessor);
     } else {
-      request->send(SPIFFS, "/index.html", String(), false, templateProcessor);
+      request->send(LITTLEFS, "/index.html", String(), false, templateProcessor);
     }
   });
 
@@ -198,9 +198,9 @@ void WiFiEngine::initRoutes() {
 
   // All other Files / Routes
   _webServer->onNotFound([](AsyncWebServerRequest *request){
-    // Attempt to load the file from the SPIFFS file system
-    if ((request->method() == HTTP_GET) && SPIFFS.exists(request->url())) {
-      request->send(SPIFFS, request->url(), getMimeType(request->url()));
+    // Attempt to load the file from the LITTLEFS file system
+    if ((request->method() == HTTP_GET) && LITTLEFS.exists(request->url())) {
+      request->send(LITTLEFS, request->url(), getMimeType(request->url()));
     }
 
     // Handle HTTP_OPTIONS

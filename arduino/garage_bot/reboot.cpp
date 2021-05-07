@@ -7,6 +7,7 @@
 
 #include "reboot.h"
 #include "_config.h"
+#include <LITTLEFS.h>
 
 // Flag to tell the kernel it's time for a reset
 bool rebootFlag = false;
@@ -28,9 +29,9 @@ void reboot() {
 void checkReboot() {
   if (rebootFlag) {
     #ifdef SERIAL_DEBUG
-    Serial.println("Shutting Down SPIFFS...");
+    Serial.println("Shutting Down LITTLEFS...");
     #endif
-    SPIFFS.end();
+    LITTLEFS.end();
     delay(200);
   
     #ifdef SERIAL_DEBUG

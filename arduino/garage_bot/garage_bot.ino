@@ -14,7 +14,7 @@
  *    - Partition Scheme: Default 4MB with SPIFFS (1.2MB APP / 1.5MB SPIFFS)
  * 
  * Dependencies:
- *  - Arduino ESP32 File System Uploader (https://github.com/me-no-dev/arduino-esp32fs-plugin)
+ *  - Arduino ESP32 File System Uploader (https://github.com/lorol/arduino-esp32fs-plugin)
  *  - Async TCP Library for ESP32 Arduino (https://github.com/me-no-dev/AsyncTCP)
  *  - ESP Async Web Server (https://github.com/me-no-dev/ESPAsyncWebServer)
  *  - RadioHead 433mhz Receiver (http://www.airspayce.com/mikem/arduino/RadioHead/index.html)
@@ -35,7 +35,6 @@
 #include <DNSServer.h>
 #include <ESPAsyncWebServer.h>
 #include <AsyncTCP.h>
-#include "SPIFFS.h"
 #include "_config.h"
 #include "botFS.h"
 #include "botLED.h"
@@ -54,8 +53,8 @@
 const char* firmwareVersion = FIRMWARE_VERSION;                           // Firmware Version
 AsyncWebServer webServer(WEB_SERVER_PORT);                                // The Web Server for serving the control code
 DNSServer dnsServer;                                                      // A DNS Server for use when in Access Point mode
-Config config;                                                            // The configuration struct for storing and reading from SPIFFS
-BotFS botFS = BotFS();                                                    // A File System Wrapper for simplifying SPIFFS interaction
+Config config;                                                            // The configuration struct for storing and reading from LITTLEFS
+BotFS botFS = BotFS();                                                    // A File System Wrapper for simplifying LITTLEFS interaction
 IRSensor topIRSensor = IRSensor("Top");                                   // The Top IR Sensor
 IRSensor bottomIRSensor = IRSensor("Bottom");                             // The Bottom IR Sensor
 BotLED powerLED = BotLED(PIN_LED_POWER, "Power");                         // The Power LED
@@ -88,7 +87,7 @@ void setup() {
   if (!botFS.init()) {
     // Failed to initialise the File System. Oh well. Bail.
     #ifdef SERIAL_DEBUG
-    Serial.println("\n\nFAILED TO INITIALIZE THE SPI FLASH FILE SYSTEM (SPIFFS). HALTED!");
+    Serial.println("\n\nFAILED TO INITIALIZE THE FILE SYSTEM (LITTLEFS). HALTED!");
     #endif
     // TODO: at some point perform a "HALT" with a red-flashing light
     return;
