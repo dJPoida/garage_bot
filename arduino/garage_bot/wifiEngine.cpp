@@ -185,8 +185,10 @@ void WiFiEngine::initRoutes() {
   // Route for root / web page (apmode.html)
   _webServer->on("/", HTTP_GET, [&](AsyncWebServerRequest *request){
     if (wifiEngineMode == WEM_AP) {
-      request->send(LITTLEFS, "/ap-mode.html", String(), false, templateProcessor);
+      Serial.println("Sending APMODE");
+      request->send(LITTLEFS, "/apmode.html", String(), false, templateProcessor);
     } else {
+      Serial.println("Sending INDEX");
       request->send(LITTLEFS, "/index.html", String(), false, templateProcessor);
     }
   });
@@ -198,8 +200,12 @@ void WiFiEngine::initRoutes() {
 
   // All other Files / Routes
   _webServer->onNotFound([](AsyncWebServerRequest *request){
+    Serial.print("Request for ");
+    Serial.println(request->url());
+
     // Attempt to load the file from the LITTLEFS file system
     if ((request->method() == HTTP_GET) && LITTLEFS.exists(request->url())) {
+      Serial.println("found!");
       request->send(LITTLEFS, request->url(), getMimeType(request->url()));
     }
 

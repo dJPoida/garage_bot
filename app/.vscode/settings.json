@@ -6,6 +6,7 @@
     "apmode",
     "camelcase",
     "entrypoints",
+    "filemanager",
     "fullscreen",
     "msapplication",
     "readonly"

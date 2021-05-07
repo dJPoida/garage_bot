@@ -1,16 +1,29 @@
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+const FileManagerPlugin = require('filemanager-webpack-plugin');
 const { merge } = require('webpack-merge');
 
+const packageJson = require('./package.json');
 const paths = require('./webpack.paths');
 const common = require('./webpack.config.common.js');
 
+const appVersionSuffix = packageJson.version.replace(/\./g, '-');
 const tsConfigPath = path.resolve(__dirname, 'tsconfig.prod.json');
+const arduinoDataPath = path.resolve(__dirname, '../arduino/garage_bot/data/');
 
 module.exports = merge(common, {
   mode: 'production',
+  
+  // Where webpack outputs the assets and bundles
+  output: {
+    path: paths.dist,
+    publicPath: '/',
+    filename: `js/[name].${appVersionSuffix}.bnd.js`,
+  },
+  
   devtool: false,
+  
   module: {
     rules: [
       {
@@ -42,18 +55,6 @@ module.exports = merge(common, {
           },
         ],
       },
-
-       // Copy the build to the arduino data directory
-       {
-        apply: (compiler) => {
-            compiler.hooks.afterEmit.tap('AfterEmitPlugin', (compilation) => {
-                exec(path.normalize(__dirname + '/post_build_deploy.sh'), (err, stdout, stderr) => {
-                    if (stdout) process.stdout.write(stdout);
-                    if (stderr) process.stderr.write(stderr);
-                });
-            });
-        }
-      }
     ],
   },
   plugins: [
@@ -62,7 +63,27 @@ module.exports = merge(common, {
       filename: 'styles/[name].[contenthash].css',
       chunkFilename: '[id].css',
     }),
+
+    // Copy the build to the arduino data directory
+    new FileManagerPlugin({
+      events: {
+        onEnd: {
+          // Delete the existing directory
+          delete: [{
+            source: arduinoDataPath,
+            options: {
+              force: true,
+            },
+          }],
+          // Re-create the directory
+          mkdir: [arduinoDataPath],
+          // Copy the dist output into the directory
+          copy: [{ source: paths.dist, destination: arduinoDataPath }],
+        },
+      },
+    }),
   ],
+
   optimization: {
     minimize: true,
     minimizer: [new CssMinimizerPlugin(), '...'],
@@ -70,6 +91,7 @@ module.exports = merge(common, {
       name: 'runtime',
     },
   },
+
   performance: {
     hints: false,
     maxEntrypointSize: 512000,

@@ -27,13 +27,6 @@ module.exports = {
   // Specify multiple entry points for each app type
   entry,
 
-  // Where webpack outputs the assets and bundles
-  output: {
-    path: paths.dist,
-    publicPath: '/',
-    filename: 'js/[name].[contenthash].bundle.js',
-  },
-  
   // Customize the webpack build process
   plugins: [
     // Provide some global variables to the client
