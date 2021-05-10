@@ -28,7 +28,7 @@ public:
     Serial.print(request->host().c_str());
     Serial.print("'. Redirecting to 'http://");
     Serial.print(wifiEngine.ipAddress);
-    Serial.println("/ap-mode.html'...");
+    Serial.println("/apmode.html'...");
     #endif
   
     request->redirect("http://" + wifiEngine.ipAddress);

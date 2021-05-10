@@ -15,12 +15,15 @@
 #include "Arduino.h"
 #include <DNSServer.h>
 #include <WiFi.h>
-#include "SPIFFS.h"
+#include <LITTLEFS.h>
 #include "AsyncTCP.h"
 #include "ESPAsyncWebServer.h"
 #include "_config.h"
 #include "helpers.h"
 #include "wifiCaptivePortalHandler.h"
+#include "botFS.h"
+#include "AsyncJson.h"
+#include "ArduinoJson.h"
 
 
 /**
@@ -185,22 +188,36 @@ void WiFiEngine::initRoutes() {
   // Route for root / web page (apmode.html)
   _webServer->on("/", HTTP_GET, [&](AsyncWebServerRequest *request){
     if (wifiEngineMode == WEM_AP) {
-      request->send(SPIFFS, "/ap-mode.html", String(), false, templateProcessor);
+      Serial.println("Sending APMODE");
+      request->send(LITTLEFS, "/apmode.html", String(), false, templateProcessor);
     } else {
-      request->send(SPIFFS, "/index.html", String(), false, templateProcessor);
+      Serial.println("Sending INDEX");
+      request->send(LITTLEFS, "/index.html", String(), false, templateProcessor);
     }
   });
 
   // Set the wifi access point details
   _webServer->on("/setwifi", HTTP_POST, [&](AsyncWebServerRequest *request){
-    handleSetWiFi(request);
+//    handleSetWiFi(request);
+int paramsNr = request->params();
+  Serial.println(paramsNr);
+
+  for(int i=0;i<paramsNr;i++){
+       
+      AsyncWebParameter* p = request->getParam(i);
+      Serial.print("Param name: ");
+      Serial.println(p->name());
+      Serial.print("Param value: ");
+      Serial.println(p->value());
+      Serial.println("------");
+  }
   });
 
   // All other Files / Routes
   _webServer->onNotFound([](AsyncWebServerRequest *request){
-    // Attempt to load the file from the SPIFFS file system
-    if ((request->method() == HTTP_GET) && SPIFFS.exists(request->url())) {
-      request->send(SPIFFS, request->url(), getMimeType(request->url()));
+    // Attempt to load the file from the LITTLEFS file system
+    if ((request->method() == HTTP_GET) && LITTLEFS.exists(request->url())) {
+      request->send(LITTLEFS, request->url(), getMimeType(request->url()));
     }
 
     // Handle HTTP_OPTIONS
@@ -227,10 +244,28 @@ void WiFiEngine::initRoutes() {
  * Handles setting new WiFi connection details
  */
 void WiFiEngine::handleSetWiFi(AsyncWebServerRequest *request){
-  AsyncWebParameter* newSSID = request->getParam("wifiSSID");
-  AsyncWebParameter* newPassword = request->getParam("wifiPassword");
-//    
-//    setWiFiSettings(newSSID->value(), newPassword->value());
-//    
+  int paramsNr = request->params();
+  Serial.println(paramsNr);
+
+  for(int i=0;i<paramsNr;i++){
+       
+      AsyncWebParameter* p = request->getParam(i);
+      Serial.print("Param name: ");
+      Serial.println(p->name());
+      Serial.print("Param value: ");
+      Serial.println(p->value());
+      Serial.println("------");
+  }
+  
+  if (request->hasParam("wifiSSID") && request->hasParam("wifiPassword")) {
+    Serial.println("yep. Params exist.");
+  }
+//  AsyncWebParameter* newSSID = request->getParam("wifiSSID");
+//  AsyncWebParameter* newPassword = request->getParam("wifiPassword");
+
+//  Serial.println(newSSID->value());
+
+  //  botFS.setWiFiSettings(newSSID->value(), newPassword->value());
+
   request->send(200, "text/json", "{\"success\":true}");
 }

@@ -10,6 +10,7 @@
 #include "_config.h"
 #include <LITTLEFS.h>
 #include <ArduinoJson.h>
+#include "reboot.h"
 
 
 /**
@@ -185,4 +186,34 @@ bool BotFS::resetWiFiConfig() {
   config.ip_address = "";
   
   saveConfig();
+}
+
+
+/**
+ * Change the currrent Wifi Settings (triggered from the Configuration Webiste)
+ * 
+ * @param String newSSID the new WiFi SSID to save to the device
+ * @param String newPassword the new WiFi Password to save to the device
+ */
+void BotFS::setWiFiSettings(String newSSID, String newPassword) {
+    config.wifi_ssid = newSSID;
+    config.wifi_password = newPassword;
+
+    #ifdef SERIAL_DEBUG
+    Serial.print("Configuring and saving new WiFi Hotspot details, SSID: '");
+    Serial.print(newSSID);
+    Serial.print("', Password: '");
+    Serial.print(newPassword);
+    Serial.println("'...");
+    #endif
+
+    // Save the updated config.
+    saveConfig();
+
+    #ifdef SERIAL_DEBUG
+    Serial.println("restarting...");
+    #endif
+
+    // Reset the device
+    reboot();
 }

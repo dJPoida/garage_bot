@@ -5,6 +5,7 @@
   "version": "1.0.0",
   "versionDate": "2021-05",
   "description": "This project adds some form of IoT capability to my existing garage door.",
+  "homepage": "https://github.com/dJPoida/garage_bot",
   "license": "MIT",
   "repository": {
     "type": "git",

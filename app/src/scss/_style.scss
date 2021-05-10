@@ -16,3 +16,26 @@
     padding: var(--universal-padding);
   }
 }
+
+.button-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: var(--universal-padding);
+}
+
+.footer {
+  text-align: center;
+}
+
+.please-wait {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card.success {
+  --card-back-color: #1cb729;
+  --card-fore-color: #f8f8f8;
+  --card-border-color: #1cb729;
+}

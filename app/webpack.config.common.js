@@ -34,6 +34,7 @@ module.exports = {
       // Put: 'client side variables here'
       __VERSION__: JSON.stringify(packageJson.version),
       __TITLE__: JSON.stringify(packageJson.displayName),
+      __HOMEPAGE__: JSON.stringify(packageJson.homepage),
     }),
 
     // Removes/cleans build folders and unused assets when rebuilding

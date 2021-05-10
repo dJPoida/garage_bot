@@ -1,4 +1,11 @@
 {
+  "editor.formatOnSave": false,
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "cSpell.language": "en-GB",
   "cSpell.words": [
     "Eldred",
     "Entrypoint",
@@ -9,6 +16,8 @@
     "filemanager",
     "fullscreen",
     "msapplication",
-    "readonly"
-  ]
+    "readonly",
+    "setwifi"
+  ],
+  "editor.wordWrapColumn": 180
 }

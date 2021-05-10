@@ -72,7 +72,7 @@
  */
 struct Config {
   const char* apssid          = AP_SSID;  // The SSID when the device is running in Access Point mode
-  const char* mdnsAddress     = AP_SSID;  // The address that clients can use to connect to the device without the IP (i.e. http://garage.local)
+  const char* mdnsAddress     = AP_SSID;  // The address that clients can use to connect to the device without the IP (i.e. http://garagebot.local)
   String wifi_ssid            = "";       // The SSID of the wifi network that the garage bot is configured to connect to
   String wifi_password        = "";       // The Password of the wifi network that the garage bot is configured to connect to
   String ip_address           = "";       // The allocated IP address when connected to the WiFi

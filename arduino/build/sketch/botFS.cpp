@@ -2,14 +2,15 @@
  * Garage Bot - BotFS
  * Peter Eldred 2021-04
  * 
- * File System wrapper for simplifying interactions with SPIFFS
+ * File System wrapper for simplifying interactions with LITTLEFS
 \*============================================================================*/
 
 #include "botFS.h"
 #include "Arduino.h"
-#include "SPIFFS.h"
 #include "_config.h"
+#include <LITTLEFS.h>
 #include <ArduinoJson.h>
+#include "reboot.h"
 
 
 /**
@@ -29,18 +30,18 @@ bool BotFS::init() {
   #endif
 
   // Start the SPI Flash Files System
-  if (!SPIFFS.begin(true)) {
+  if (!LITTLEFS.begin(true)) {
     #ifdef SERIAL_DEBUG
     Serial.println(" ! Failed to mount file system");
     #endif
     return false;
   }
   
-  // Give SPIFFS a tick to catch up
+  // Give LITTLEFS a tick to catch up
   delay(250);
   
   #ifdef SERIAL_DEBUG
-  Serial.println(" - SPIFFS initialised.");
+  Serial.println(" - LITTLEFS initialised.");
   #endif
 
   // Load the config from the onboard SPI File System
@@ -53,7 +54,7 @@ bool BotFS::init() {
   // Save the config back to the SPI File System
   if (!saveConfig()) {
     #ifdef SERIAL_DEBUG
-    Serial.println(" ! Failed to create new config file on SPIFFS.");
+    Serial.println(" ! Failed to create new config file on LITTLEFS.");
     #endif
     
     return false;
@@ -68,10 +69,10 @@ bool BotFS::init() {
 
 
 /**
- * Open up the config.json file on the SPIFFS partition and store the milky goodness within
+ * Open up the config.json file on the LITTLEFS partition and store the milky goodness within
  */
 bool BotFS::loadConfig() {
-  File configFile = SPIFFS.open("/config.json", "r");
+  File configFile = LITTLEFS.open("/config.json", "r");
   if (!configFile) {
     #ifdef SERIAL_DEBUG
     Serial.println(" ! Failed to open config file");
@@ -101,7 +102,7 @@ bool BotFS::loadConfig() {
     #endif
   } else {
     #ifdef SERIAL_DEBUG
-    Serial.println(" - Config loaded from 'SPIFFS/config.json': ");
+    Serial.println(" - Config loaded from 'LITTLEFS/config.json': ");
     #endif
   }
 
@@ -124,7 +125,7 @@ bool BotFS::loadConfig() {
 
 
 /**
- * Save the current configuration to SPIFFS
+ * Save the current configuration to LITTLEFS
  */
 bool BotFS::saveConfig() {
   // Wait for any current write operations to finish
@@ -134,14 +135,14 @@ bool BotFS::saveConfig() {
   _writingConfig = true;
   
   #ifdef SERIAL_DEBUG
-  Serial.println(" - Writing configuration to 'SPIFFS/config.json'...");
+  Serial.println(" - Writing configuration to 'LITTLEFS/config.json'...");
   #endif
 
   // Open file for writing
-  File configFile = SPIFFS.open("/config.json", "w");
+  File configFile = LITTLEFS.open("/config.json", "w");
   if (!configFile) {
     #ifdef SERIAL_DEBUG
-    Serial.println(" ! Failed to create 'SPIFFS/config.json'!");
+    Serial.println(" ! Failed to create 'LITTLEFS/config.json'!");
     #endif
     return false;
   }
@@ -159,7 +160,7 @@ bool BotFS::saveConfig() {
   // Serialize JSON to file
   if (serializeJson(doc, configFile) == 0) {
     #ifdef SERIAL_DEBUG
-    Serial.println(" ! Failed to write to 'SPIFFS/config.json'");
+    Serial.println(" ! Failed to write to 'LITTLEFS/config.json'");
     #endif
   }
 
@@ -185,4 +186,34 @@ bool BotFS::resetWiFiConfig() {
   config.ip_address = "";
   
   saveConfig();
+}
+
+
+/**
+ * Change the currrent Wifi Settings (triggered from the Configuration Webiste)
+ * 
+ * @param String newSSID the new WiFi SSID to save to the device
+ * @param String newPassword the new WiFi Password to save to the device
+ */
+void BotFS::setWiFiSettings(String newSSID, String newPassword) {
+    config.wifi_ssid = newSSID;
+    config.wifi_password = newPassword;
+
+    #ifdef SERIAL_DEBUG
+    Serial.print("Configuring and saving new WiFi Hotspot details, SSID: '");
+    Serial.print(newSSID);
+    Serial.print("', Password: '");
+    Serial.print(newPassword);
+    Serial.println("'...");
+    #endif
+
+    // Save the updated config.
+    saveConfig();
+
+    #ifdef SERIAL_DEBUG
+    Serial.println("restarting...");
+    #endif
+
+    // Reset the device
+    reboot();
 }

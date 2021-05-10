@@ -45,7 +45,7 @@ class WiFiEngine {
     
     void initRoutes();                                    // Initialise the AP mode Web Server routes
     
-    void handleSetWiFi(AsyncWebServerRequest *request);   // Handle calls to set the WiFi Access Point
+    void handleSetWiFi(AsyncWebServerRequest *request, uint8_t *body);   // Handle calls to set the WiFi Access Point
 };
 
 extern WiFiEngine wifiEngine;

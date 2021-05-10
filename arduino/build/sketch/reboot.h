@@ -8,10 +8,6 @@
 #ifndef REBOOT_H
 #define REBOOT_H
 
-#include "SPIFFS.h"
-#include <WiFi.h>
-#include "_config.h"
-
 
 /**
  * Flags the kernal down for a reboot

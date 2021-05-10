@@ -143,6 +143,8 @@ void setup() {
   // Put the WiFi LED in flash mode if it is in Access Point mode
   if (wifiEngine.wifiEngineMode == WEM_AP) {
     wiFiLED.setMode(LED_FLASH_PAIR);
+  } else {
+    wiFiLED.setState(HIGH);
   }
 }
 

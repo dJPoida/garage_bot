@@ -21,6 +21,9 @@
 #include "_config.h"
 #include "helpers.h"
 #include "wifiCaptivePortalHandler.h"
+#include "botFS.h"
+#include "AsyncJson.h"
+#include "ArduinoJson.h"
 
 
 /**
@@ -62,6 +65,9 @@ bool WiFiEngine::init(AsyncWebServer *webServer, DNSServer *dnsServer) {
   // Assign the WebRequestHandler
   _webServer->addHandler(new WiFiCaptivePortalHandler()).setFilter(ON_AP_FILTER);
 
+  // Start the DNS server for the CaptiveRequestHandler
+  _dnsServer->start(53, "*", WiFi.softAPIP());
+  
   // Start the Web Server
   _webServer->begin();
 
@@ -194,18 +200,16 @@ void WiFiEngine::initRoutes() {
   });
 
   // Set the wifi access point details
-  _webServer->on("/setwifi", HTTP_POST, [&](AsyncWebServerRequest *request){
-    handleSetWiFi(request);
+  _webServer->on("/setwifi", HTTP_POST, [&](AsyncWebServerRequest *request){}, NULL, [&](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
+    if (request->url() == "/setwifi") {
+      handleSetWiFi(request, data);
+    }
   });
 
   // All other Files / Routes
   _webServer->onNotFound([](AsyncWebServerRequest *request){
-    Serial.print("Request for ");
-    Serial.println(request->url());
-
     // Attempt to load the file from the LITTLEFS file system
     if ((request->method() == HTTP_GET) && LITTLEFS.exists(request->url())) {
-      Serial.println("found!");
       request->send(LITTLEFS, request->url(), getMimeType(request->url()));
     }
 
@@ -232,11 +236,14 @@ void WiFiEngine::initRoutes() {
 /**
  * Handles setting new WiFi connection details
  */
-void WiFiEngine::handleSetWiFi(AsyncWebServerRequest *request){
-  AsyncWebParameter* newSSID = request->getParam("wifiSSID");
-  AsyncWebParameter* newPassword = request->getParam("wifiPassword");
-//    
-//    setWiFiSettings(newSSID->value(), newPassword->value());
-//    
+void WiFiEngine::handleSetWiFi(AsyncWebServerRequest *request, uint8_t *body){
+  DynamicJsonDocument doc(1024);
+  deserializeJson(doc, (const char*)body);
+  
+  String wifiSSID = doc["wifiSSID"];
+  String wifiPassword = doc["wifiPassword"];
+
+  botFS.setWiFiSettings(wifiSSID, wifiPassword);
+            
   request->send(200, "text/json", "{\"success\":true}");
 }
