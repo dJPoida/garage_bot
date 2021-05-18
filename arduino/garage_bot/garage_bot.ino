@@ -44,6 +44,8 @@
 #include "irsensor.h"
 #include "rfReceiver.h"
 #include "remoteRepeater.h"
+#include "doorControl.h"
+#include "mqttClient.h"
 #include "reboot.h"
 
 
@@ -52,6 +54,7 @@
  */
 const char* firmwareVersion = FIRMWARE_VERSION;                           // Firmware Version
 AsyncWebServer webServer(WEB_SERVER_PORT);                                // The Web Server for serving the control code
+AsyncWebSocket webSocket("/ws");                                          // The Web Socker for realtime comms with the client application
 DNSServer dnsServer;                                                      // A DNS Server for use when in Access Point mode
 Config config;                                                            // The configuration struct for storing and reading from LITTLEFS
 BotFS botFS = BotFS();                                                    // A File System Wrapper for simplifying LITTLEFS interaction
@@ -65,7 +68,9 @@ BotLED bottomSensorLED = BotLED(PIN_LED_BOTTOM_SENSOR, "Bottom Sensor");  // The
 BotButton panelButton = BotButton(PIN_BTN_FRONT_PANEL, "Front Panel");    // The Front Panel Button
 RFReceiver rfReceiver = RFReceiver();                                     // The RF Receiver for the remote controls
 RemoteRepeater remoteRepeater = RemoteRepeater();                         // The object responsible for triggering the original garage remote
+DoorControl doorControl = DoorControl();                                  // The object that manages the logical state of the door (open / closed / opening / closing)
 LEDTimer ledTimer = LEDTimer();                                           // A Timer to help with the flashing LEDs
+MQTTClient mqttClient = MQTTClient();                                     // The client which manages MQTT broadcasts and subscriptions
 WiFiEngine wifiEngine = WiFiEngine();                                     // The Garage Bot's WiFi engine
 
 
@@ -96,7 +101,7 @@ void setup() {
   // Initialise the WiFi Engine
   // This will automatically attempt to connect to a pre-configured
   // WiFi hotspot and if unable to do so will broadcast an Access Point
-  if (!wifiEngine.init(&webServer, &dnsServer)) {
+  if (!wifiEngine.init(&webServer, &webSocket, &dnsServer)) {
     // Failed to initialise the WiFi hotspot. Oh well. Bail.
     #ifdef SERIAL_DEBUG
     Serial.println("\n\nFAILED TO INITIALIZE THE WIFI ENGINE. HALTED!");
@@ -140,6 +145,14 @@ void setup() {
   remoteRepeater.init(PIN_REMOTE_REPEATER);
   remoteRepeater.onChange = remoteRepeaterActivationChanged;
 
+  // Door Control
+  doorControl.init();
+  doorControl.onStateChange = doorControlStateChanged;
+
+  // MQTT Client
+  mqttClient.init();
+  // TODO: handlers for MQTT subscriptions
+
   // Put the WiFi LED in flash mode if it is in Access Point mode
   if (wifiEngine.wifiEngineMode == WEM_AP) {
     wiFiLED.setMode(LED_FLASH_PAIR);
@@ -181,6 +194,8 @@ void loop() {
 void topSensorChanged(bool detected) {
   topSensorLED.setState(detected);
 
+  doorControl.setSensorStates(detected, bottomIRSensor.detected());
+
   #ifdef SERIAL_DEBUG
   Serial.print("Top: ");
   Serial.println(detected);
@@ -195,6 +210,8 @@ void topSensorChanged(bool detected) {
  */
 void bottomSensorChanged(bool detected) {
   bottomSensorLED.setState(detected);
+
+  doorControl.setSensorStates(topIRSensor.detected(), detected);
 
   #ifdef SERIAL_DEBUG
   Serial.print("Bottom: ");
@@ -260,4 +277,25 @@ void panelButtonPressed(ButtonPressType buttonPressType) {
 void updateLEDFlashes() {
   powerLED.nextCycle();
   wiFiLED.nextCycle();
+}
+
+
+/**
+ * Fired when the Door Control state changes
+ */
+void doorControlStateChanged(DoorState newDoorState) {
+  switch (newDoorState) {
+    case DOORSTATE_OPEN:
+      Serial.println("DOOR OPEN");
+      break;
+    case DOORSTATE_CLOSED:
+      Serial.println("DOOR CLOSED");
+      break;
+    case DOORSTATE_OPENING:
+      Serial.println("DOOR OPENING");
+      break;
+    case DOORSTATE_CLOSING:
+      Serial.println("DOOR CLOSING");
+      break;
+  }
 }

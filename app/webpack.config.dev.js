@@ -6,6 +6,8 @@ const paths = require('./webpack.paths')
 const common = require('./webpack.config.common.js')
 
 const tsConfigPath = path.resolve(__dirname, 'tsconfig.dev.json');
+const dotEnv = require('dotenv');
+dotEnv.config();
 
 module.exports = merge(common, {
   // Set the mode to development or production
@@ -72,6 +74,13 @@ module.exports = merge(common, {
   },
 
   plugins: [
+    // Provide some global variables to the client
+    new webpack.DefinePlugin({
+      // Put: 'client side variables here'
+      __ENVIRONMENT__: JSON.stringify("development"),
+      __DEVICE_ADDRESS__: JSON.stringify(process.env.DEVICE_ADDRESS),
+    }),
+    
     // Only update what has changed on hot reload
     new webpack.HotModuleReplacementPlugin(),
   ],

@@ -14,6 +14,7 @@
 #include "wifiEngine.h"
 #include "Arduino.h"
 #include <DNSServer.h>
+#include <ESPmDNS.h>
 #include <WiFi.h>
 #include <LITTLEFS.h>
 #include "AsyncTCP.h"
@@ -35,13 +36,14 @@ WiFiEngine::WiFiEngine(){}
 /**
  * Initialise
  */
-bool WiFiEngine::init(AsyncWebServer *webServer, DNSServer *dnsServer) {
+bool WiFiEngine::init(AsyncWebServer *webServer, AsyncWebSocket *webSocket, DNSServer *dnsServer) {
   #ifdef SERIAL_DEBUG
   Serial.println("Initialising WiFi engine...");
   #endif
 
-  // Keep a pointer to the AsyncWebServer and DNS Server
+  // Keep a pointer to the AsyncWebServer, AsyncWebSocket and DNS Server
   _webServer = webServer;
+  _webSocket = webSocket;
   _dnsServer = dnsServer;
 
   // At this point we can consider ourselves uninitialised
@@ -62,11 +64,13 @@ bool WiFiEngine::init(AsyncWebServer *webServer, DNSServer *dnsServer) {
   // Setup the routes
   initRoutes();
 
-  // Assign the WebRequestHandler
-  _webServer->addHandler(new WiFiCaptivePortalHandler()).setFilter(ON_AP_FILTER);
-
-  // Start the DNS server for the CaptiveRequestHandler
-  _dnsServer->start(53, "*", WiFi.softAPIP());
+  // If we're in Access Point Mode, Assign the Captive WebRequestHandler
+  if (wifiEngineMode == WEM_AP) {
+    _webServer->addHandler(new WiFiCaptivePortalHandler()).setFilter(ON_AP_FILTER);
+  
+    // Start the DNS server for the CaptiveRequestHandler
+    _dnsServer->start(53, "*", WiFi.softAPIP());
+  }
   
   // Start the Web Server
   _webServer->begin();
@@ -87,9 +91,13 @@ bool WiFiEngine::connectToHotSpot() {
     // Don't bother if we don't have a configuration yet
     if (!config.wifi_ssid.equals("")) {
       #ifdef SERIAL_DEBUG
-      Serial.print("- Connecting to: "); 
+      Serial.print(" - Connecting to: "); 
       Serial.println(config.wifi_ssid);
       #endif
+
+      // Set the host name so that other devices recognise this device as the garage bot
+      WiFi.hostname(config.network_device_name.c_str());
+      WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
 
       // Attempt to connect to the configured wifi hotspot
       WiFi.begin(config.wifi_ssid.c_str(), config.wifi_password.c_str()); 
@@ -97,22 +105,35 @@ bool WiFiEngine::connectToHotSpot() {
       // Wait for the connect result
       if (WiFi.waitForConnectResult() != WL_CONNECTED) {
           #ifdef SERIAL_DEBUG
-          Serial.println("! Failed to connect!");
+          Serial.println(" ! Failed to connect!");
           #endif
           return false;
       }       
 
+      // Start the mDNS service to broadcast the device's location on the network
+      if(!MDNS.begin(config.mdns_name.c_str())) {
+        #ifdef SERIAL_DEBUG
+        Serial.println(" ! Error starting mDNS!");
+        #endif
+        return false;
+      }
+      
       wifiEngineMode = WEM_CLIENT;
       ipAddress = WiFi.localIP().toString();
       macAddress = WiFi.macAddress();
       config.ip_address = ipAddress;
     
       #ifdef SERIAL_DEBUG
-      Serial.print("- WiFi connected."); 
-      Serial.print("- IP address: "); 
+      Serial.print(" - WiFi connected."); 
+      Serial.print(" - IP address: "); 
       Serial.println(ipAddress);
-      Serial.print("- MAC address: ");
+      Serial.print(" - MAC address: ");
       Serial.println(macAddress);
+      Serial.print(" - Device name: ");
+      Serial.println(config.network_device_name);
+      Serial.print(" - Web address: http://");
+      Serial.print(config.mdns_name);
+      Serial.println(".local");
       #endif
 
       return true;
@@ -141,9 +162,6 @@ bool WiFiEngine::broadcastAP() {
     return false;
   }
 
-  // Start the DNS server for the CaptiveRequestHandler
-  _dnsServer->start(53, "*", WiFi.softAPIP());
-
   wifiEngineMode = WEM_AP;
   ipAddress = WiFi.softAPIP().toString();
   macAddress = WiFi.softAPmacAddress();
@@ -170,17 +188,14 @@ String WiFiEngine::templateProcessor(const String& var){
   #ifdef SERIAL_DEBUG
   Serial.println(var);
   #endif
-//  if(var == "STATE"){
-//    if(digitalRead(ledPin)){
-//      ledState = "ON";
-//    }
-//    else{
-//      ledState = "OFF";
-//    }
-//    Serial.print(ledState);
-//    return ledState;
-//  }
-  return String();
+
+  if (var == "FIRMWARE_VERSION") {
+    return FIRMWARE_VERSION;
+  } else if (var == "DEVICE_ADDRESS") {
+    return config.ip_address;
+  }
+
+  return var;
 }
 
 
@@ -188,6 +203,11 @@ String WiFiEngine::templateProcessor(const String& var){
  * Initialise the routes for serving the web app content
  */
 void WiFiEngine::initRoutes() {
+  _webSocket->onEvent([&](AsyncWebSocket *ws, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len){
+    onWsEvent(ws, client, type, arg, data, len);
+  });
+  _webServer->addHandler(_webSocket);
+  
   // Route for root / web page (apmode.html)
   _webServer->on("/", HTTP_GET, [&](AsyncWebServerRequest *request){
     if (wifiEngineMode == WEM_AP) {
@@ -234,6 +254,48 @@ void WiFiEngine::initRoutes() {
 
 
 /**
+ * Fired when a webSocket event occurs
+ */
+void WiFiEngine::onWsEvent(AsyncWebSocket *ws, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
+  // Fired when a client connects to the websocket
+  if (type == WS_EVT_CONNECT){
+      #ifdef SERIAL_DEBUG
+      Serial.println("Websocket client connection received");
+      #endif
+      _client = client;
+      sendConfigToClients();
+  }
+
+  // Fired when a websocket client disconnects
+  else if (type == WS_EVT_DISCONNECT){
+      #ifdef SERIAL_DEBUG
+      Serial.println("Websocket client connection finished");
+      #endif
+      _client = NULL;
+  }
+
+  // Fired when a websocket client sends data
+  else if (type == WS_EVT_DATA) {
+    
+  }
+}
+
+
+/**
+ * Send the device config to connected clients.
+ * Typically happens just after connection and when the config changes.
+ */
+void WiFiEngine::sendConfigToClients() {
+  if (!_client != NULL && (_client->status() == WS_CONNECTED)) {
+    
+    
+    // TODO: stringify the config
+    _client->text("boobs");
+  }
+}
+
+
+/**
  * Handles setting new WiFi connection details
  */
 void WiFiEngine::handleSetWiFi(AsyncWebServerRequest *request, uint8_t *body){
@@ -246,4 +308,33 @@ void WiFiEngine::handleSetWiFi(AsyncWebServerRequest *request, uint8_t *body){
   botFS.setWiFiSettings(wifiSSID, wifiPassword);
             
   request->send(200, "text/json", "{\"success\":true}");
+}
+
+
+/**
+ * Handle a websocket message
+ */
+void WiFiEngine::handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
+  AwsFrameInfo *info = (AwsFrameInfo*)arg;
+  if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
+    const uint8_t size = JSON_OBJECT_SIZE(1);
+    StaticJsonDocument<size> json;
+    DeserializationError err = deserializeJson(json, data);
+    if (err) {
+      #ifdef SERIAL_DEBUG
+      Serial.print(F("deserializeJson() failed with code "));
+      Serial.println(err.c_str());
+      #endif
+      return;
+    }
+
+    const char *action = json["action"];
+
+    // Open
+    if (strcmp(action, "open") == 0) {
+      #ifdef SERIAL_DEBUG
+      Serial.println("TODO: Do something with the open action");
+      #endif
+    }
+  }
 }

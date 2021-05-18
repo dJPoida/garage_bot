@@ -1,13 +1,20 @@
-import React from "react";
-import { globals } from "../helpers/globals.helper";
-import { AppIcon } from "./app-icon";
+import React, { useState } from "react";
+import { socketClient } from "../helpers/socket-client.helper";
+import { AppHeader } from "./app-header";
 
 export const ControlApp: React.FC = () => {
+  const [connected, setConnected] = useState(socketClient.connected);
+
   return (
     <div className="app control">
-      <AppIcon />
-      <h1>{globals.appTitle}</h1>
-      <h6>{globals.version}</h6>
+      <AppHeader />
+
+      {!connected && (
+        <div className="please-wait">
+          <span className="spinner" />
+          <span>Connecting to device...</span>
+        </div>
+      )}
     </div>
   );
 };

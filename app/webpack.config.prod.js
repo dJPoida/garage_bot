@@ -58,6 +58,12 @@ module.exports = merge(common, {
     ],
   },
   plugins: [
+    // Provide some global variables to the client
+    new webpack.DefinePlugin({
+      // Put: 'client side variables here'
+      __ENVIRONMENT__: JSON.stringify("production"),
+    }),
+
     // Extracts CSS into separate files
     new MiniCssExtractPlugin({
       filename: 'styles/[name].[contenthash].css',
@@ -77,8 +83,12 @@ module.exports = merge(common, {
           }],
           // Re-create the directory
           mkdir: [arduinoDataPath],
-          // Copy the dist output into the directory
-          copy: [{ source: paths.dist, destination: arduinoDataPath }],
+          copy: [
+            // Copy the dist output into the directory
+            { source: paths.dist, destination: arduinoDataPath },
+            // Copy the local config.json to the arduino esp data path
+            { source: './config.json', destination: `${arduinoDataPath}/config.json` }
+          ],
         },
       },
     }),

@@ -19,6 +19,8 @@ class IRSensor {
     void init(unsigned int pin_emitter, unsigned int pin_receiver, int threshold);
     void run(unsigned long currentMillis);
 
+    bool detected();                          // getter for the _detected value
+
     boolValueChangedFunction onChange;
   private:
     String _name;                             // The name of the Sensor (for debugging)

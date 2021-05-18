@@ -1,8 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { globals } from "../helpers/globals.helper";
-import { AppIcon } from "./app-icon";
 import { AppFooter } from "./app-footer";
-import internalIp from "internal-ip";
+import { AppHeader } from "./app-header";
 
 export const APModeApp: React.FC = () => {
   const [wifiSSID, setWifiSSID] = useState<string>("");
@@ -49,9 +47,7 @@ export const APModeApp: React.FC = () => {
   // Render
   return (
     <div className="app ap-mode">
-      <AppIcon />
-      <h1>{globals.appTitle}</h1>
-      <h6>v{globals.version}</h6>
+      <AppHeader />
 
       {/* WifiSSID and Password Form */}
       {!isSubmitting && !submitSuccess && (

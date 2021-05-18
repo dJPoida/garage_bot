@@ -79,3 +79,11 @@ void IRSensor::run(unsigned long currentMillis) {
     }
   }
 }
+
+
+/**
+ * Getter for the _detected property
+ */
+bool IRSensor::detected() {
+  return _detected;
+}

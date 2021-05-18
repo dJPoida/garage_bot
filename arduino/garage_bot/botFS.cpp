@@ -107,8 +107,17 @@ bool BotFS::loadConfig() {
   }
 
   // Update the global variables from the json doc
+  config.network_device_name = doc["network_device_name"] | config.network_device_name;
   config.wifi_ssid = doc["wifi_ssid"] | config.wifi_ssid;
-  config.wifi_password = doc["wifi_pw"] | config.wifi_password;
+  config.wifi_password = doc["wifi_password"] | config.wifi_password;
+  config.mqtt_broker_address = doc["mqtt_broker_address"] | config.mqtt_broker_address;
+  JsonVariant mqttPort = doc["mqtt_broker_port"];
+  config.mqtt_broker_port = mqttPort.isNull() ? config.mqtt_broker_port : mqttPort.as<int>();
+  config.mqtt_device_id = doc["mqtt_device_id"] | config.mqtt_device_id;
+  config.mqtt_username = doc["mqtt_username"] | config.mqtt_username;
+  config.mqtt_password = doc["mqtt_password"] | config.mqtt_password;
+  config.mqtt_topic = doc["mqtt_topic"] | config.mqtt_topic;
+  config.mqtt_state_topic = doc["mqtt_state_topic"] | config.mqtt_state_topic;
 
   configFile.close();
     
@@ -153,9 +162,16 @@ bool BotFS::saveConfig() {
   StaticJsonDocument<1024> doc;
 
   // Set the values in the document
-  doc["wifi_ssid"]  = config.wifi_ssid;
-  doc["wifi_pw"]    = config.wifi_password;
-  doc["ip_address"] = config.ip_address;
+  doc["network_device_name"]    = config.network_device_name;
+  doc["wifi_ssid"]              = config.wifi_ssid;
+  doc["wifi_password"]          = config.wifi_password;
+  doc["mqtt_broker_address"]    = config.mqtt_broker_address;
+  doc["mqtt_broker_port"]       = config.mqtt_broker_port;
+  doc["mqtt_device_id"]         = config.mqtt_device_id;
+  doc["mqtt_username"]          = config.mqtt_username;
+  doc["mqtt_password"]          = config.mqtt_password;
+  doc["mqtt_topic"]             = config.mqtt_topic;
+  doc["mqtt_state_topic"]       = config.mqtt_state_topic;
 
   // Serialize JSON to file
   if (serializeJson(doc, configFile) == 0) {

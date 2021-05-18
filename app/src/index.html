@@ -99,5 +99,10 @@
   </head>
   <body>
     <div id="app"></div>
+    <!-- This data is populated by the Template Processor as the HTML is served out of the ESP32 -->
+    <script>
+      const firmwareVersion = "%FIRMWARE_VERSION%";
+      const deviceAddress = "%DEVICE_ADDRESS%";
+    </script>
   </body>
 </html>
