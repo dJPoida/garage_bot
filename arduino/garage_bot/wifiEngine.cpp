@@ -181,30 +181,11 @@ bool WiFiEngine::broadcastAP() {
 
 
 /**
- * Used when serving HTML files to replace key variables in the HTML with
- * current state data.
- */
-String WiFiEngine::templateProcessor(const String& var){
-  #ifdef SERIAL_DEBUG
-  Serial.println(var);
-  #endif
-
-  if (var == "FIRMWARE_VERSION") {
-    return FIRMWARE_VERSION;
-  } else if (var == "DEVICE_ADDRESS") {
-    return config.ip_address;
-  }
-
-  return var;
-}
-
-
-/**
  * Initialise the routes for serving the web app content
  */
 void WiFiEngine::initRoutes() {
   _webSocket->onEvent([&](AsyncWebSocket *ws, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len){
-    onWsEvent(ws, client, type, arg, data, len);
+    onWsEvent(client, type, arg, data, len);
   });
   _webServer->addHandler(_webSocket);
   
@@ -255,28 +236,37 @@ void WiFiEngine::initRoutes() {
 
 /**
  * Fired when a webSocket event occurs
+ * @see: https://github.com/me-no-dev/ESPAsyncWebServer/blob/master/examples/ESP_AsyncFSBrowser/ESP_AsyncFSBrowser.ino
+ * 
+ * @param client  - the websocket client
+ * @param type    - the websocket event type
+ * @param arg     - ??
+ * @param data    - any data associated with the websocket event
+ * @param len     - the length of the data
  */
-void WiFiEngine::onWsEvent(AsyncWebSocket *ws, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
+void WiFiEngine::onWsEvent(AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
   // Fired when a client connects to the websocket
   if (type == WS_EVT_CONNECT){
-      #ifdef SERIAL_DEBUG
-      Serial.println("Websocket client connection received");
-      #endif
-      _client = client;
-      sendConfigToClients();
+    #ifdef SERIAL_DEBUG
+    Serial.println("Websocket client connection received");
+    #endif
+
+    // Send the current device config and status to the connected client
+    sendConfigToClients(client);
+    sendStatusToClients(client);
   }
 
   // Fired when a websocket client disconnects
   else if (type == WS_EVT_DISCONNECT){
-      #ifdef SERIAL_DEBUG
-      Serial.println("Websocket client connection finished");
-      #endif
-      _client = NULL;
+    #ifdef SERIAL_DEBUG
+    Serial.println("Websocket client connection finished");
+    #endif
   }
 
   // Fired when a websocket client sends data
   else if (type == WS_EVT_DATA) {
-    
+    // Pass the data parsing off to a more detailed function
+    handleWebSocketData(arg, data, len);
   }
 }
 
@@ -284,37 +274,114 @@ void WiFiEngine::onWsEvent(AsyncWebSocket *ws, AsyncWebSocketClient *client, Aws
 /**
  * Send the device config to connected clients.
  * Typically happens just after connection and when the config changes.
+ *
+ * @param client - (Optional) A specific client to send the config to
  */
-void WiFiEngine::sendConfigToClients() {
-  if (!_client != NULL && (_client->status() == WS_CONNECTED)) {
-    
-    
-    // TODO: stringify the config
-    _client->text("boobs");
+void WiFiEngine::sendConfigToClients(AsyncWebSocketClient *client) {
+  DynamicJsonDocument doc(1024);
+  doc["m"] = SOCKET_SERVER_MESSAGE_CONFIG_CHANGE;
+  JsonObject payload = doc.createNestedObject("p");
+  payload["network_device_name"]    = config.network_device_name;
+  payload["wifi_ssid"]              = config.wifi_ssid;
+  payload["wifi_password"]          = config.wifi_password;
+  payload["mqtt_broker_address"]    = config.mqtt_broker_address;
+  payload["mqtt_broker_port"]       = config.mqtt_broker_port;
+  payload["mqtt_device_id"]         = config.mqtt_device_id;
+  payload["mqtt_username"]          = config.mqtt_username;
+  payload["mqtt_password"]          = config.mqtt_password;
+  payload["mqtt_topic"]             = config.mqtt_topic;
+  payload["mqtt_state_topic"]       = config.mqtt_state_topic;
+  
+  char json[1024];
+  serializeJsonPretty(doc, json);
+  
+  // Send the config to a specific client
+  if (client != NULL && (client->status() == WS_CONNECTED)) {
+    client->text(json);
+  } 
+
+  // Send the config to all clients
+  else {
+    _webSocket->textAll(json);
   }
 }
 
 
 /**
+ * Send the device status to connected clients.
+ * Typically happens just after connection and when the config changes.
+ *
+ * @param client - (Optional) A specific client to send the config to
+ */
+void WiFiEngine::sendStatusToClients(AsyncWebSocketClient *client) {
+  DynamicJsonDocument doc(1024);
+  doc["m"] = SOCKET_SERVER_MESSAGE_STATUS_CHANGE;
+  JsonObject payload = doc.createNestedObject("p");
+  
+  // TODO: put some real data here
+  payload["door_status"] = "UP";
+  
+  char json[1024];
+  serializeJsonPretty(doc, json);
+  
+  // Send the config to a specific client
+  if (client != NULL && (client->status() == WS_CONNECTED)) {
+    client->text(json);
+  } 
+
+  // Send the config to all clients
+  else {
+    _webSocket->textAll(json);
+  }
+}
+
+
+/**
+ * Used when serving HTML files to replace key variables in the HTML with
+ * current state data.
+ * 
+ * @param var - the %TEMPLATE% variable located in the html file
+ */
+String WiFiEngine::templateProcessor(const String& var){
+  #ifdef SERIAL_DEBUG
+  Serial.println(var);
+  #endif
+
+  if (var == "FIRMWARE_VERSION") {
+    return FIRMWARE_VERSION;
+  } else if (var == "DEVICE_ADDRESS") {
+    return config.ip_address;
+  }
+
+  return var;
+}
+
+
+/**
  * Handles setting new WiFi connection details
+ * 
+ * @param request   - the incoming HTTP Post Request that triggered the action
+ * @param body      - the body of the HTTP Post Request
  */
 void WiFiEngine::handleSetWiFi(AsyncWebServerRequest *request, uint8_t *body){
+  // Parse the new config details out of the document
   DynamicJsonDocument doc(1024);
   deserializeJson(doc, (const char*)body);
-  
   String wifiSSID = doc["wifiSSID"];
   String wifiPassword = doc["wifiPassword"];
 
+  // Call the FileSystem method responsible for updating the WiFi config
   botFS.setWiFiSettings(wifiSSID, wifiPassword);
-            
+
+  // Return a 200 - Success
   request->send(200, "text/json", "{\"success\":true}");
 }
 
 
 /**
- * Handle a websocket message
+ * Parse and handle a websocket data message
  */
-void WiFiEngine::handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
+void WiFiEngine::handleWebSocketData(void *arg, uint8_t *data, size_t len) {
   AwsFrameInfo *info = (AwsFrameInfo*)arg;
   if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
     const uint8_t size = JSON_OBJECT_SIZE(1);
@@ -328,12 +395,13 @@ void WiFiEngine::handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
       return;
     }
 
-    const char *action = json["action"];
+    const char *message = json["m"];
+    JsonObject payload = json["p"];
 
-    // Open
-    if (strcmp(action, "open") == 0) {
+    // SOCKET_CLIENT_MESSAGE_PRESS_BUTTON
+    if (strcmp(message, SOCKET_CLIENT_MESSAGE_PRESS_BUTTON) == 0) {
       #ifdef SERIAL_DEBUG
-      Serial.println("TODO: Do something with the open action");
+      Serial.println("TODO: SOCKET_CLIENT_MESSAGE_PRESS_BUTTON");
       #endif
     }
   }

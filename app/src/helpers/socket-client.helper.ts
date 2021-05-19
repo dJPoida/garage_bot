@@ -5,6 +5,8 @@ import { A_SOCKET_SERVER_MESSAGE } from "../constants/socket-server-message.cons
 import { globals } from "./globals.helper";
 
 const RECONNECTION_ATTEMPTS = 20;
+const PING_PONG_TIMEOUT = 2000;
+const MAX_MISSED_PINGS = 3;
 
 let socketClientInstance: SocketClient;
 
@@ -23,6 +25,9 @@ class SocketClient extends events.EventEmitter {
 
   private _retryInfinitely: boolean = false;
 
+  private _pongTimeout: undefined | ReturnType<typeof setTimeout>;
+  private _missedPings: number = 0;
+
   /**
    * @Constructor
    */
@@ -30,7 +35,7 @@ class SocketClient extends events.EventEmitter {
     super();
 
     // Connect the socket
-    setTimeout(this.connect, 0);
+    this.connect();
   }
 
   /**
@@ -72,39 +77,47 @@ class SocketClient extends events.EventEmitter {
   /**
    * Fired when the socket connects to the device
    */
-  handleSocketOpen() {
+  handleSocketOpen = () => {
     this._connected = true;
     this._connectionFailed = false;
     this.emit(SOCKET_CLIENT_EVENT.CONNECTED);
-  }
+    this.heartBeat();
+    console.info("Socket Connected.");
+  };
 
   /**
    * Fired when the socket is disconnected from the device
    */
-  handleSocketClose(e: CloseEvent) {
+  handleSocketClose = (e: CloseEvent) => {
     this._connected = false;
+    if (this._pongTimeout) {
+      clearTimeout(this._pongTimeout);
+      this._pongTimeout = undefined;
+    }
     this.emit(SOCKET_CLIENT_EVENT.DISCONNECTED);
-  }
+    console.info("Socket Closed.");
+  };
 
   /**
    * Fired when the socket encounters an error
    */
-  handleSocketError(e: Event) {
-    console.log(e);
+  handleSocketError = (e: Event) => {
+    console.error(e);
     // TODO: detect whether the error was a connection failure
-  }
+  };
 
   /**
    * Fired when the client receives a message from the server
    */
-  handleSocketMessage(e: MessageEvent) {
+  handleSocketMessage = (e: MessageEvent) => {
     const data = JSON.parse(e.data);
 
     const message: A_SOCKET_SERVER_MESSAGE = data.m;
     const payload: Record<string, unknown> = data.p ?? {};
 
     this.emit(SOCKET_CLIENT_EVENT.MESSAGE, message, payload);
-  }
+    console.info("Socket Message Received: ", message, payload);
+  };
 
   /**
    * Call this method to establish the initial connection
@@ -143,24 +156,40 @@ class SocketClient extends events.EventEmitter {
   /**
    * Call this method when the connection has failed or is dropped
    */
-  reconnect() {
+  reconnect = () => {
     // TODO: reconnect
-  }
+  };
 
   /**
    * Send a message back to the server (device)
    */
-  sendMessage(
+  sendMessage = (
     message: A_SOCKET_CLIENT_MESSAGE,
     payload: Record<string, unknown>
-  ) {
+  ) => {
     const data = {
       message,
       payload: payload ?? {},
     };
 
     this._socket?.send(JSON.stringify(data));
-  }
+  };
+
+  /**
+   * Once connected, the heartbeat will periodically send a PING to the server
+   * if the PONG is not received by the timeout
+   */
+  heartBeat = () => {
+    this._missedPings = 0;
+    this._pongTimeout = setTimeout(() => {
+      this._missedPings += 1;
+      if (this._missedPings >= MAX_MISSED_PINGS) {
+        this.disconnect();
+      } else {
+        this.heartBeat();
+      }
+    }, PING_PONG_TIMEOUT);
+  };
 }
 
 export const socketClient: SocketClient = SocketClient.getInstance();

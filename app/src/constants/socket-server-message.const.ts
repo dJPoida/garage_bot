@@ -5,16 +5,16 @@
  */
 export const SOCKET_SERVER_MESSAGE = {
   // A Pong sent back from the device to prove that it is still connected
-  PONG: 1,
+  PONG: "PO",
 
   // The status of the door has changed
-  STATUS_CHANGE: 2,
+  STATUS_CHANGE: "SC",
 
   // The device config has changed
-  CONFIG_CHANGE: 3,
+  CONFIG_CHANGE: "CC",
 
   // The device is rebooting
-  REBOOTING: 4,
+  REBOOTING: "RB",
 } as const;
 export type SOCKET_SERVER_MESSAGE = typeof SOCKET_SERVER_MESSAGE;
 export type A_SOCKET_SERVER_MESSAGE = SOCKET_SERVER_MESSAGE[keyof SOCKET_SERVER_MESSAGE];

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { socketClient } from "../helpers/socket-client.helper";
 import { AppHeader } from "./app-header";
 
