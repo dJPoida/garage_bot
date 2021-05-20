@@ -3,6 +3,15 @@ import { A_SOCKET_CLIENT_MESSAGE } from "../constants/socket-client-message.cons
 import { SOCKET_CLIENT_EVENT } from "../constants/socket-client-event.const";
 import { A_SOCKET_SERVER_MESSAGE } from "../constants/socket-server-message.const";
 import { globals } from "./globals.helper";
+import {
+  A_SOCKET_CLIENT_STATE,
+  SOCKET_CLIENT_STATE,
+} from "../constants/socket-client-state.const";
+import {
+  A_SOCKET_CLIENT_CLOSE_CODE,
+  SocketClientCloseCodeDescriptionMap,
+  SOCKET_CLIENT_CLOSE_CODE,
+} from "../constants/socket-client-close-code.const";
 
 const RECONNECTION_ATTEMPTS = 20;
 const PING_PONG_TIMEOUT = 2000;
@@ -20,13 +29,17 @@ class SocketClient extends events.EventEmitter {
   }/ws`;
 
   private _socket: null | WebSocket = null;
-  private _connected: boolean = false;
+  private _state: A_SOCKET_CLIENT_STATE = SOCKET_CLIENT_STATE.DISCONNECTED;
   private _connectionFailed: boolean = false;
-
-  private _retryInfinitely: boolean = false;
+  private _error: null | Error = null;
 
   private _pongTimeout: undefined | ReturnType<typeof setTimeout>;
   private _missedPings: number = 0;
+
+  /**
+   * @var retryInfinitely whether the socket client should attempt to maintain the connection to the device at all costs
+   */
+  public retryInfinitely: boolean = true;
 
   /**
    * @Constructor
@@ -49,38 +62,34 @@ class SocketClient extends events.EventEmitter {
   };
 
   /**
-   * Is the socket currently connected
+   * The state of the socket client
    */
-  get connected() {
-    return this._connected;
+  get state(): A_SOCKET_CLIENT_STATE {
+    return this._state;
   }
 
   /**
-   * True if the socket handler given up attempting to connect to the server
+   * The most recent error that the socket client encountered
    */
-  get connectionFailed() {
-    return this._connectionFailed;
+  get error(): null | Error {
+    return this._error;
   }
 
   /**
-   * Returns true if the socket handler is configured to never give up connecting
-   * to the server.
+   * Change the state of the socket client
    */
-  get retryInfinitely() {
-    return this._retryInfinitely;
-  }
-
-  set retryInfinitely(value) {
-    this._retryInfinitely = value;
-  }
+  private setState = (newState: A_SOCKET_CLIENT_STATE) => {
+    this._state = newState;
+    this.emit(SOCKET_CLIENT_EVENT.STATE_CHANGE, newState);
+  };
 
   /**
    * Fired when the socket connects to the device
    */
   handleSocketOpen = () => {
-    this._connected = true;
     this._connectionFailed = false;
-    this.emit(SOCKET_CLIENT_EVENT.CONNECTED);
+    this._error = null;
+    this.setState(SOCKET_CLIENT_STATE.CONNECTED);
     this.heartBeat();
     console.info("Socket Connected.");
   };
@@ -89,21 +98,45 @@ class SocketClient extends events.EventEmitter {
    * Fired when the socket is disconnected from the device
    */
   handleSocketClose = (e: CloseEvent) => {
-    this._connected = false;
+    // If the closure was an error, log it otherwise reset the class
+    if (e.code > 1001 && e.code < 4000) {
+      console.error(
+        new Error(
+          SocketClientCloseCodeDescriptionMap[
+            e.code as A_SOCKET_CLIENT_CLOSE_CODE
+          ]
+        )
+      );
+    } else {
+      console.info("Socket Closed.");
+    }
+
+    this._error = null;
+    this.setState(SOCKET_CLIENT_STATE.DISCONNECTED);
+
+    // Clear the PingPong timeouts
     if (this._pongTimeout) {
       clearTimeout(this._pongTimeout);
       this._pongTimeout = undefined;
     }
-    this.emit(SOCKET_CLIENT_EVENT.DISCONNECTED);
-    console.info("Socket Closed.");
   };
 
   /**
    * Fired when the socket encounters an error
    */
   handleSocketError = (e: Event) => {
-    console.error(e);
-    // TODO: detect whether the error was a connection failure
+    switch (this.state) {
+      case SOCKET_CLIENT_STATE.CONNECTING:
+        this._error = new Error("Failed to connect to the device!");
+        break;
+      case SOCKET_CLIENT_STATE.CONNECTED:
+        this._error = new Error("Connection to the device was Lost!");
+        break;
+      default:
+        this._error = new Error("An unexpected error has occurred!");
+    }
+    this.setState(SOCKET_CLIENT_STATE.ERROR);
+    console.error(this.error);
   };
 
   /**
@@ -124,18 +157,20 @@ class SocketClient extends events.EventEmitter {
    */
   connect = (): Promise<void> => {
     return new Promise(async () => {
-      // Disconnect the existing socket
-      if (this.connected && this._socket) {
-        await this.disconnect();
+      // Disconnect an  existing socket
+      if (this.state === SOCKET_CLIENT_STATE.CONNECTED && this._socket) {
+        this._socket?.close(-1);
       }
 
       // Notify Listeners that we're connecting to the client
-      this.emit(SOCKET_CLIENT_EVENT.CONNECTING);
+      this.setState(SOCKET_CLIENT_STATE.CONNECTING);
 
+      // Reset some of the state values
       this._connectionFailed = false;
-      this._connected = false;
+      this._error = null;
       this._socket = new WebSocket(this.host);
 
+      // Bind the websocket event listeners
       this._socket.onopen = this.handleSocketOpen;
       this._socket.onclose = this.handleSocketClose;
       this._socket.onmessage = this.handleSocketMessage;
@@ -148,8 +183,10 @@ class SocketClient extends events.EventEmitter {
    */
   disconnect = (): Promise<void> => {
     return new Promise(() => {
-      // TODO: use a special close code?
-      this._socket?.close();
+      this._socket?.close(
+        SOCKET_CLIENT_CLOSE_CODE.NORMAL_CLOSURE,
+        "Closed by user"
+      );
     });
   };
 
