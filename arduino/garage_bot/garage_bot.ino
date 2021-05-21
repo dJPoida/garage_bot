@@ -284,6 +284,9 @@ void updateLEDFlashes() {
  * Fired when the Door Control state changes
  */
 void doorControlStateChanged(DoorState newDoorState) {
+  // Notify any connected clients of the door state change
+  wifiEngine.sendStatusToClients();
+  
   switch (newDoorState) {
     case DOORSTATE_OPEN:
       Serial.println("DOOR OPEN");

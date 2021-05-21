@@ -17,8 +17,10 @@ class DoorControl {
     void init();
 
     void setSensorStates(bool topSensor, bool bottomSensor);
+    String getDoorStateAsString();
 
     doorStateChangedFunction onStateChange;
+
   private:
     DoorState _doorState;
     bool _topSensor = false;      // Whether the top sensor detects the door

@@ -11,6 +11,7 @@
 
 #include "Arduino.h"
 #include "helpers.h"
+#include "_config.h"
 
 class IRSensor {
   public:
@@ -23,17 +24,19 @@ class IRSensor {
 
     boolValueChangedFunction onChange;
   private:
-    String _name;                             // The name of the Sensor (for debugging)
-    unsigned long _readingTimestamp = 0;      // The timestamp of the last reading
-    bool _isReading = false;                  // Whether the sensor is currently reading or not
-    int _ambientReading = 0;                  // The background (ambient) reading of the IR sensor
-    int _receiverReading = 0;                 // The activated reading of the IR sensor
-    int _reflectedReading = 0;                // The difference between the background and activated readings
-    bool _detected = false;                   // Whether the difference between background and activated constitutes a detection
+    String _name;                                         // The name of the Sensor (for debugging)
+    unsigned long _readingTimestamp = 0;                  // The timestamp of the last reading
+    int _readings[SENSOR_IR_SMOOTHING_READING_COUNT];     // all of the most recent delta readings
+    int _readingIndex = 0;                                // The current reading index
+    int _readingsTaken = 0;                               // the number of readings take up until the max reading count to determine how many readings to sum for the average
+    bool _detected = false;                               // Whether the difference between background and activated constitutes a detection
 
-    int _threshold = 0;                       // The threshold between the background and activated readings to determine a detection
-    unsigned int _pin_emitter = 0;            // The PIN for the IR Emitter
-    unsigned int _pin_receiver = 0;           // The PIN for the IR Receiver
+    bool _isReading = false;                              // Whether the sensor is currently reading or not
+    int _ambientReading = 0;                              // The background (ambient) reading of the IR sensor
+    int _receiverReading = 0;                             // The activated reading of the IR sensor
+    int _threshold = 0;                                   // The threshold between the background and activated readings to determine a detection
+    unsigned int _pin_emitter = 0;                        // The PIN for the IR Emitter
+    unsigned int _pin_receiver = 0;                       // The PIN for the IR Receiver
 };
 
 #endif

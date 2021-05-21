@@ -52,6 +52,9 @@
 // The time between reads of the IR Sensors (ms)
 #define SENSOR_IR_READ_DELAY 100
 
+// The number of readings to use to average out the value
+#define SENSOR_IR_SMOOTHING_READING_COUNT 20
+
 // The difference between the ambient reading and the active reading require before a detection event is triggered (0 - 4095)
 #define DEFAULT_IR_THRESHOLD 150
 

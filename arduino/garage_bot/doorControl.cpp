@@ -66,3 +66,22 @@ void DoorControl::setSensorStates(bool topSensor, bool bottomSensor) {
     }
   }
 }
+
+
+/**
+ * Convert the current door state into a string for transport to the client
+ */
+String DoorControl::getDoorStateAsString() {
+  switch (_doorState) {
+    case DOORSTATE_OPEN:
+      return "OPEN";
+    case DOORSTATE_CLOSING:
+      return "CLOSING";
+    case DOORSTATE_CLOSED:
+      return "CLOSED";
+    case DOORSTATE_OPENING:
+      return "OPENING";
+    default: 
+      return "UNKNOWN";
+  }
+}

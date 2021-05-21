@@ -6,13 +6,13 @@ import { socketClient } from "../helpers/socket-client.helper";
 
 type SocketClientProviderProps = {};
 type SocketClientProviderState = {
-  state: A_SOCKET_CLIENT_STATE;
+  socketClientState: A_SOCKET_CLIENT_STATE;
   error: null | Error;
 };
 
 type SocketClientContextProps = Pick<
   SocketClientProviderState,
-  "state" | "error"
+  "socketClientState" | "error"
 > & {};
 
 export const SocketClientContext = createContext<SocketClientContextProps>(
@@ -31,7 +31,7 @@ export class SocketClientProvider extends React.Component<
   constructor(props: SocketClientProviderProps) {
     super(props);
     this.state = {
-      state: socketClient.state,
+      socketClientState: socketClient.state,
       error: socketClient.error,
     };
     this._bindEvents();
@@ -68,9 +68,8 @@ export class SocketClientProvider extends React.Component<
    * Fired when the socket client state changes
    */
   handleSocketClientStateChange = (newState: A_SOCKET_CLIENT_STATE) => {
-    console.log("ffs", newState);
     this.setState({
-      state: newState,
+      socketClientState: newState,
     });
   };
 
@@ -79,11 +78,11 @@ export class SocketClientProvider extends React.Component<
    */
   render() {
     const { children } = this.props;
-    const { state, error } = this.state;
+    const { socketClientState: state, error } = this.state;
     return (
       <SocketClientContext.Provider
         value={{
-          state,
+          socketClientState: state,
           error,
         }}
       >

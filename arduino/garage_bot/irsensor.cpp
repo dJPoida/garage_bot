@@ -33,6 +33,11 @@ void IRSensor::init(unsigned int pin_emitter, unsigned int pin_receiver, int thr
   Serial.print("'...");
   #endif
 
+  // initialize all the readings to 0:
+  for (int i = 0; i < SENSOR_IR_SMOOTHING_READING_COUNT; i++) {
+    _readings[i] = 0;
+  }
+  
   _pin_receiver = pin_receiver;
   _pin_emitter = pin_emitter;
   _threshold = threshold;
@@ -54,28 +59,53 @@ void IRSensor::init(unsigned int pin_emitter, unsigned int pin_receiver, int thr
  */
 void IRSensor::run(unsigned long currentMillis) {
   // Phase 1 - Take an ambient Reading then turn on the emitter
-  if (!_isReading && (currentMillis > (_readingTimestamp + SENSOR_IR_READ_DELAY - 1))) {
+  if (!_isReading && (currentMillis > (_readingTimestamp + SENSOR_IR_READ_DELAY - 2))) {
     _ambientReading = analogRead(_pin_receiver);
     digitalWrite(_pin_emitter, HIGH);
     _isReading = true;
     _readingTimestamp = currentMillis;
   } 
 
-  // Phase 2 - After giving the emitter 1ms to emit, take a reading then turn off the emitter
-  else if (_isReading && (currentMillis > (_readingTimestamp + 1))) {
+  // Phase 2 - After giving the emitter 2ms to emit, take a reading then turn off the emitter
+  else if (_isReading && (currentMillis > (_readingTimestamp + 2))) {
     _receiverReading = analogRead(_pin_receiver);
-    digitalWrite(_pin_emitter, LOW);
     _isReading = false;
     _readingTimestamp = currentMillis;
-    _reflectedReading = abs(_ambientReading - _receiverReading);
-    bool oldDetected = _detected;
-    _detected = _reflectedReading >= _threshold;
+    int reflectedReading = abs(_ambientReading - _receiverReading);
 
-    // State Change in the detection - fire the on change event
-    if (oldDetected != _detected) {
-      if (onChange) {
-       onChange(_detected);
+    // Turn off the emitter
+    digitalWrite(_pin_emitter, LOW);
+
+    // Add the reflected reading to the reading array
+    _readings[_readingIndex] = reflectedReading;
+
+    // Increment the reading index for next time
+    _readingIndex += 1;
+    if (_readingIndex > SENSOR_IR_SMOOTHING_READING_COUNT) {
+      _readingIndex = 0;
+    }
+    _readingsTaken += 1;
+    _readingsTaken = constrain(_readingsTaken, 0, SENSOR_IR_SMOOTHING_READING_COUNT);
+
+    // If we have enough readings, evaluate the average
+    if (_readingsTaken >= SENSOR_IR_SMOOTHING_READING_COUNT) {
+      bool oldDetected = _detected;
+
+      // calculate the average reading
+      int sumOfReadings = 0;
+      for (int i = 0; i < SENSOR_IR_SMOOTHING_READING_COUNT; i++) {
+        sumOfReadings += _readings[i];
       }
+      int averageReading = sumOfReadings / SENSOR_IR_SMOOTHING_READING_COUNT;
+      
+      _detected = averageReading >= _threshold;
+
+      // State Change in the detection - fire the on change event
+      if (oldDetected != _detected) {
+        if (onChange) {
+          onChange(_detected);
+        }
+      } 
     }
   }
 }

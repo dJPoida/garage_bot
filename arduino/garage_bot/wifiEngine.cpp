@@ -25,7 +25,7 @@
 #include "botFS.h"
 #include "AsyncJson.h"
 #include "ArduinoJson.h"
-
+#include "doorControl.h"
 
 /**
  * Constructor
@@ -318,8 +318,8 @@ void WiFiEngine::sendStatusToClients(AsyncWebSocketClient *client) {
   doc["m"] = SOCKET_SERVER_MESSAGE_STATUS_CHANGE;
   JsonObject payload = doc.createNestedObject("p");
   
-  // TODO: put some real data here
-  payload["door_status"] = "UP";
+  // Add the door status
+  payload["door_state"] = doorControl.getDoorStateAsString();
   
   char json[1024];
   serializeJsonPretty(doc, json);
