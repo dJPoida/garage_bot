@@ -1,16 +1,13 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { ControlApp } from "./components/control.app";
-import { DoorControlProvider } from "./providers/door-control.provider";
-import { SocketClientProvider } from "./providers/socket-client.provider";
+import { DeviceProvider } from "./providers/device.provider";
 
 import "./scss/control.scss";
 
 ReactDOM.render(
-  <SocketClientProvider>
-    <DoorControlProvider>
-      <ControlApp />
-    </DoorControlProvider>
-  </SocketClientProvider>,
+  <DeviceProvider>
+    <ControlApp />
+  </DeviceProvider>,
   document.getElementById("app")
 );

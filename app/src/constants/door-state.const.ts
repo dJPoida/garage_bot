@@ -14,3 +14,11 @@ export const DOOR_STATE = {
 } as const;
 export type DOOR_STATE = typeof DOOR_STATE;
 export type A_DOOR_STATE = DOOR_STATE[keyof DOOR_STATE];
+
+export const DoorStateDescriptionMap: { [K in A_DOOR_STATE]: string } = {
+  [DOOR_STATE.UNKNOWN]: "Unknown",
+  [DOOR_STATE.OPEN]: "Open",
+  [DOOR_STATE.CLOSING]: "Closing",
+  [DOOR_STATE.CLOSED]: "Closed",
+  [DOOR_STATE.OPENING]: "Opening",
+};

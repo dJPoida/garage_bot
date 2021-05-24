@@ -192,7 +192,7 @@ void loop() {
  * @param detected whether an object is being detected by the sensor
  */
 void topSensorChanged(bool detected) {
-  topSensorLED.setState(detected);
+  topSensorLED.setState(!detected);
 
   doorControl.setSensorStates(detected, bottomIRSensor.detected());
 
@@ -209,7 +209,7 @@ void topSensorChanged(bool detected) {
  * @param detected whether an object is being detected by the sensor
  */
 void bottomSensorChanged(bool detected) {
-  bottomSensorLED.setState(detected);
+  bottomSensorLED.setState(!detected);
 
   doorControl.setSensorStates(topIRSensor.detected(), detected);
 

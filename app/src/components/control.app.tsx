@@ -1,10 +1,11 @@
 import React, { useContext } from "react";
+import { DoorStateDescriptionMap } from "../constants/door-state.const";
 import { SOCKET_CLIENT_STATE } from "../constants/socket-client-state.const";
-import { SocketClientContext } from "../providers/socket-client.provider";
+import { DeviceContext } from "../providers/device.provider";
 import { AppHeader } from "./app-header";
 
 export const ControlApp: React.FC = () => {
-  const { socketClientState } = useContext(SocketClientContext);
+  const { doorState, socketClientState, config } = useContext(DeviceContext);
 
   return (
     <div className="app control">
@@ -28,9 +29,25 @@ export const ControlApp: React.FC = () => {
 
       {/* Connected */}
       {socketClientState === SOCKET_CLIENT_STATE.CONNECTED && (
-        <div>
-          <span>Connected.</span>
-        </div>
+        <>
+          <div>
+            <span>Connected.</span>
+          </div>
+          <div>
+            <span>{DoorStateDescriptionMap[doorState]}</span>
+          </div>
+          <hr />
+          <div className="config-list">
+            {Object.keys(config).map((configKey: string) => {
+              return (
+                <div className="item" key={configKey}>
+                  <div className="key">{`${configKey}:`}</div>
+                  <div className="value">{config[configKey] as string}</div>
+                </div>
+              );
+            })}
+          </div>
+        </>
       )}
     </div>
   );

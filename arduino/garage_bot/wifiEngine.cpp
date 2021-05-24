@@ -281,14 +281,13 @@ void WiFiEngine::sendConfigToClients(AsyncWebSocketClient *client) {
   DynamicJsonDocument doc(1024);
   doc["m"] = SOCKET_SERVER_MESSAGE_CONFIG_CHANGE;
   JsonObject payload = doc.createNestedObject("p");
+  payload["mdns_name"]              = config.mdns_name;
   payload["network_device_name"]    = config.network_device_name;
   payload["wifi_ssid"]              = config.wifi_ssid;
-  payload["wifi_password"]          = config.wifi_password;
   payload["mqtt_broker_address"]    = config.mqtt_broker_address;
   payload["mqtt_broker_port"]       = config.mqtt_broker_port;
   payload["mqtt_device_id"]         = config.mqtt_device_id;
   payload["mqtt_username"]          = config.mqtt_username;
-  payload["mqtt_password"]          = config.mqtt_password;
   payload["mqtt_topic"]             = config.mqtt_topic;
   payload["mqtt_state_topic"]       = config.mqtt_state_topic;
   

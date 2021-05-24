@@ -1,1 +1,19 @@
 @import "style";
+
+.config-list {
+  margin-top: 1em;
+
+  .item {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+
+    .key {
+      flex: 1;
+      font-weight: 500;
+    }
+    .value {
+      flex: 1;
+    }
+  }
+}
