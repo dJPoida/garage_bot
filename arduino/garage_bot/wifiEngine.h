@@ -30,11 +30,22 @@ class WiFiEngine {
 
     void sendConfigToClients(AsyncWebSocketClient *client = NULL);  // Send the current device config to (a) connected client(s)
     void sendStatusToClients(AsyncWebSocketClient *client = NULL);  // Send the current device status to (a) connected client(s)
+    void sendSensorDataToClients(
+      unsigned long currentMillis,
+      boolean topIRSensorDetected,
+      int topIRSensorAverageAmbientReading,
+      int topIRSensorAverageActiveReading,
+      boolean bottomIRSensorDetected,
+      int bottomIRSensorAverageAmbientReading,
+      int bottomIRSensorAverageActiveReading
+    );                                                        // Send sensor data to connected web socket clients
 
   private:
     AsyncWebServer *_webServer;                   // A pointer to the web server passed into the init function
     AsyncWebSocket *_webSocket;                   // A pointer to the web socket passed into the init function
     DNSServer *_dnsServer;                        // A pointer to the dns server passed into the init function
+
+    unsigned long _lastSensorBroadcast;           // the millis() that the sensor data was last broadcast to connected socket clients
 
     bool connectToHotSpot();                      // Connect to the configured hot spot and put the device in client mode
     bool broadcastAP();                           // Broadcast the Access Point putting the device in AP mode

@@ -13,6 +13,9 @@ export const SOCKET_SERVER_MESSAGE = {
   // The device config has changed
   CONFIG_CHANGE: "CC",
 
+  // Sensor Data
+  SENSOR_DATA: "SD",
+
   // The device is rebooting
   REBOOTING: "RB",
 } as const;

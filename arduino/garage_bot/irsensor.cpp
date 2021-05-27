@@ -35,7 +35,8 @@ void IRSensor::init(unsigned int pin_emitter, unsigned int pin_receiver, int thr
 
   // initialize all the readings to 0:
   for (int i = 0; i < SENSOR_IR_SMOOTHING_READING_COUNT; i++) {
-    _readings[i] = 0;
+    _ambientReadings[i] = 0;
+    _activeReadings[i] = 0;
   }
   
   _pin_receiver = pin_receiver;
@@ -60,24 +61,26 @@ void IRSensor::init(unsigned int pin_emitter, unsigned int pin_receiver, int thr
 void IRSensor::run(unsigned long currentMillis) {
   // Phase 1 - Take an ambient Reading then turn on the emitter
   if (!_isReading && (currentMillis > (_readingTimestamp + SENSOR_IR_READ_DELAY - 2))) {
-    _ambientReading = analogRead(_pin_receiver);
-    digitalWrite(_pin_emitter, HIGH);
     _isReading = true;
     _readingTimestamp = currentMillis;
+
+    // Take an ambient reading and add it to the readings array
+    _ambientReadings[_readingIndex] = analogRead(_pin_receiver);
+
+    // Turn on the emitter in anticipation of the active reading
+    digitalWrite(_pin_emitter, HIGH);
   } 
 
   // Phase 2 - After giving the emitter 2ms to emit, take a reading then turn off the emitter
   else if (_isReading && (currentMillis > (_readingTimestamp + 2))) {
-    _receiverReading = analogRead(_pin_receiver);
     _isReading = false;
     _readingTimestamp = currentMillis;
-    int reflectedReading = abs(_ambientReading - _receiverReading);
 
+    // Take an active reading now that the emitter is active
+    _activeReadings[_readingIndex] = analogRead(_pin_receiver);
+    
     // Turn off the emitter
     digitalWrite(_pin_emitter, LOW);
-
-    // Add the reflected reading to the reading array
-    _readings[_readingIndex] = reflectedReading;
 
     // Increment the reading index for next time
     _readingIndex += 1;
@@ -89,31 +92,27 @@ void IRSensor::run(unsigned long currentMillis) {
 
     // If we have enough readings, evaluate the average
     if (_readingsTaken >= SENSOR_IR_SMOOTHING_READING_COUNT) {
-      bool oldDetected = _detected;
+      bool oldDetected = detected;
 
       // calculate the average reading
-      int sumOfReadings = 0;
+      int sumOfActiveReadings = 0;
+      int sumOfAmbientReadings = 0;
       for (int i = 0; i < SENSOR_IR_SMOOTHING_READING_COUNT; i++) {
-        sumOfReadings += _readings[i];
+        sumOfAmbientReadings += _ambientReadings[i];
+        sumOfActiveReadings += _activeReadings[i];
       }
-      int averageReading = sumOfReadings / SENSOR_IR_SMOOTHING_READING_COUNT;
-      
-      _detected = averageReading >= _threshold;
+      averageAmbientReading = sumOfAmbientReadings / SENSOR_IR_SMOOTHING_READING_COUNT;
+      averageActiveReading = sumOfActiveReadings / SENSOR_IR_SMOOTHING_READING_COUNT;
+
+      // If the difference between the active and the ambient reading exceeds the threshold, a detection has occurred
+      detected = abs(averageAmbientReading - averageActiveReading) >= _threshold;
 
       // State Change in the detection - fire the on change event
-      if (oldDetected != _detected) {
+      if (oldDetected != detected) {
         if (onChange) {
-          onChange(_detected);
+          onChange(detected);
         }
       } 
     }
   }
-}
-
-
-/**
- * Getter for the _detected property
- */
-bool IRSensor::detected() {
-  return _detected;
 }

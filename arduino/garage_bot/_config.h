@@ -55,6 +55,9 @@
 // The number of readings to use to average out the value
 #define SENSOR_IR_SMOOTHING_READING_COUNT 20
 
+// The number of milliseconds to wait inbetween sensor data broadcast to the connected socket clients
+#define SENSOR_BROADCAST_INTERVAL 1000
+
 // The difference between the ambient reading and the active reading require before a detection event is triggered (0 - 4095)
 #define DEFAULT_IR_THRESHOLD 150
 
@@ -102,6 +105,7 @@ extern Config config;
 #define SOCKET_SERVER_MESSAGE_PONG "PO"
 #define SOCKET_SERVER_MESSAGE_STATUS_CHANGE "SC"
 #define SOCKET_SERVER_MESSAGE_CONFIG_CHANGE "CC"
+#define SOCKET_SERVER_MESSAGE_SENSOR_DATA "SD"
 #define SOCKET_SERVER_MESSAGE_REBOOTING "RB"
 
 

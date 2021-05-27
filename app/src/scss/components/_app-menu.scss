@@ -1,0 +1,40 @@
+.app-menu {
+  .drawer {
+    position: relative;
+
+    button {
+      width: calc(100% - (var(--universal-padding) * 2));
+    }
+
+    .app-title {
+      height: 4rem;
+      display: flex;
+      margin-right: 4.5rem;
+      padding: var(--universal-padding);
+      justify-content: flex-start;
+      align-items: center;
+      flex-direction: row;
+
+      .app-icon {
+        max-width: 3rem;
+        margin-right: var(--universal-padding);
+      }
+
+      .title-wrapper {
+        display: flex;
+        flex-direction: column;
+        flex-wrap: nowrap;
+        overflow: hidden;
+
+        > span {
+          white-space: nowrap;
+          font-size: 0.75em;
+          &:first-of-type {
+            font-size: 1.25rem;
+            font-weight: 500;
+          }
+        }
+      }
+    }
+  }
+}

@@ -2,13 +2,17 @@ import React, { createContext } from "react";
 import { A_DOOR_STATE, DOOR_STATE } from "../constants/door-state.const";
 import { SOCKET_CLIENT_EVENT } from "../constants/socket-client-event.const";
 import { A_SOCKET_CLIENT_STATE } from "../constants/socket-client-state.const";
-import { IConfig } from "../types/config.interface";
+import { IConfig, mapPayloadToConfig } from "../types/config.interface";
 import {
   A_SOCKET_SERVER_MESSAGE,
   SOCKET_SERVER_MESSAGE,
 } from "../constants/socket-server-message.const";
 
 import { socketClient } from "../helpers/socket-client.helper";
+import {
+  ISensorData,
+  mapPayloadToSensorData,
+} from "../types/sensor-data.interface";
 
 type DeviceProviderProps = {};
 type DeviceProviderState = {
@@ -16,11 +20,12 @@ type DeviceProviderState = {
   error: null | Error;
   doorState: A_DOOR_STATE;
   config: IConfig;
+  sensorData: ISensorData;
 };
 
 type DeviceContextProps = Pick<
   DeviceProviderState,
-  "socketClientState" | "error" | "doorState" | "config"
+  "socketClientState" | "error" | "doorState" | "config" | "sensorData"
 > & {};
 
 export const DeviceContext = createContext<DeviceContextProps>(null as any);
@@ -51,6 +56,14 @@ export class DeviceProvider extends React.Component<
         mqttUserName: null,
         mqttTopic: null,
         mqttStateTopic: null,
+      },
+      sensorData: {
+        topIRSensorDetected: false,
+        topIRSensorAverageAmbientReading: 0,
+        topIRSensorAverageActiveReading: 0,
+        bottomIRSensorDetected: false,
+        bottomIRSensorAverageAmbientReading: 0,
+        bottomIRSensorAverageActiveReading: 0,
       },
     };
     this._bindEvents();
@@ -98,28 +111,28 @@ export class DeviceProvider extends React.Component<
     payload: Record<string, unknown>
   ) => {
     switch (message) {
+      // Device Status has changed
       case SOCKET_SERVER_MESSAGE.STATUS_CHANGE:
         this.setState({
           doorState: payload["door_state"] as A_DOOR_STATE,
         });
         return;
+
+      // Config has changed
       case SOCKET_SERVER_MESSAGE.CONFIG_CHANGE:
-        const newConfig: IConfig = {
-          mdnsName: payload["mdns_name"] as string,
-          networkDeviceName: payload["network_device_name"] as string,
-          wifiSSID: payload["wifi_ssid"] as string,
-          ipAddress: payload["ip_address"] as string,
-          mqttBrokerAddress: payload["mqtt_broker_address"] as string,
-          mqttBrokerPort: payload["mqtt_broker_port"] as number,
-          mqttDeviceId: payload["mqtt_device_id"] as string,
-          mqttUserName: payload["mqtt_username"] as string,
-          mqttTopic: payload["mqtt_topic"] as string,
-          mqttStateTopic: payload["mqtt_state_topic"] as string,
-        };
         this.setState({
-          config: newConfig,
+          config: mapPayloadToConfig(payload),
         });
         return;
+
+      // Device Status has changed
+      case SOCKET_SERVER_MESSAGE.SENSOR_DATA:
+        console.log(mapPayloadToSensorData(payload));
+        this.setState({
+          sensorData: mapPayloadToSensorData(payload),
+        });
+        return;
+
       default:
         console.error("Unhandled Server Message: ", message);
     }
@@ -137,7 +150,13 @@ export class DeviceProvider extends React.Component<
    */
   render() {
     const { children } = this.props;
-    const { socketClientState, error, doorState, config } = this.state;
+    const {
+      socketClientState,
+      error,
+      doorState,
+      config,
+      sensorData,
+    } = this.state;
     return (
       <DeviceContext.Provider
         value={{
@@ -145,6 +164,7 @@ export class DeviceProvider extends React.Component<
           error,
           doorState,
           config,
+          sensorData,
         }}
       >
         {children}

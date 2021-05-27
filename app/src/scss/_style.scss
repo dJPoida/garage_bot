@@ -1,6 +1,12 @@
 @import "/node_modules/mini.css/dist/mini-dark.css";
 @import "components/.components";
 
+:root {
+  --a-link-color: #cc7641;
+  --a-visited-color: #c7703a;
+  --nav-link-color: #cc7641;
+}
+
 #app {
   height: 100vh;
   width: 100vw;
@@ -15,13 +21,6 @@
   justify-content: center;
   align-items: center;
   padding: var(--universal-padding);
-}
-
-.app-header {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
 }
 
 .button-row {
@@ -45,4 +44,35 @@
   --card-back-color: #1cb729;
   --card-fore-color: #f8f8f8;
   --card-border-color: #1cb729;
+}
+
+.app-menu {
+  .drawer-toggle,
+  .drawer-close {
+    border: 0.15rem solid var(--border-color);
+    position: absolute;
+    top: var(--universal-margin);
+    right: var(--universal-margin);
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--universal-border-radius);
+    padding: var(--universal-padding);
+    margin: 0;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .drawer-toggle {
+    font-size: 1.15em;
+  }
+}
+
+span[class^="icon-"] {
+  background-repeat: no-repeat;
+}
+
+span[class^="icon-"] + span {
+  margin-left: var(--universal-margin);
 }

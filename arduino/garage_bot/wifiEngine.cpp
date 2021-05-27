@@ -336,6 +336,47 @@ void WiFiEngine::sendStatusToClients(AsyncWebSocketClient *client) {
 
 
 /**
+ * Send the sensor data to the connected clients
+ * Called on a regular basis by the main loop
+ *
+ * @param currentMillis the current milliseconds as passed down from the main loop
+ */
+void WiFiEngine::sendSensorDataToClients(
+  unsigned long currentMillis,
+  boolean topIRSensorDetected,
+  int topIRSensorAverageAmbientReading,
+  int topIRSensorAverageActiveReading,
+  boolean bottomIRSensorDetected,
+  int bottomIRSensorAverageAmbientReading,
+  int bottomIRSensorAverageActiveReading
+) {
+  // TODO: Figure out how to only send data if there's a connected client. This is a waste of processing power.
+  
+  // If the appropriate amount of time has passed and the button is stable, register the change
+  if ((currentMillis - _lastSensorBroadcast) > SENSOR_BROADCAST_INTERVAL) {
+    DynamicJsonDocument doc(1024);
+    // Message Type
+    doc["m"] = SOCKET_SERVER_MESSAGE_SENSOR_DATA;
+
+    // Payload
+    JsonObject payload = doc.createNestedObject("p");
+    payload["top_detected"] = topIRSensorDetected;
+    payload["top_ambient"] = topIRSensorAverageAmbientReading;
+    payload["top_active"] = topIRSensorAverageActiveReading;
+    payload["bottom_detected"] = bottomIRSensorDetected;
+    payload["bottom_ambient"] = bottomIRSensorAverageAmbientReading;
+    payload["bottom_active"] = bottomIRSensorAverageActiveReading;
+  
+    // Send the sensor data to all connected clients
+    char json[1024];
+    serializeJsonPretty(doc, json);
+    _webSocket->textAll(json);
+
+    _lastSensorBroadcast = currentMillis;
+  }
+}
+
+/**
  * Used when serving HTML files to replace key variables in the HTML with
  * current state data.
  * 

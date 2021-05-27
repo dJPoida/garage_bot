@@ -149,7 +149,6 @@ class SocketClient extends events.EventEmitter {
     const payload: Record<string, unknown> = data.p ?? {};
 
     this.emit(SOCKET_CLIENT_EVENT.MESSAGE, message, payload);
-    console.info("Socket Message Received: ", message, payload);
   };
 
   /**

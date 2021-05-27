@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { AppFooter } from "./app-footer";
-import { AppHeader } from "./app-header";
+import { AppFooter } from "../app-footer";
+import { AppHeader } from "../app-header";
 
 export const APModeApp: React.FC = () => {
   const [wifiSSID, setWifiSSID] = useState<string>("");

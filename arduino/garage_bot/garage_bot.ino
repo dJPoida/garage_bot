@@ -180,6 +180,17 @@ void loop() {
   panelButton.run(currentMillis);
   rfReceiver.run(currentMillis);
   remoteRepeater.run(currentMillis);
+  
+  // Send sensor data to any connected socket clients
+  wifiEngine.sendSensorDataToClients(
+    currentMillis,
+    topIRSensor.detected,
+    topIRSensor.averageAmbientReading,
+    topIRSensor.averageActiveReading,
+    bottomIRSensor.detected,
+    bottomIRSensor.averageAmbientReading,
+    bottomIRSensor.averageActiveReading
+  );
 
   // Check to see if the reboot flag has been tripped
   checkReboot();
@@ -194,7 +205,7 @@ void loop() {
 void topSensorChanged(bool detected) {
   topSensorLED.setState(!detected);
 
-  doorControl.setSensorStates(detected, bottomIRSensor.detected());
+  doorControl.setSensorStates(detected, bottomIRSensor.detected);
 
   #ifdef SERIAL_DEBUG
   Serial.print("Top: ");
@@ -211,7 +222,7 @@ void topSensorChanged(bool detected) {
 void bottomSensorChanged(bool detected) {
   bottomSensorLED.setState(!detected);
 
-  doorControl.setSensorStates(topIRSensor.detected(), detected);
+  doorControl.setSensorStates(topIRSensor.detected, detected);
 
   #ifdef SERIAL_DEBUG
   Serial.print("Bottom: ");
