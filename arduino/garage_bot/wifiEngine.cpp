@@ -424,25 +424,17 @@ void WiFiEngine::handleSetWiFi(AsyncWebServerRequest *request, uint8_t *body){
 void WiFiEngine::handleWebSocketData(void *arg, uint8_t *data, size_t len) {
   AwsFrameInfo *info = (AwsFrameInfo*)arg;
   if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
-    const uint8_t size = JSON_OBJECT_SIZE(1);
-    StaticJsonDocument<size> json;
-    DeserializationError err = deserializeJson(json, data);
-    if (err) {
-      #ifdef SERIAL_DEBUG
-      Serial.print(F("deserializeJson() failed with code "));
-      Serial.println(err.c_str());
-      #endif
-      return;
-    }
 
-    const char *message = json["m"];
-    JsonObject payload = json["p"];
-
-    // SOCKET_CLIENT_MESSAGE_PRESS_BUTTON
-    if (strcmp(message, SOCKET_CLIENT_MESSAGE_PRESS_BUTTON) == 0) {
-      #ifdef SERIAL_DEBUG
-      Serial.println("TODO: SOCKET_CLIENT_MESSAGE_PRESS_BUTTON");
-      #endif
-    }
+    DynamicJsonDocument json(256);
+    deserializeJson(json, (char*)data);
+//    const char *message = json["m"];
+//    JsonObject payload = json["p"];
+//
+//    // SOCKET_CLIENT_MESSAGE_PRESS_BUTTON
+//    if (strcmp(message, SOCKET_CLIENT_MESSAGE_PRESS_BUTTON) == 0) {
+//      #ifdef SERIAL_DEBUG
+//      Serial.println("TODO: SOCKET_CLIENT_MESSAGE_PRESS_BUTTON");
+//      #endif
+//    }
   }
 }

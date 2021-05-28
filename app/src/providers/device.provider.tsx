@@ -13,6 +13,7 @@ import {
   ISensorData,
   mapPayloadToSensorData,
 } from "../types/sensor-data.interface";
+import { SOCKET_CLIENT_MESSAGE } from "../constants/socket-client-message.const";
 
 type DeviceProviderProps = {};
 type DeviceProviderState = {
@@ -26,7 +27,10 @@ type DeviceProviderState = {
 type DeviceContextProps = Pick<
   DeviceProviderState,
   "socketClientState" | "error" | "doorState" | "config" | "sensorData"
-> & {};
+> & {
+  pressButton: () => void;
+  releaseButton: () => void;
+};
 
 export const DeviceContext = createContext<DeviceContextProps>(null as any);
 
@@ -146,6 +150,20 @@ export class DeviceProvider extends React.Component<
   };
 
   /**
+   * Fired when the user presses the "activate door" button
+   */
+  handlePressButton = () => {
+    socketClient.sendMessage(SOCKET_CLIENT_MESSAGE.PRESS_BUTTON, {});
+  };
+
+  /**
+   * Fired when the user releases the "activate door" button
+   */
+  handleReleaseButton = () => {
+    socketClient.sendMessage(SOCKET_CLIENT_MESSAGE.RELEASE_BUTTON, {});
+  };
+
+  /**
    * Render
    */
   render() {
@@ -165,6 +183,8 @@ export class DeviceProvider extends React.Component<
           doorState,
           config,
           sensorData,
+          pressButton: this.handlePressButton,
+          releaseButton: this.handleReleaseButton,
         }}
       >
         {children}

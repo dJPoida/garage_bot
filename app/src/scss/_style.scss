@@ -5,6 +5,8 @@
   --a-link-color: #cc7641;
   --a-visited-color: #c7703a;
   --nav-link-color: #cc7641;
+  --color-success: #1cb729;
+  --color-warning: #dabf28;
 }
 
 #app {
@@ -18,7 +20,7 @@
   min-height: calc(100vh - (var(--universal-padding) * 2));
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   padding: var(--universal-padding);
 }
@@ -41,7 +43,7 @@
 }
 
 .card.success {
-  --card-back-color: #1cb729;
+  --card-back-color: var(--color-success);
   --card-fore-color: #f8f8f8;
   --card-border-color: #1cb729;
 }

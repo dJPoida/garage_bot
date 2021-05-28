@@ -15,3 +15,11 @@ At the time of creating this project, we're renting our house. This limits my ab
 
 ## System Design
 ![System Design](designs/system_overview.png)
+
+## TODO
+- User Interface
+    - Provide a form to configure the MQTT settings
+    - Provide a form to configure the sensitivity of the sensors
+- Improve reliability
+    - When the client socket disconnects, attempt to re-connect
+    - When the WiFi on the device is disconnected, attempt to re-connect

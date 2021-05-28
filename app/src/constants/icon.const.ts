@@ -23,6 +23,9 @@ export const ICON = {
   SHARE: "icon-share",
   UPLOAD: "icon-upload",
   USER: "icon-user",
+  UP: "icon-up",
+  TOGGLE: "icon-toggle",
+  DOWN: "icon-down",
 } as const;
 export type ICON = typeof ICON;
 export type AN_ICON = ICON[keyof ICON];
