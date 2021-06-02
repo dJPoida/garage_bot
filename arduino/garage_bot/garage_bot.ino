@@ -110,16 +110,6 @@ void setup() {
     return;
   }
 
-  // Initialise the RF receiver
-  if (!rfReceiver.init()) {
-    // Failed to initialise the RF Receiver. Oh well. Bail.
-    #ifdef SERIAL_DEBUG
-    Serial.println("\n\nFAILED TO INITIALIZE THE RF RECEIVER. HALTED!");
-    #endif
-    // TODO: at some point perform a "HALT" with a red-flashing light
-    return;
-  }
-
   // Sensors
   topIRSensor.init(PIN_SENSOR_TOP_EMITTER, PIN_SENSOR_TOP_RECEIVER, DEFAULT_IR_THRESHOLD);
   topIRSensor.onChange = topSensorChanged;
@@ -140,6 +130,10 @@ void setup() {
   // Flash Timer
   ledTimer.init();
   ledTimer.onTimer = updateLEDFlashes;
+
+  // RF receiver
+  rfReceiver.init();
+  rfReceiver.onButtonPress = rfReceiverButtonPressed;
 
   // Remote Repeater
   remoteRepeater.init(PIN_REMOTE_REPEATER);
@@ -244,6 +238,31 @@ void remoteRepeaterActivationChanged(bool activated) {
   Serial.println(activated);
   #endif
 }
+
+
+/**
+ * Fired when the RF Receiver detects a button press
+ * 
+ * @param down whether the remote button is being "pressed"
+ */
+void rfReceiverButtonPressed(bool down) {
+  #ifdef SERIAL_DEBUG
+  Serial.print("Remote Button ");
+  #endif
+  
+  if (down) {
+    #ifdef SERIAL_DEBUG
+    Serial.println("Pressed");
+    #endif
+    // TODO: latch it based on "down"
+    remoteRepeater.activate();
+  } else {
+    #ifdef SERIAL_DEBUG
+    Serial.println("Released");
+    #endif
+  }
+}
+
 
 
 /**

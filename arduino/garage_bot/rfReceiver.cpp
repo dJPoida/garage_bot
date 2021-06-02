@@ -5,12 +5,12 @@
  * Manages the RF comms from the RF remote controls
 \*============================================================================*/
 
+#include "Arduino.h"
 #include "rfReceiver.h"
 #include "_config.h"
-#include <RH_ASK.h>
-#include <SPI.h> // Not actually used but needed to compile
+#include <RCSwitch.h>
 
-RH_ASK driver(2000, PIN_RF_RECEIVE, PIN_RF_DUD_TRANSMIT, 5);
+RCSwitch gbSwitch = RCSwitch();
 
 /**
  * Constructor
@@ -21,18 +21,16 @@ RFReceiver::RFReceiver() {}
 /**
  * Initialise
  */
-bool RFReceiver::init(){
+void RFReceiver::init(){
   #ifdef SERIAL_DEBUG
   Serial.println("Initialising RF Remote Receiver...");
   #endif
 
-  if (!driver.init()) return false;
+  gbSwitch.enableReceive(digitalPinToInterrupt(PIN_RF_RECEIVE));
 
   #ifdef SERIAL_DEBUG
   Serial.println("RF Remote Receiver initialised.");
   #endif
-
-  return true;
 }
 
 
@@ -42,16 +40,22 @@ bool RFReceiver::init(){
  * @param currentMillis the current milliseconds as passed down from the main loop
  */
 void RFReceiver::run(unsigned long currentMillis) {
-  uint8_t buf[RH_ASK_MAX_MESSAGE_LEN];
-  uint8_t buflen = sizeof(buf);
-
-  if (driver.recv(buf, &buflen)) {
+  if (gbSwitch.available()) {
     #ifdef SERIAL_DEBUG
-    Serial.print("Received: ");
-    Serial.println((char*)buf);
+    Serial.println(gbSwitch.getReceivedValue());
+    // TODO: This is temporary
+    if (onButtonPress) {
+      onButtonPress(true);
+    }
+//    Serial.print(" | ");
+//    Serial.print((char)gbSwitch.getReceivedBitlength());
+//    Serial.print(" | ");
+//    Serial.print((char)gbSwitch.getReceivedDelay());
+//    Serial.print(" | ");
+//    Serial.print((char)gbSwitch.getReceivedRawdata());
+//    Serial.print(" | ");
+//    Serial.println((char)gbSwitch.getReceivedProtocol());
     #endif
-    // int i;
-    // Message with a good checksum received, dump it.
-    // driver.printBuffer("Got:", buf, buflen);
+    gbSwitch.resetAvailable();
   }
 }

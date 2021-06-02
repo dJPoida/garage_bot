@@ -25,8 +25,7 @@
 #define PIN_BTN_FRONT_PANEL 15
 
 // The RF Data Receive Pin
-#define PIN_RF_RECEIVE 25
-#define PIN_RF_DUD_TRANSMIT 13
+#define PIN_RF_RECEIVE 27
 
 // The Remote Repeater Relay Activation Pin
 #define PIN_REMOTE_REPEATER 26

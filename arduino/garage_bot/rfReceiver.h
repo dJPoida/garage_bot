@@ -9,16 +9,15 @@
 #define RFRECEIVER_H
 
 #include "helpers.h"
-#include <RH_ASK.h>
 
 class RFReceiver {
   public:
     RFReceiver();
     
-    bool init();
+    void init();
     void run(unsigned long currentMillis);
 
-    boolValueChangedFunction onRfInputChanged;
+    boolValueChangedFunction onButtonPress;
   private:
 };
 
