@@ -118,6 +118,8 @@ bool BotFS::loadConfig() {
   config.mqtt_password = doc["mqtt_password"] | config.mqtt_password;
   config.mqtt_topic = doc["mqtt_topic"] | config.mqtt_topic;
   config.mqtt_state_topic = doc["mqtt_state_topic"] | config.mqtt_state_topic;
+  JsonArray rfCodes = doc.as<JsonArray>();
+  copyArray(config.rf_codes, 5, rfCodes);
 
   configFile.close();
     
@@ -126,7 +128,7 @@ bool BotFS::loadConfig() {
   Serial.print("   + WiFi SSID: ");
   Serial.println(config.wifi_ssid);
   Serial.print("   + WiFi Password: ");
-  Serial.println(config.wifi_password);
+  Serial.println(config.wifi_password); 
   #endif
     
   return true;
@@ -161,6 +163,10 @@ bool BotFS::saveConfig() {
   // Use arduinojson.org/assistant to compute the capacity.
   StaticJsonDocument<1024> doc;
 
+  // JSON array will be used for the RF codes
+  JsonArray rfCodes = doc.to<JsonArray>();
+  copyArray(config.rf_codes, rfCodes);
+  
   // Set the values in the document
   doc["network_device_name"]    = config.network_device_name;
   doc["wifi_ssid"]              = config.wifi_ssid;
@@ -172,6 +178,7 @@ bool BotFS::saveConfig() {
   doc["mqtt_password"]          = config.mqtt_password;
   doc["mqtt_topic"]             = config.mqtt_topic;
   doc["mqtt_state_topic"]       = config.mqtt_state_topic;
+  doc["rf_codes"]               = rfCodes;
 
   // Serialize JSON to file
   if (serializeJson(doc, configFile) == 0) {

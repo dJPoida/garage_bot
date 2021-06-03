@@ -2,7 +2,7 @@
  * Garage Bot
  * Author: Peter Eldred
  * Date: 2021-04
- * GitHub: TODO
+ * GitHub: https://github.com/dJPoida/garage_bot
  * Description: The Garage Bot repeats the RF signal of my legacy garage door
  *              remote control and exposes the state of the door as well as
  *              activation controls to a smart home via an MQTT server.
@@ -17,7 +17,7 @@
  *  - Arduino ESP32 File System Uploader (https://github.com/lorol/arduino-esp32fs-plugin)
  *  - Async TCP Library for ESP32 Arduino (https://github.com/me-no-dev/AsyncTCP)
  *  - ESP Async Web Server (https://github.com/me-no-dev/ESPAsyncWebServer)
- *  - RadioHead 433mhz Receiver (http://www.airspayce.com/mikem/arduino/RadioHead/index.html)
+ *  - RCSwitch for 433mhz Receiver (https://github.com/sui77/rc-switch)
 \*============================================================================*/
 
 
@@ -84,6 +84,8 @@ void setup() {
   Serial.println("\n==============================");
   Serial.print("\nGarage Bot v");
   Serial.println(firmwareVersion);
+  Serial.println("Author: Peter Eldred (aka dJPoida)");
+  Serial.println("https://github.com/dJPoida/garage_bot");
   Serial.println("\n==============================");
   Serial.println();
   #endif
@@ -153,6 +155,12 @@ void setup() {
   } else {
     wiFiLED.setState(HIGH);
   }
+
+  // All done
+  #ifdef SERIAL_DEBUG
+  Serial.println("\nInitialisation Complete.\n==============================");
+  Serial.println();
+  #endif
 }
 
 
@@ -316,7 +324,8 @@ void updateLEDFlashes() {
 void doorControlStateChanged(DoorState newDoorState) {
   // Notify any connected clients of the door state change
   wifiEngine.sendStatusToClients();
-  
+
+  #ifdef SERIAL_DEBUG
   switch (newDoorState) {
     case DOORSTATE_OPEN:
       Serial.println("DOOR OPEN");
@@ -331,4 +340,5 @@ void doorControlStateChanged(DoorState newDoorState) {
       Serial.println("DOOR CLOSING");
       break;
   }
+  #endif
 }

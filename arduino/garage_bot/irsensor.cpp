@@ -84,14 +84,13 @@ void IRSensor::run(unsigned long currentMillis) {
 
     // Increment the reading index for next time
     _readingIndex += 1;
-    if (_readingIndex > SENSOR_IR_SMOOTHING_READING_COUNT) {
+    if (_readingIndex >= SENSOR_IR_SMOOTHING_READING_COUNT) {
       _readingIndex = 0;
     }
-    _readingsTaken += 1;
-    _readingsTaken = constrain(_readingsTaken, 0, SENSOR_IR_SMOOTHING_READING_COUNT);
+    _readingsTaken = constrain(_readingsTaken + 1, 0, (SENSOR_IR_SMOOTHING_READING_COUNT - 1));
 
     // If we have enough readings, evaluate the average
-    if (_readingsTaken >= SENSOR_IR_SMOOTHING_READING_COUNT) {
+    if (_readingsTaken >= (SENSOR_IR_SMOOTHING_READING_COUNT - 1)) {
       bool oldDetected = detected;
 
       // calculate the average reading
@@ -105,7 +104,7 @@ void IRSensor::run(unsigned long currentMillis) {
       averageActiveReading = sumOfActiveReadings / SENSOR_IR_SMOOTHING_READING_COUNT;
 
       // If the difference between the active and the ambient reading exceeds the threshold, a detection has occurred
-      detected = abs(averageAmbientReading - averageActiveReading) >= _threshold;
+      detected = (abs(averageAmbientReading - averageActiveReading) >= _threshold);
 
       // State Change in the detection - fire the on change event
       if (oldDetected != detected) {

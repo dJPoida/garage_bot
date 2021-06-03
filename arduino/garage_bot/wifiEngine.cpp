@@ -192,10 +192,16 @@ void WiFiEngine::initRoutes() {
   // Route for root / web page (apmode.html)
   _webServer->on("/", HTTP_GET, [&](AsyncWebServerRequest *request){
     if (wifiEngineMode == WEM_AP) {
+      #ifdef SERIAL_DEBUG
       Serial.println("Sending APMODE");
+      #endif
+      
       request->send(LITTLEFS, "/apmode.html", String(), false, templateProcessor);
     } else {
+      #ifdef SERIAL_DEBUG
       Serial.println("Sending INDEX");
+      #endif
+      
       request->send(LITTLEFS, "/index.html", String(), false, templateProcessor);
     }
   });

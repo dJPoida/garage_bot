@@ -41,21 +41,41 @@ void RFReceiver::init(){
  */
 void RFReceiver::run(unsigned long currentMillis) {
   if (gbSwitch.available()) {
-    #ifdef SERIAL_DEBUG
-    Serial.println(gbSwitch.getReceivedValue());
-    // TODO: This is temporary
-    if (onButtonPress) {
-      onButtonPress(true);
+    int receivedCode = gbSwitch.getReceivedValue();
+    byte matchingCode = 0;
+
+    // TODO: We may need these later to better verify the remote
+    // Serial.print((char)gbSwitch.getReceivedBitlength());
+    // Serial.print((char)gbSwitch.getReceivedDelay());
+    // Serial.print((char)gbSwitch.getReceivedRawdata());
+    // Serial.println((char)gbSwitch.getReceivedProtocol());
+    
+    // Iterate over the registered codes and check the incoming code
+    for (byte i = 1; i <= 5; i++){
+      if (config.rf_codes[i - 1] == receivedCode) {
+        matchingCode = i;
+      }
     }
-//    Serial.print(" | ");
-//    Serial.print((char)gbSwitch.getReceivedBitlength());
-//    Serial.print(" | ");
-//    Serial.print((char)gbSwitch.getReceivedDelay());
-//    Serial.print(" | ");
-//    Serial.print((char)gbSwitch.getReceivedRawdata());
-//    Serial.print(" | ");
-//    Serial.println((char)gbSwitch.getReceivedProtocol());
-    #endif
+
+    if (matchingCode > 0) {
+      #ifdef SERIAL_DEBUG
+      Serial.print("Registered code ");
+      Serial.print(matchingCode);
+      Serial.print(": '");
+      Serial.print(receivedCode);
+      Serial.println("' received");
+      #endif
+
+      if (onButtonPress) {
+        onButtonPress(true);
+      }
+    } else {
+      #ifdef SERIAL_DEBUG
+      Serial.print("Unregistered code '");
+      Serial.print(receivedCode);
+      Serial.println("' received");
+      #endif
+    }
     gbSwitch.resetAvailable();
   }
 }

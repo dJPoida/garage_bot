@@ -25,9 +25,6 @@ void IRAM_ATTR onLEDTimer(){
   portEXIT_CRITICAL_ISR(&timerMux);
   // Give a semaphore that we can check in the loop
   xSemaphoreGiveFromISR(timerSemaphore, NULL);
-  
-  // TODO: fire the LEDTimer callback
-  //Serial.println("tahdo: someShit");
 }
 
 
