@@ -19,6 +19,7 @@ class RFReceiver {
 
     boolValueChangedFunction onButtonPress;
   private:
+
 };
 
 extern RFReceiver rfReceiver;

@@ -4,7 +4,7 @@
  * Garage Bot
  * Author: Peter Eldred
  * Date: 2021-04
- * GitHub: TODO
+ * GitHub: https://github.com/dJPoida/garage_bot
  * Description: The Garage Bot repeats the RF signal of my legacy garage door
  *              remote control and exposes the state of the door as well as
  *              activation controls to a smart home via an MQTT server.
@@ -19,7 +19,7 @@
  *  - Arduino ESP32 File System Uploader (https://github.com/lorol/arduino-esp32fs-plugin)
  *  - Async TCP Library for ESP32 Arduino (https://github.com/me-no-dev/AsyncTCP)
  *  - ESP Async Web Server (https://github.com/me-no-dev/ESPAsyncWebServer)
- *  - RadioHead 433mhz Receiver (http://www.airspayce.com/mikem/arduino/RadioHead/index.html)
+ *  - RCSwitch for 433mhz Receiver (https://github.com/sui77/rc-switch)
 \*============================================================================*/
 
 
@@ -34,9 +34,9 @@
 /**
  * Includes
  */
-#include <DNSServer.h>
-#include <ESPAsyncWebServer.h>
-#include <AsyncTCP.h>
+#include "DNSServer.h"
+#include "ESPAsyncWebServer.h"
+#include "AsyncTCP.h"
 #include "_config.h"
 #include "botFS.h"
 #include "botLED.h"
@@ -46,6 +46,8 @@
 #include "irsensor.h"
 #include "rfReceiver.h"
 #include "remoteRepeater.h"
+#include "doorControl.h"
+#include "mqttClient.h"
 #include "reboot.h"
 
 
@@ -54,6 +56,7 @@
  */
 const char* firmwareVersion = FIRMWARE_VERSION;                           // Firmware Version
 AsyncWebServer webServer(WEB_SERVER_PORT);                                // The Web Server for serving the control code
+AsyncWebSocket webSocket("/ws");                                          // The Web Socket for realtime comms with the client application
 DNSServer dnsServer;                                                      // A DNS Server for use when in Access Point mode
 Config config;                                                            // The configuration struct for storing and reading from LITTLEFS
 BotFS botFS = BotFS();                                                    // A File System Wrapper for simplifying LITTLEFS interaction
@@ -67,13 +70,34 @@ BotLED bottomSensorLED = BotLED(PIN_LED_BOTTOM_SENSOR, "Bottom Sensor");  // The
 BotButton panelButton = BotButton(PIN_BTN_FRONT_PANEL, "Front Panel");    // The Front Panel Button
 RFReceiver rfReceiver = RFReceiver();                                     // The RF Receiver for the remote controls
 RemoteRepeater remoteRepeater = RemoteRepeater();                         // The object responsible for triggering the original garage remote
+DoorControl doorControl = DoorControl();                                  // The object that manages the logical state of the door (open / closed / opening / closing)
 LEDTimer ledTimer = LEDTimer();                                           // A Timer to help with the flashing LEDs
+MQTTClient mqttClient = MQTTClient();                                     // The client which manages MQTT broadcasts and subscriptions
 WiFiEngine wifiEngine = WiFiEngine();                                     // The Garage Bot's WiFi engine
 
 
 /**
  * Setup
  */
+#line 80 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+void setup();
+#line 170 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+void loop();
+#line 207 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+void topSensorChanged(bool detected);
+#line 224 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+void bottomSensorChanged(bool detected);
+#line 241 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+void remoteRepeaterActivationChanged(bool activated);
+#line 256 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+void rfReceiverButtonPressed(bool down);
+#line 281 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+void panelButtonPressed(ButtonPressType buttonPressType);
+#line 315 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+void updateLEDFlashes();
+#line 324 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+void doorControlStateChanged(DoorState newDoorState);
+#line 80 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void setup() {
   // Serial Initialisation
   #ifdef SERIAL_DEBUG
@@ -81,6 +105,8 @@ void setup() {
   Serial.println("\n==============================");
   Serial.print("\nGarage Bot v");
   Serial.println(firmwareVersion);
+  Serial.println("Author: Peter Eldred (aka dJPoida)");
+  Serial.println("https://github.com/dJPoida/garage_bot");
   Serial.println("\n==============================");
   Serial.println();
   #endif
@@ -98,20 +124,10 @@ void setup() {
   // Initialise the WiFi Engine
   // This will automatically attempt to connect to a pre-configured
   // WiFi hotspot and if unable to do so will broadcast an Access Point
-  if (!wifiEngine.init(&webServer, &dnsServer)) {
+  if (!wifiEngine.init(&webServer, &webSocket, &dnsServer)) {
     // Failed to initialise the WiFi hotspot. Oh well. Bail.
     #ifdef SERIAL_DEBUG
     Serial.println("\n\nFAILED TO INITIALIZE THE WIFI ENGINE. HALTED!");
-    #endif
-    // TODO: at some point perform a "HALT" with a red-flashing light
-    return;
-  }
-
-  // Initialise the RF receiver
-  if (!rfReceiver.init()) {
-    // Failed to initialise the RF Receiver. Oh well. Bail.
-    #ifdef SERIAL_DEBUG
-    Serial.println("\n\nFAILED TO INITIALIZE THE RF RECEIVER. HALTED!");
     #endif
     // TODO: at some point perform a "HALT" with a red-flashing light
     return;
@@ -138,14 +154,34 @@ void setup() {
   ledTimer.init();
   ledTimer.onTimer = updateLEDFlashes;
 
+  // RF receiver
+  rfReceiver.init();
+  rfReceiver.onButtonPress = rfReceiverButtonPressed;
+
   // Remote Repeater
   remoteRepeater.init(PIN_REMOTE_REPEATER);
   remoteRepeater.onChange = remoteRepeaterActivationChanged;
 
+  // Door Control
+  doorControl.init();
+  doorControl.onStateChange = doorControlStateChanged;
+
+  // MQTT Client
+  mqttClient.init();
+  // TODO: handlers for MQTT subscriptions
+
   // Put the WiFi LED in flash mode if it is in Access Point mode
   if (wifiEngine.wifiEngineMode == WEM_AP) {
     wiFiLED.setMode(LED_FLASH_PAIR);
+  } else {
+    wiFiLED.setState(HIGH);
   }
+
+  // All done
+  #ifdef SERIAL_DEBUG
+  Serial.println("\nInitialisation Complete.\n==============================");
+  Serial.println();
+  #endif
 }
 
 
@@ -167,6 +203,17 @@ void loop() {
   panelButton.run(currentMillis);
   rfReceiver.run(currentMillis);
   remoteRepeater.run(currentMillis);
+  
+  // Send sensor data to any connected socket clients
+  wifiEngine.sendSensorDataToClients(
+    currentMillis,
+    topIRSensor.detected,
+    topIRSensor.averageAmbientReading,
+    topIRSensor.averageActiveReading,
+    bottomIRSensor.detected,
+    bottomIRSensor.averageAmbientReading,
+    bottomIRSensor.averageActiveReading
+  );
 
   // Check to see if the reboot flag has been tripped
   checkReboot();
@@ -179,7 +226,9 @@ void loop() {
  * @param detected whether an object is being detected by the sensor
  */
 void topSensorChanged(bool detected) {
-  topSensorLED.setState(detected);
+  topSensorLED.setState(!detected);
+
+  doorControl.setSensorStates(detected, bottomIRSensor.detected);
 
   #ifdef SERIAL_DEBUG
   Serial.print("Top: ");
@@ -194,7 +243,9 @@ void topSensorChanged(bool detected) {
  * @param detected whether an object is being detected by the sensor
  */
 void bottomSensorChanged(bool detected) {
-  bottomSensorLED.setState(detected);
+  bottomSensorLED.setState(!detected);
+
+  doorControl.setSensorStates(topIRSensor.detected, detected);
 
   #ifdef SERIAL_DEBUG
   Serial.print("Bottom: ");
@@ -216,6 +267,31 @@ void remoteRepeaterActivationChanged(bool activated) {
   Serial.println(activated);
   #endif
 }
+
+
+/**
+ * Fired when the RF Receiver detects a button press
+ * 
+ * @param down whether the remote button is being "pressed"
+ */
+void rfReceiverButtonPressed(bool down) {
+  #ifdef SERIAL_DEBUG
+  Serial.print("Remote Button ");
+  #endif
+  
+  if (down) {
+    #ifdef SERIAL_DEBUG
+    Serial.println("Pressed");
+    #endif
+    // TODO: latch it based on "down"
+    remoteRepeater.activate();
+  } else {
+    #ifdef SERIAL_DEBUG
+    Serial.println("Released");
+    #endif
+  }
+}
+
 
 
 /**
@@ -260,5 +336,31 @@ void panelButtonPressed(ButtonPressType buttonPressType) {
 void updateLEDFlashes() {
   powerLED.nextCycle();
   wiFiLED.nextCycle();
+}
+
+
+/**
+ * Fired when the Door Control state changes
+ */
+void doorControlStateChanged(DoorState newDoorState) {
+  // Notify any connected clients of the door state change
+  wifiEngine.sendStatusToClients();
+
+  #ifdef SERIAL_DEBUG
+  switch (newDoorState) {
+    case DOORSTATE_OPEN:
+      Serial.println("DOOR OPEN");
+      break;
+    case DOORSTATE_CLOSED:
+      Serial.println("DOOR CLOSED");
+      break;
+    case DOORSTATE_OPENING:
+      Serial.println("DOOR OPENING");
+      break;
+    case DOORSTATE_CLOSING:
+      Serial.println("DOOR CLOSING");
+      break;
+  }
+  #endif
 }
 

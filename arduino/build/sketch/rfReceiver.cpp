@@ -5,12 +5,12 @@
  * Manages the RF comms from the RF remote controls
 \*============================================================================*/
 
-#include "rfReceiver.h"
+#include "Arduino.h"
+#include "RCSwitch.h"
 #include "_config.h"
-#include <RH_ASK.h>
-#include <SPI.h> // Not actually used but needed to compile
+#include "rfReceiver.h"
 
-RH_ASK driver(2000, PIN_RF_RECEIVE, PIN_RF_DUD_TRANSMIT, 5);
+RCSwitch gbSwitch = RCSwitch();
 
 /**
  * Constructor
@@ -21,18 +21,16 @@ RFReceiver::RFReceiver() {}
 /**
  * Initialise
  */
-bool RFReceiver::init(){
+void RFReceiver::init(){
   #ifdef SERIAL_DEBUG
   Serial.println("Initialising RF Remote Receiver...");
   #endif
 
-  if (!driver.init()) return false;
+  gbSwitch.enableReceive(digitalPinToInterrupt(PIN_RF_RECEIVE));
 
   #ifdef SERIAL_DEBUG
   Serial.println("RF Remote Receiver initialised.");
   #endif
-
-  return true;
 }
 
 
@@ -42,16 +40,42 @@ bool RFReceiver::init(){
  * @param currentMillis the current milliseconds as passed down from the main loop
  */
 void RFReceiver::run(unsigned long currentMillis) {
-  uint8_t buf[RH_ASK_MAX_MESSAGE_LEN];
-  uint8_t buflen = sizeof(buf);
+  if (gbSwitch.available()) {
+    int receivedCode = gbSwitch.getReceivedValue();
+    byte matchingCode = 0;
 
-  if (driver.recv(buf, &buflen)) {
-    #ifdef SERIAL_DEBUG
-    Serial.print("Received: ");
-    Serial.println((char*)buf);
-    #endif
-    // int i;
-    // Message with a good checksum received, dump it.
-    // driver.printBuffer("Got:", buf, buflen);
+    // TODO: We may need these later to better verify the remote
+    // Serial.print((char)gbSwitch.getReceivedBitlength());
+    // Serial.print((char)gbSwitch.getReceivedDelay());
+    // Serial.print((char)gbSwitch.getReceivedRawdata());
+    // Serial.println((char)gbSwitch.getReceivedProtocol());
+    
+    // Iterate over the registered codes and check the incoming code
+    for (byte i = 1; i <= 5; i++){
+      if (config.rf_codes[i - 1] == receivedCode) {
+        matchingCode = i;
+      }
+    }
+
+    if (matchingCode > 0) {
+      #ifdef SERIAL_DEBUG
+      Serial.print("Registered code ");
+      Serial.print(matchingCode);
+      Serial.print(": '");
+      Serial.print(receivedCode);
+      Serial.println("' received");
+      #endif
+
+      if (onButtonPress) {
+        onButtonPress(true);
+      }
+    } else {
+      #ifdef SERIAL_DEBUG
+      Serial.print("Unregistered code '");
+      Serial.print(receivedCode);
+      Serial.println("' received");
+      #endif
+    }
+    gbSwitch.resetAvailable();
   }
 }

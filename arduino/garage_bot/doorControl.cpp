@@ -6,8 +6,8 @@
  * to trigger the remote will not "double open" the door
 \*============================================================================*/
 
-#include "doorControl.h"
 #include "helpers.h"
+#include "doorControl.h"
 
 /**
  * Constructor

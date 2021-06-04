@@ -8,11 +8,11 @@
 #ifndef HELPERS_H
 #define HELPERS_H
 
-#include "Arduino.h"
+#include "Arduino.h";
 
 // Used to keep track of the WiFi mode we're in
 enum WiFiEngineMode {
-  WEM_UNINIT,     // Uninitialised
+  WEM_UNINIT,     // Uninitialized
   WEM_CLIENT,     // Connected to the Configured WiFi hotspot as a Client
   WEM_AP          // Serving a dedicated Access Point
 };

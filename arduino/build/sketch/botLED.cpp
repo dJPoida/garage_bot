@@ -6,9 +6,9 @@
  * app.
 \*============================================================================*/
 
-#include "botLED.h"
-#include "_config.h"
 #include "Arduino.h"
+#include "_config.h"
+#include "botLED.h"
 
 unsigned int flash_length =            2;
 unsigned int flash_values[] =          { 1,  0 };

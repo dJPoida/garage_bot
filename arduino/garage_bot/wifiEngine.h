@@ -1,5 +1,5 @@
 /*============================================================================*\
- * Garage Bot - WifiClient
+ * Garage Bot - WiFiEngine
  * Peter Eldred 2021-04
  * 
  * This unit controls all of the Garage Bot's connectivity.
@@ -11,12 +11,12 @@
  * config webpage.
 \*============================================================================*/
 
-#ifndef WIFIENGINE_H
-#define WIFIENGINE_H
+#ifndef WIFI_ENGINE_H
+#define WIFI_ENGINE_H
 
-#include <DNSServer.h>
-#include "ESPAsyncWebServer.h"
 #include "AsyncTCP.h"
+#include "ESPAsyncWebServer.h"
+#include "DNSServer.h"
 #include "helpers.h"
 
 class WiFiEngine {
@@ -26,7 +26,7 @@ class WiFiEngine {
 
     WiFiEngineMode wifiEngineMode = WEM_UNINIT;               // The current mode of the WiFi engine (uninitialised, client or AP mode)
     String ipAddress;                                         // The IP address of the active wifi connection
-    String macAddress;                                        // The MAC accress of the wifi adaptor
+    String macAddress;                                        // The MAC address of the wifi adaptor
 
     void sendConfigToClients(AsyncWebSocketClient *client = NULL);  // Send the current device config to (a) connected client(s)
     void sendStatusToClients(AsyncWebSocketClient *client = NULL);  // Send the current device status to (a) connected client(s)

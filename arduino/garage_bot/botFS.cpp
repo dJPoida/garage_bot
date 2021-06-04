@@ -5,11 +5,11 @@
  * File System wrapper for simplifying interactions with LITTLEFS
 \*============================================================================*/
 
-#include "botFS.h"
 #include "Arduino.h"
+#include "ArduinoJson.h"
+#include "LITTLEFS.h"
 #include "_config.h"
-#include <LITTLEFS.h>
-#include <ArduinoJson.h>
+#include "botFS.h"
 #include "reboot.h"
 
 
@@ -163,10 +163,6 @@ bool BotFS::saveConfig() {
   // Use arduinojson.org/assistant to compute the capacity.
   StaticJsonDocument<1024> doc;
 
-  // JSON array will be used for the RF codes
-  JsonArray rfCodes = doc.to<JsonArray>();
-  copyArray(config.rf_codes, rfCodes);
-  
   // Set the values in the document
   doc["network_device_name"]    = config.network_device_name;
   doc["wifi_ssid"]              = config.wifi_ssid;
@@ -178,7 +174,8 @@ bool BotFS::saveConfig() {
   doc["mqtt_password"]          = config.mqtt_password;
   doc["mqtt_topic"]             = config.mqtt_topic;
   doc["mqtt_state_topic"]       = config.mqtt_state_topic;
-  doc["rf_codes"]               = rfCodes;
+  JsonArray rfCodes = doc.createNestedArray("rf_codes");
+  copyArray(config.rf_codes, rfCodes);
 
   // Serialize JSON to file
   if (serializeJson(doc, configFile) == 0) {
@@ -213,7 +210,7 @@ bool BotFS::resetWiFiConfig() {
 
 
 /**
- * Change the currrent Wifi Settings (triggered from the Configuration Webiste)
+ * Change the current Wifi Settings (triggered from the Configuration Website)
  * 
  * @param String newSSID the new WiFi SSID to save to the device
  * @param String newPassword the new WiFi Password to save to the device

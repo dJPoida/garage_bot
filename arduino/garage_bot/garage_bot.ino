@@ -32,9 +32,9 @@
 /**
  * Includes
  */
-#include <DNSServer.h>
-#include <ESPAsyncWebServer.h>
-#include <AsyncTCP.h>
+#include "DNSServer.h"
+#include "ESPAsyncWebServer.h"
+#include "AsyncTCP.h"
 #include "_config.h"
 #include "botFS.h"
 #include "botLED.h"
@@ -54,7 +54,7 @@
  */
 const char* firmwareVersion = FIRMWARE_VERSION;                           // Firmware Version
 AsyncWebServer webServer(WEB_SERVER_PORT);                                // The Web Server for serving the control code
-AsyncWebSocket webSocket("/ws");                                          // The Web Socker for realtime comms with the client application
+AsyncWebSocket webSocket("/ws");                                          // The Web Socket for realtime comms with the client application
 DNSServer dnsServer;                                                      // A DNS Server for use when in Access Point mode
 Config config;                                                            // The configuration struct for storing and reading from LITTLEFS
 BotFS botFS = BotFS();                                                    // A File System Wrapper for simplifying LITTLEFS interaction

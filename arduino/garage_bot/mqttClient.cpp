@@ -6,6 +6,7 @@
  * subscribe to topics 
 \*============================================================================*/
 
+#include "_config.h"
 #include "mqttClient.h"
 
 /**

@@ -7,9 +7,10 @@
  * connected devices can only browse to the WiFi config portal.
 \*============================================================================*/
 
-#ifndef WIFICAPTIVEPORTAL_H
-#define WIFICAPTIVEPORTAL_H
+#ifndef WIFI_CAPTIVE_PORTAL_H
+#define WIFI_CAPTIVE_PORTAL_H
 
+#include "ESPAsyncWebServer.h"
 #include "_config.h"
 
 class WiFiCaptivePortalHandler : public AsyncWebHandler {

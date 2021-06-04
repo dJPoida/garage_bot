@@ -1,5 +1,5 @@
 /*============================================================================*\
- * Garage Bot - WifiClient
+ * Garage Bot - WiFiEngine
  * Peter Eldred 2021-04
  * 
  * This unit controls all of the Garage Bot's connectivity.
@@ -11,20 +11,20 @@
  * config webpage.
 \*============================================================================*/
 
-#include "wifiEngine.h"
 #include "Arduino.h"
-#include <DNSServer.h>
-#include <ESPmDNS.h>
-#include <WiFi.h>
-#include <LITTLEFS.h>
+#include "DNSServer.h"
+#include "ESPmDNS.h"
+#include "LITTLEFS.h"
+#include "WiFi.h"
 #include "AsyncTCP.h"
 #include "ESPAsyncWebServer.h"
-#include "_config.h"
-#include "helpers.h"
-#include "wifiCaptivePortalHandler.h"
-#include "botFS.h"
 #include "AsyncJson.h"
 #include "ArduinoJson.h"
+#include "_config.h"
+#include "helpers.h"
+#include "wifiEngine.h"
+#include "wifiCaptivePortalHandler.h"
+#include "botFS.h"
 #include "doorControl.h"
 
 /**
@@ -46,7 +46,7 @@ bool WiFiEngine::init(AsyncWebServer *webServer, AsyncWebSocket *webSocket, DNSS
   _webSocket = webSocket;
   _dnsServer = dnsServer;
 
-  // At this point we can consider ourselves uninitialised
+  // At this point we can consider ourselves uninitialized
   wifiEngineMode = WEM_UNINIT;
   
   // attempt to connect to the configured wifi 
@@ -165,7 +165,7 @@ bool WiFiEngine::broadcastAP() {
   wifiEngineMode = WEM_AP;
   ipAddress = WiFi.softAPIP().toString();
   macAddress = WiFi.softAPmacAddress();
- 
+
   #ifdef SERIAL_DEBUG
   Serial.print(" - Access Point broadcasting on SSID: '");
   Serial.print(AP_SSID);

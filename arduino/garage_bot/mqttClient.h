@@ -6,8 +6,8 @@
  * subscribe to topics 
 \*============================================================================*/
 
-#ifndef MQTTCLIENT_H
-#define MQTTCLIENT_H
+#ifndef MQTT_CLIENT_H
+#define MQTT_CLIENT_H
 
 #include "helpers.h"
 

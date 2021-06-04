@@ -6,9 +6,9 @@
  * door is closed or open at the position of the sensor.
 \*============================================================================*/
 
-#include "irsensor.h"
-#include "_config.h"
 #include "Arduino.h"
+#include "_config.h"
+#include "irsensor.h"
 
 
 /**

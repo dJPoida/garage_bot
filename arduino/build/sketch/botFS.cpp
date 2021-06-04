@@ -5,11 +5,11 @@
  * File System wrapper for simplifying interactions with LITTLEFS
 \*============================================================================*/
 
-#include "botFS.h"
 #include "Arduino.h"
+#include "ArduinoJson.h"
+#include "LITTLEFS.h"
 #include "_config.h"
-#include <LITTLEFS.h>
-#include <ArduinoJson.h>
+#include "botFS.h"
 #include "reboot.h"
 
 
@@ -107,8 +107,19 @@ bool BotFS::loadConfig() {
   }
 
   // Update the global variables from the json doc
+  config.network_device_name = doc["network_device_name"] | config.network_device_name;
   config.wifi_ssid = doc["wifi_ssid"] | config.wifi_ssid;
-  config.wifi_password = doc["wifi_pw"] | config.wifi_password;
+  config.wifi_password = doc["wifi_password"] | config.wifi_password;
+  config.mqtt_broker_address = doc["mqtt_broker_address"] | config.mqtt_broker_address;
+  JsonVariant mqttPort = doc["mqtt_broker_port"];
+  config.mqtt_broker_port = mqttPort.isNull() ? config.mqtt_broker_port : mqttPort.as<int>();
+  config.mqtt_device_id = doc["mqtt_device_id"] | config.mqtt_device_id;
+  config.mqtt_username = doc["mqtt_username"] | config.mqtt_username;
+  config.mqtt_password = doc["mqtt_password"] | config.mqtt_password;
+  config.mqtt_topic = doc["mqtt_topic"] | config.mqtt_topic;
+  config.mqtt_state_topic = doc["mqtt_state_topic"] | config.mqtt_state_topic;
+  JsonArray rfCodes = doc.as<JsonArray>();
+  copyArray(config.rf_codes, 5, rfCodes);
 
   configFile.close();
     
@@ -117,7 +128,7 @@ bool BotFS::loadConfig() {
   Serial.print("   + WiFi SSID: ");
   Serial.println(config.wifi_ssid);
   Serial.print("   + WiFi Password: ");
-  Serial.println(config.wifi_password);
+  Serial.println(config.wifi_password); 
   #endif
     
   return true;
@@ -153,9 +164,18 @@ bool BotFS::saveConfig() {
   StaticJsonDocument<1024> doc;
 
   // Set the values in the document
-  doc["wifi_ssid"]  = config.wifi_ssid;
-  doc["wifi_pw"]    = config.wifi_password;
-  doc["ip_address"] = config.ip_address;
+  doc["network_device_name"]    = config.network_device_name;
+  doc["wifi_ssid"]              = config.wifi_ssid;
+  doc["wifi_password"]          = config.wifi_password;
+  doc["mqtt_broker_address"]    = config.mqtt_broker_address;
+  doc["mqtt_broker_port"]       = config.mqtt_broker_port;
+  doc["mqtt_device_id"]         = config.mqtt_device_id;
+  doc["mqtt_username"]          = config.mqtt_username;
+  doc["mqtt_password"]          = config.mqtt_password;
+  doc["mqtt_topic"]             = config.mqtt_topic;
+  doc["mqtt_state_topic"]       = config.mqtt_state_topic;
+  JsonArray rfCodes = doc.createNestedArray("rf_codes");
+  copyArray(config.rf_codes, rfCodes);
 
   // Serialize JSON to file
   if (serializeJson(doc, configFile) == 0) {
@@ -190,7 +210,7 @@ bool BotFS::resetWiFiConfig() {
 
 
 /**
- * Change the currrent Wifi Settings (triggered from the Configuration Webiste)
+ * Change the current Wifi Settings (triggered from the Configuration Website)
  * 
  * @param String newSSID the new WiFi SSID to save to the device
  * @param String newPassword the new WiFi Password to save to the device

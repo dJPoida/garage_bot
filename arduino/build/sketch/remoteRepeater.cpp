@@ -6,8 +6,8 @@
 \*============================================================================*/
 
 #include "Arduino.h"
-#include "remoteRepeater.h"
 #include "_config.h"
+#include "remoteRepeater.h"
 
 /**
  * Constructor

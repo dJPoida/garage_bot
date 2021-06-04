@@ -9,8 +9,8 @@
 #ifndef BOTBUTTON_H
 #define BOTBUTTON_H
 
-#include "helpers.h"
 #include "Arduino.h"
+#include "helpers.h"
 
 class BotButton {
   public:

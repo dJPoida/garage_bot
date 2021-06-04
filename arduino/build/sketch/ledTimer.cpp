@@ -6,12 +6,12 @@
  * LEDs
 \*============================================================================*/
 
-#include "ledTimer.h"
 #include "_config.h"
+#include "ledTimer.h"
 
 
 portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
-hw_timer_t * hwtimer = NULL;
+hw_timer_t * hwTimer = NULL;
 volatile SemaphoreHandle_t timerSemaphore;
 
 volatile uint32_t isrCounter = 0;
@@ -25,9 +25,6 @@ void IRAM_ATTR onLEDTimer(){
   portEXIT_CRITICAL_ISR(&timerMux);
   // Give a semaphore that we can check in the loop
   xSemaphoreGiveFromISR(timerSemaphore, NULL);
-  
-  // TODO: fire the LEDTimer callback
-  //Serial.println("tahdo: someShit");
 }
 
 
@@ -52,17 +49,17 @@ void LEDTimer::init() {
   // Use 1st timer of 4 (counted from zero).
   // Set 80 divider for prescaler (see ESP32 Technical Reference Manual for more
   // info).
-  hwtimer = timerBegin(0, 80, true);
+  hwTimer = timerBegin(0, 80, true);
 
   // Attach onTimer function to our timer.
-  timerAttachInterrupt(hwtimer, &onLEDTimer, true);
+  timerAttachInterrupt(hwTimer, &onLEDTimer, true);
 
   // Set alarm to call onTimer function every second (value in microseconds).
   // Repeat the alarm (third parameter)
-  timerAlarmWrite(hwtimer, LED_TIMER_CYCLE_MS * 1000, true);
+  timerAlarmWrite(hwTimer, LED_TIMER_CYCLE_MS * 1000, true);
 
   // Start an alarm
-  timerAlarmEnable(hwtimer);
+  timerAlarmEnable(hwTimer);
   
   #ifdef SERIAL_DEBUG
   Serial.println(" done.");

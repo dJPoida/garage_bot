@@ -6,9 +6,9 @@
 \*============================================================================*/
 
 #include "Arduino.h"
-#include "rfReceiver.h"
+#include "RCSwitch.h"
 #include "_config.h"
-#include <RCSwitch.h>
+#include "rfReceiver.h"
 
 RCSwitch gbSwitch = RCSwitch();
 

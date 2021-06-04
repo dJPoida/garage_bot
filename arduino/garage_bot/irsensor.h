@@ -10,8 +10,8 @@
 #define IRSENSOR_H
 
 #include "Arduino.h"
-#include "helpers.h"
 #include "_config.h"
+#include "helpers.h"
 
 class IRSensor {
   public:

@@ -5,9 +5,9 @@
  * Simple wrapper for functions that help the device gracefully reboot
 \*============================================================================*/
 
-#include "reboot.h"
+#include "LITTLEFS.h"
 #include "_config.h"
-#include <LITTLEFS.h>
+#include "reboot.h"
 
 // Flag to tell the kernel it's time for a reset
 bool rebootFlag = false;

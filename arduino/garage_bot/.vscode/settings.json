@@ -1,6 +1,17 @@
 {
     "cSpell.words": [
+        "BOTFS",
+        "IRAM",
+        "LITTLEFS",
+        "Poida",
         "RFRECEIVER",
-        "arduinojson"
+        "apmode",
+        "arduinojson",
+        "bot",
+        "bot's",
+        "comms",
+        "mdns",
+        "mqtt",
+        "uninitialised"
     ]
 }
