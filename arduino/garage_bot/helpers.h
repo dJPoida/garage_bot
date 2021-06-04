@@ -20,8 +20,9 @@ enum WiFiEngineMode {
 // The different types of button presses that the front panel can have
 enum ButtonPressType {
   SIMPLE,         // The button was pressed
-  RESET_WIFI,     // The user held the button down for a factory reset duration
-  PAIR_REMOTE,    // The user held the button down for a remote pairing duration
+  REGISTER_REMOTE,    // The user held the button down for a remote registration duration
+  RESET_WIFI,     // The user held the button down for a wifi reset duration
+  FACTORY_RESET,  // The user held the button down for a factory reset duration
 };
 
 // Used to keep track of the mode the LED is in
@@ -29,7 +30,7 @@ enum LEDMode {
   LED_SOLID,      // Solid
   LED_FLASH,      // Simple Flash (1s on, 1s off)
   LED_FLASH_FAST, // Faster Flash (500ms on, 500ms off)
-  LED_FLASH_PAIR  // Three flashes at 250ms each
+  LED_FLASH_REGISTER  // Three flashes at 250ms each
 };
 
 // Used to keep track of the state of the door
@@ -41,13 +42,24 @@ enum DoorState {
   DOORSTATE_OPENING    // Door is opening
 };
 
-typedef void (*boolValueChangedFunction)(bool);
+// Used to keep track of the mode of the rf receiver
+enum RFReceiverMode {
+  RF_RECEIVER_MODE_NORMAL,       // Operating as normal, waiting for incoming signals
+  RF_RECEIVER_MODE_REGISTERING,  // Waiting for new remotes to be registered
+};
 
-typedef void (*timerFiredFunction)();
+
+typedef void (*eventFiredFunction)();
+
+typedef void (*boolValueChangedFunction)(bool);
 
 typedef void (*buttonPressedFunction)(ButtonPressType);
 
 typedef void (*doorStateChangedFunction)(DoorState);
+
+typedef void (*receiverModeChangedFunction)(RFReceiverMode);
+
+typedef void (*errorFunction)(String);
 
 /**
  * Determine the Mime Type of a file based on its extension

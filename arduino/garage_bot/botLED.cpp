@@ -18,9 +18,9 @@ unsigned int flash_fast_length =       2;
 unsigned int flash_fast_values[] =     { 1,  0 };
 unsigned int flash_fast_ticks[] =     { 2,  2 };
 
-unsigned int flash_pair_length =       6;
-unsigned int flash_pair_values[] =     { 1,  0,  1,  0,  1,  0 };
-unsigned int flash_pair_ticks[] =     { 1,  1,  1,  1,  1,  7 };
+unsigned int flash_register_length =       6;
+unsigned int flash_register_values[] =     { 1,  0,  1,  0,  1,  0 };
+unsigned int flash_register_ticks[] =     { 1,  1,  1,  1,  1,  7 };
 
 /**
  * Constructor
@@ -54,6 +54,15 @@ bool BotLED::init(bool state, LEDMode mode) {
   #endif
 
   return true;
+}
+
+
+/**
+ * Set the state and the mode in one call
+ */
+void BotLED::set(bool newState, LEDMode newMode) {
+  setMode(newMode);
+  setState(newState);
 }
 
 
@@ -107,8 +116,8 @@ void BotLED::nextCycle() {
       case LED_FLASH_FAST:
         maxCycleNo = flash_fast_length;
         break;
-      case LED_FLASH_PAIR:
-        maxCycleNo = flash_pair_length;
+      case LED_FLASH_REGISTER:
+        maxCycleNo = flash_register_length;
         break;
       default:
         break;
@@ -127,8 +136,8 @@ void BotLED::nextCycle() {
       case LED_FLASH_FAST:
         _cycleTicksRemaining = flash_fast_ticks[_cycleNo];
         break;
-      case LED_FLASH_PAIR:
-        _cycleTicksRemaining = flash_pair_ticks[_cycleNo];
+      case LED_FLASH_REGISTER:
+        _cycleTicksRemaining = flash_register_ticks[_cycleNo];
         break;
       default:
         break;
@@ -154,8 +163,8 @@ void BotLED::_applyCycle() {
       case LED_FLASH_FAST:
         newState = flash_fast_values[_cycleNo];
         break;
-      case LED_FLASH_PAIR:
-        newState = flash_pair_values[_cycleNo];
+      case LED_FLASH_REGISTER:
+        newState = flash_register_values[_cycleNo];
         break;
       default:
         break;

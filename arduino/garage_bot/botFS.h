@@ -15,7 +15,9 @@ class BotFS {
     bool init();
     bool saveConfig();
     bool resetWiFiConfig();
+    bool factoryReset();
     void setWiFiSettings(String newSSID, String newPassword);
+    void registerRFCode(unsigned long newCode);
 
   private:
     bool loadConfig();

@@ -13,5 +13,8 @@
         "mdns",
         "mqtt",
         "uninitialised"
-    ]
+    ],
+    "files.associations": {
+        "array": "cpp"
+    }
 }

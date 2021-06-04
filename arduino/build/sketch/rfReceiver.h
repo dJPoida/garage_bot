@@ -17,9 +17,17 @@ class RFReceiver {
     void init();
     void run(unsigned long currentMillis);
 
-    boolValueChangedFunction onButtonPress;
-  private:
+    void setMode(RFReceiverMode newMode);
 
+    boolValueChangedFunction onButtonPress;
+    receiverModeChangedFunction onModeChanged;
+    errorFunction onError;
+
+  private:
+    RFReceiverMode _mode = RF_RECEIVER_MODE_NORMAL; // Whether the RF Receiver is registering a new remote or simply awaiting input
+
+    unsigned long _lastCodeReceived;                // The most recent RF Code received
+    int _receivedCodeCount = 0;                     // The number of times that the most recent RF code has been received
 };
 
 extern RFReceiver rfReceiver;

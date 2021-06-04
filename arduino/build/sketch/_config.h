@@ -36,11 +36,14 @@
 // Anything below this duration is considered a "button press"
 #define BTN_PRESS_DURATION 1000
 
-// Anything above this duration is considered a "Reset Wifi" request
-#define BTN_RESET_WIFI_DURATION 3000
+// Anything above this duration is considered a "Register an RF Remote" request
+#define BTN_REGISTER_REMOTE_DURATION 3000
 
-// Anything above this duration is considered a "Pair an RF Remote" request
-#define BTN_PAIR_REMOTE_DURATION 10000
+// Anything above this duration is considered a "Reset Wifi" request
+#define BTN_RESET_WIFI_DURATION 7000
+
+// Anything above this duration is considered a "Factory Reset"
+#define BTN_FACTORY_RESET_DURATION 15000
 
 // The garage door sensor pins
 #define PIN_SENSOR_TOP_EMITTER 32
@@ -54,7 +57,7 @@
 // The number of readings to use to average out the value
 #define SENSOR_IR_SMOOTHING_READING_COUNT 20
 
-// The number of milliseconds to wait inbetween sensor data broadcast to the connected socket clients
+// The number of milliseconds to wait in between sensor data broadcast to the connected socket clients
 #define SENSOR_BROADCAST_INTERVAL 1000
 
 // The difference between the ambient reading and the active reading require before a detection event is triggered (0 - 4095)
@@ -71,6 +74,9 @@
 
 // How many milliseconds the remote repeater should "hold down the garage remote button" for
 #define REMOTE_REPEATER_DURATION_MS 1000
+
+// How many consecutive successful RF receipts are required when registering a new remote
+#define REMOTE_CONSECUTIVE_CODES_FOR_REGISTRATION 10
 
 /**
  * Config struct for storing and loading data from the SPIFFS partition
@@ -89,7 +95,7 @@ struct Config {
   String mqtt_topic                 = "garage/door";        // The MQTT topic used for communicating instructions (open / close etc)
   String mqtt_state_topic           = "garage/door/state";  // The MQTT topic used for communicating the state of the door (opened / closed / etc)
   byte stored_rf_code_count         = 0;                    // The number of registered RF remote codes (5 Max)
-  unsigned long rf_codes[5]         = {3934049, 0, 75, 0, 0}; // 5 RF codes can be stored
+  unsigned long rf_codes[5]         = {0, 0, 0, 0, 0};      // 5 RF codes can be stored
 };
 
 extern Config config;

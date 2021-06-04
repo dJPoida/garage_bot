@@ -19,6 +19,7 @@ class BotLED{
 
     void setMode(LEDMode newMode);
     void setState(bool newState);
+    void set(bool newState, LEDMode newMode = LED_SOLID);
     void nextCycle();
 
     bool getState();

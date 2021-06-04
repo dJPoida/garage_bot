@@ -61,6 +61,11 @@ void BotButton::run(unsigned long currentMillis) {
     if (reading != _state) {
       // Register the button state change (and for how long the button has been in its previous state)
       _handleStateChange(reading, currentMillis, reading ? 0 : (currentMillis - _downStartTime));
+    } 
+    
+    // If the button is held down for longer than the factory reset duration, trigger the factory reset
+    else if (reading && (currentMillis - _lastDebounceTime) > BTN_FACTORY_RESET_DURATION) {
+      onPress(FACTORY_RESET);
     }
   }
 
@@ -111,16 +116,17 @@ void BotButton::_handleStateChange(bool newState, unsigned long currentMillis, u
         onPress(SIMPLE);
       } 
       
-      // Pair Remote
-      else if (duration > BTN_PAIR_REMOTE_DURATION) {
-        onPress(PAIR_REMOTE);
+      // Register Remote
+      else if (duration > BTN_REGISTER_REMOTE_DURATION) {
+        onPress(REGISTER_REMOTE);
       }
       
-      // Factory Reset
+      // WiFi Reset
       else if (duration > BTN_RESET_WIFI_DURATION) {
         onPress(RESET_WIFI);
       }
 
+      // Factory reset happens automatically once the button has been held down for the maximum duration
     }
   }
 }

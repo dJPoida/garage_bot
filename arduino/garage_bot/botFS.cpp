@@ -118,8 +118,15 @@ bool BotFS::loadConfig() {
   config.mqtt_password = doc["mqtt_password"] | config.mqtt_password;
   config.mqtt_topic = doc["mqtt_topic"] | config.mqtt_topic;
   config.mqtt_state_topic = doc["mqtt_state_topic"] | config.mqtt_state_topic;
-  JsonArray rfCodes = doc.as<JsonArray>();
-  copyArray(config.rf_codes, 5, rfCodes);
+  config.stored_rf_code_count = doc["stored_rf_code_count"] | config.stored_rf_code_count;
+  JsonArray rfCodes = doc["rf_codes"];
+  for (byte i = 0; i < 5; i++) {
+    config.rf_codes[i] = rfCodes.getElement(i);
+  }
+
+  if (rfCodes) {
+    copyArray(rfCodes, config.rf_codes);
+  }
 
   configFile.close();
     
@@ -128,7 +135,15 @@ bool BotFS::loadConfig() {
   Serial.print("   + WiFi SSID: ");
   Serial.println(config.wifi_ssid);
   Serial.print("   + WiFi Password: ");
-  Serial.println(config.wifi_password); 
+  Serial.println(config.wifi_password);
+  Serial.print("   + ");
+  Serial.print(config.stored_rf_code_count);
+  Serial.println(" Registered RF Codes: ");
+  for (byte i = 0; i < config.stored_rf_code_count; i++) {
+    Serial.print("     '");
+    Serial.print(config.rf_codes[i]);
+    Serial.println("'");
+  }
   #endif
     
   return true;
@@ -174,8 +189,11 @@ bool BotFS::saveConfig() {
   doc["mqtt_password"]          = config.mqtt_password;
   doc["mqtt_topic"]             = config.mqtt_topic;
   doc["mqtt_state_topic"]       = config.mqtt_state_topic;
+  doc["stored_rf_code_count"]   = config.stored_rf_code_count;
   JsonArray rfCodes = doc.createNestedArray("rf_codes");
-  copyArray(config.rf_codes, rfCodes);
+  for (byte i = 0; i < 5; i++) {
+    rfCodes.add(config.rf_codes[i]);
+  }
 
   // Serialize JSON to file
   if (serializeJson(doc, configFile) == 0) {
@@ -210,6 +228,34 @@ bool BotFS::resetWiFiConfig() {
 
 
 /**
+ * Reset the entire config to the defaults (just delete it from the file system)
+ */
+bool BotFS::factoryReset() {
+  // Wait for any current write operations to finish
+  while (_writingConfig) {
+    delay(1);
+  };
+  _writingConfig = true;
+  
+  #ifdef SERIAL_DEBUG
+  Serial.println("Factory Reset:");
+  Serial.println(" - Deleteing 'LITTLEFS/config.json'...");
+  #endif
+
+  // Delete the file
+  LITTLEFS.remove("/config.json");
+
+  #ifdef SERIAL_DEBUG
+  Serial.println(" - Done");
+  #endif
+
+  _writingConfig = false;
+  
+  return true;
+}
+
+
+/**
  * Change the current Wifi Settings (triggered from the Configuration Website)
  * 
  * @param String newSSID the new WiFi SSID to save to the device
@@ -230,10 +276,37 @@ void BotFS::setWiFiSettings(String newSSID, String newPassword) {
     // Save the updated config.
     saveConfig();
 
-    #ifdef SERIAL_DEBUG
-    Serial.println("restarting...");
-    #endif
-
-    // Reset the device
+    // Reboot the device
     reboot();
+}
+
+
+/**
+ * Register a new RF Code
+ */
+void BotFS::registerRFCode(unsigned long newCode) {
+  // Bail if the Stored RF Codes exceed the maximum
+  if (config.stored_rf_code_count >= 5) {
+    return;
+  }
+
+  // Increment the Stored RF code count
+  config.stored_rf_code_count += 1;
+
+  #ifdef SERIAL_DEBUG
+  Serial.print("Storing RF code #");
+  Serial.print(config.stored_rf_code_count);
+  Serial.print(": '");
+  Serial.print(newCode);
+  Serial.println("'");
+  #endif
+
+  // Store the new code into the config
+  config.rf_codes[config.stored_rf_code_count - 1] = newCode;
+
+  // Save the updated config
+  saveConfig();
+
+  // Reboot the device
+  reboot();
 }

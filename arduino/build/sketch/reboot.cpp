@@ -17,6 +17,10 @@ bool rebootFlag = false;
  * Flags the kernal down for a reset
  */
 void reboot() {
+  #ifdef SERIAL_DEBUG
+  Serial.println("rebooting...");
+  #endif
+
   rebootFlag = true;
 }
 

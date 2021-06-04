@@ -18,7 +18,7 @@ class LEDTimer {
     void init();
     void run(unsigned long currentMillis);
 
-    timerFiredFunction onTimer;
+    eventFiredFunction onTimer;
   private:
 };
 
