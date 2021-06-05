@@ -82,25 +82,27 @@ bool inError = false;                                                     // Whe
  */
 #line 81 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void setup();
-#line 168 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 173 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void loop();
-#line 207 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 215 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void topSensorChanged(bool detected);
-#line 224 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 232 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void bottomSensorChanged(bool detected);
-#line 241 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 249 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void remoteRepeaterActivationChanged(bool activated);
-#line 256 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 264 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void rfReceiverButtonPressed(bool down);
-#line 279 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 288 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void rfReceiverModeChanged(RFReceiverMode newMode);
-#line 294 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 303 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void generalErrorOccurred(String errorMessage);
-#line 311 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
-void panelButtonPressed(ButtonPressType buttonPressType);
-#line 361 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 321 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+void panelButtonPressed();
+#line 333 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+void panelButtonReleased(ButtonPressType buttonPressType);
+#line 395 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void updateLEDFlashes();
-#line 371 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 405 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void doorControlStateChanged(DoorState newDoorState);
 #line 81 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void setup() {
@@ -116,6 +118,13 @@ void setup() {
   Serial.println();
   #endif
 
+  // LEDs
+  powerLED.init(HIGH, LED_SOLID);
+  wiFiLED.init(LOW, LED_SOLID);
+  repeaterLED.init(LOW, LED_SOLID);
+  topSensorLED.init(LOW, LED_SOLID);
+  bottomSensorLED.init(LOW, LED_SOLID);
+
   // Initialise the BotFS
   if (!botFS.init()) {
     // Failed to initialise the File System. Oh well. Bail.
@@ -124,10 +133,10 @@ void setup() {
     return;
   }
 
-  // Initialise the WiFi Engine
+  // Initialise the WiFi Engine (if enabled)
   // This will automatically attempt to connect to a pre-configured
   // WiFi hotspot and if unable to do so will broadcast an Access Point
-  if (!wifiEngine.init(&webServer, &webSocket, &dnsServer)) {
+  if (config.wifi_enabled && !wifiEngine.init(&webServer, &webSocket, &dnsServer)) {
     // Failed to initialise the WiFi hotspot. Oh well. Bail.
     generalErrorOccurred("\n\nFAILED TO INITIALIZE THE WIFI ENGINE. HALTED!");
     return;
@@ -142,13 +151,7 @@ void setup() {
   // Buttons
   panelButton.init();
   panelButton.onPress = panelButtonPressed;
-
-  // LEDs
-  powerLED.init(HIGH, LED_SOLID);
-  wiFiLED.init(LOW, LED_SOLID);
-  repeaterLED.init(LOW, LED_SOLID);
-  topSensorLED.init(LOW, LED_SOLID);
-  bottomSensorLED.init(LOW, LED_SOLID);
+  panelButton.onReleased = panelButtonReleased;
 
   // Flash Timer
   ledTimer.init();
@@ -168,15 +171,19 @@ void setup() {
   doorControl.init();
   doorControl.onStateChange = doorControlStateChanged;
 
-  // MQTT Client
-  mqttClient.init();
-  // TODO: handlers for MQTT subscriptions
+  if (config.wifi_enabled) {
+    // MQTT Client (can only be initialised if WiFi is enabled)
+    mqttClient.init();
+    // TODO: handlers for MQTT subscriptions
 
-  // Put the WiFi LED in flash mode if it is in Access Point mode
-  if (wifiEngine.wifiEngineMode == WEM_AP) {
-    wiFiLED.setMode(LED_FLASH_REGISTER);
-  } else {
-    wiFiLED.setState(HIGH);
+    if (wifiEngine.wifiEngineMode == WEM_AP) {
+      // Put the WiFi LED in flash mode if it is in Access Point mode
+      wiFiLED.setMode(LED_FLASH_REGISTER);
+    } else {
+      // Leave the WiFi LED as solid on, indicating active connection to the WiFi access point
+      // TODO: move this into an event handler that responds to the active connection of the WiFi engine
+      wiFiLED.setState(HIGH);
+    }
   }
 
   // All done
@@ -194,11 +201,6 @@ void loop() {
   if (!inError) {
     unsigned long currentMillis = millis();
 
-    // If the wifiEngine is in Access Point mode, process DNS requests.
-    if (wifiEngine.wifiEngineMode == WEM_AP) {
-      dnsServer.processNextRequest();
-    }
-
     // Run each of the delegated object controllers
     topIRSensor.run(currentMillis);
     bottomIRSensor.run(currentMillis);
@@ -207,16 +209,24 @@ void loop() {
     rfReceiver.run(currentMillis);
     remoteRepeater.run(currentMillis);
     
-    // Send sensor data to any connected socket clients
-    wifiEngine.sendSensorDataToClients(
-      currentMillis,
-      topIRSensor.detected,
-      topIRSensor.averageAmbientReading,
-      topIRSensor.averageActiveReading,
-      bottomIRSensor.detected,
-      bottomIRSensor.averageAmbientReading,
-      bottomIRSensor.averageActiveReading
-    );
+    // Wifi functions
+    if (config.wifi_enabled) {
+      // If the wifiEngine is in Access Point mode, process DNS requests.
+      if (wifiEngine.wifiEngineMode == WEM_AP) {
+        dnsServer.processNextRequest();
+      }
+
+      // Send sensor data to any connected socket clients
+      wifiEngine.sendSensorDataToClients(
+        currentMillis,
+        topIRSensor.detected,
+        topIRSensor.averageAmbientReading,
+        topIRSensor.averageActiveReading,
+        bottomIRSensor.detected,
+        bottomIRSensor.averageAmbientReading,
+        bottomIRSensor.averageActiveReading
+      );
+    }
 
     // Check to see if the reboot flag has been tripped
     checkReboot();
@@ -287,7 +297,8 @@ void rfReceiverButtonPressed(bool down) {
     #ifdef SERIAL_DEBUG
     Serial.println("Pressed");
     #endif
-    // TODO: latch it based on "down"
+
+    // Activate the remote repeater
     remoteRepeater.activate();
   } else {
     #ifdef SERIAL_DEBUG
@@ -319,6 +330,10 @@ void rfReceiverModeChanged(RFReceiverMode newMode) {
 void generalErrorOccurred(String errorMessage) {
   inError = true;
 
+  powerLED.set(true, LED_FLASH);
+  wiFiLED.set(true, LED_FLASH);
+  repeaterLED.set(true, LED_FLASH);
+
   #ifdef SERIAL_DEBUG
   Serial.println("\nGeneral Error Occurred!");
   Serial.println(errorMessage);
@@ -327,13 +342,25 @@ void generalErrorOccurred(String errorMessage) {
 }
 
 
+/**
+ * Fired when the button is pressed
+ */
+void panelButtonPressed() {
+  // To help the user count the number of seconds passed, the Power LED will flash 500ms ON / 500ms OFF
+  // for as long as they are holding the button down.
+  powerLED.set(true, LED_FLASH);
+}
+
 
 /**
- * Fired when the button is pressed for one of the pre-defined durations
+ * Fired when the button is released after one of the pre-defined durations
  * 
  * @param buttonPressType the pre-defined duration the button was pressed for
  */
-void panelButtonPressed(ButtonPressType buttonPressType) {
+void panelButtonReleased(ButtonPressType buttonPressType) {
+  // The Power LED would have been blinking up until this point. Reset it to a solid ON.
+  powerLED.set(true, LED_SOLID);
+
   switch (buttonPressType) {
     case SIMPLE:
       #ifdef SERIAL_DEBUG
@@ -354,7 +381,16 @@ void panelButtonPressed(ButtonPressType buttonPressType) {
       Serial.println("Wifi Reset Button Press Detected");
       #endif
       // Reset the WiFi config
-      botFS.resetWiFiConfig();
+      botFS.resetWiFiConfig(true);
+      reboot();
+      break;
+
+    case DISABLE_WIFI:
+      #ifdef SERIAL_DEBUG
+      Serial.println("Disable Wifi Button Press Detected");
+      #endif
+      // Disable the WiFi
+      botFS.resetWiFiConfig(false);
       reboot();
       break;
 
@@ -395,7 +431,9 @@ void updateLEDFlashes() {
  */
 void doorControlStateChanged(DoorState newDoorState) {
   // Notify any connected clients of the door state change
-  wifiEngine.sendStatusToClients();
+  if (config.wifi_enabled) {
+    wifiEngine.sendStatusToClients();
+  }
 
   #ifdef SERIAL_DEBUG
   switch (newDoorState) {

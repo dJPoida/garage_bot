@@ -108,6 +108,8 @@ bool BotFS::loadConfig() {
 
   // Update the global variables from the json doc
   config.network_device_name = doc["network_device_name"] | config.network_device_name;
+  JsonVariant wifiEnabled = doc["wifi_enabled"];
+  config.wifi_enabled = wifiEnabled.isNull() ? config.wifi_enabled : wifiEnabled.as<bool>();
   config.wifi_ssid = doc["wifi_ssid"] | config.wifi_ssid;
   config.wifi_password = doc["wifi_password"] | config.wifi_password;
   config.mqtt_broker_address = doc["mqtt_broker_address"] | config.mqtt_broker_address;
@@ -132,10 +134,14 @@ bool BotFS::loadConfig() {
     
   #ifdef SERIAL_DEBUG
   Serial.println(" - Current Config:");
-  Serial.print("   + WiFi SSID: ");
-  Serial.println(config.wifi_ssid);
-  Serial.print("   + WiFi Password: ");
-  Serial.println(config.wifi_password);
+  Serial.print("   + WiFi: ");
+  Serial.println(config.wifi_enabled ? "Enabled" : "Disabled");
+  if (config.wifi_enabled) {
+    Serial.print("   + WiFi SSID: ");
+    Serial.println(config.wifi_ssid);
+    Serial.print("   + WiFi Password: ");
+    Serial.println(config.wifi_password);
+  }
   Serial.print("   + ");
   Serial.print(config.stored_rf_code_count);
   Serial.println(" Registered RF Codes: ");
@@ -180,6 +186,7 @@ bool BotFS::saveConfig() {
 
   // Set the values in the document
   doc["network_device_name"]    = config.network_device_name;
+  doc["wifi_enabled"]           = config.wifi_enabled;
   doc["wifi_ssid"]              = config.wifi_ssid;
   doc["wifi_password"]          = config.wifi_password;
   doc["mqtt_broker_address"]    = config.mqtt_broker_address;
@@ -213,17 +220,20 @@ bool BotFS::saveConfig() {
 
 /**
  * Reset the config for the WiFi Hotspot
+ * 
+ * @param {bool} enableWiFi whether to enable the WiFi or not
  */
-bool BotFS::resetWiFiConfig() {
+bool BotFS::resetWiFiConfig(bool enableWiFi) {
   #ifdef SERIAL_DEBUG
-  Serial.println("Resetting WiFi Config...");
+  Serial.println(enableWiFi ? "Resetting (and/or enabling) WiFi Config..." : "Disabling WiFi...");
   #endif
 
+  config.wifi_enabled = enableWiFi;
   config.wifi_ssid = "";
   config.wifi_password = "";
   config.ip_address = "";
   
-  saveConfig();
+  return saveConfig();
 }
 
 

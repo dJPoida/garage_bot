@@ -26,7 +26,8 @@ There is only one button on the device. Once pressed, this button will perform a
 
 - **< 1s**: Activate the garage door
 - **3s**: Register a new 433Mhz remote
-- **7s**: Reset the WiFi config (and activate WiFi if not yet enabled)
+- **7s**: Enable the WiFi and Reset the WiFi config
+- **10s**: Disable the WiFi and Reset the WiFi config
 - **15s**: Perform a full factory reset
 
 ### Registering a new Remote
@@ -54,15 +55,23 @@ To connect the Garage Bot to your WiFi:
 5. Connect your device to the `garagebot` network. Your device may immediately take you to the Garage Bot WiFi configuration page. If not, open a browser and browse to `http://192.168.4.1`.
 6. Enter the WiFi SSID and Password of your local WiFi network and click `Submit`.
 7. The Garage Bot will save the new WiFi details, reboot and attempt to connect to your WiFi network.
-8. If the WiFi details were successfully registered and the device was able to connect, the WiFi LED (the second LED) will no longer blink and will remain on for as long as the device can access the WiFi network.
+8. If the WiFi details were successfully registered and the device was able to connect, the blue WiFi LED (the second LED) will no longer blink and will remain on for as long as the device can access the WiFi network.
 
 Once the Garage Bot is connected to your WiFi, you can access it using the url: [http://garagebot.local](http://garagebot.local).
+
+
+### Disabling the WiFi functionality
+If for any reason you want to disable the WiFi functionality of the device, you can do so by following this procedure:
+
+1. Hold down the front panel button on the Garage Bot and release it after **10 seconds**.
+2. Any existing WiFi details will be cleared, the WiFi functionality will be disabled and the Garage Bot will reboot.
+3. If the WiFi was successfully disabled, the blue WiFi LED (the second LED) will no longer be illuminated.
 
 ## LED Lights
 There are five LED lights on the Garage Bot.
 
 ### 1. Power (PWR)
-This LED Indicates that the device is on. If it is flashing in an `on-off` repeating pattern, it is likely that the device has encountered an error and should be power cycled.
+This LED Indicates that the device is on. When holding down the front panel button, this LED will flash in an `on-off` repeating pattern where each `on-off` cycle is 1 second to assist with counting the number of seconds elapsed.
 
 ### 2. WiFi
 This LED indicates the state of the device's WiFi connection.
@@ -90,8 +99,6 @@ This LED indicates whether the bottom sensor on the garage door can detect the p
 - User Interface
     - Provide a form to configure the MQTT settings
     - Provide a form to configure the sensitivity of the sensors
-- Functionality
-    - Disable WiFi on factory reset (and enable on first WiFi pairing)
 - Improve reliability
     - When the client socket disconnects, attempt to re-connect
     - When the WiFi on the device is disconnected, attempt to re-connect

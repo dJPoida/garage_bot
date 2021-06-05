@@ -65,7 +65,7 @@ void BotButton::run(unsigned long currentMillis) {
     
     // If the button is held down for longer than the factory reset duration, trigger the factory reset
     else if (reading && (currentMillis - _lastDebounceTime) > BTN_FACTORY_RESET_DURATION) {
-      onPress(FACTORY_RESET);
+      onReleased(FACTORY_RESET);
     }
   }
 
@@ -98,6 +98,11 @@ void BotButton::_handleStateChange(bool newState, unsigned long currentMillis, u
     #endif
 
     _downStartTime = currentMillis;
+
+    // Notify the listeners
+    if (onPress) {
+      onPress();
+    }
   }
 
   // Button is Up
@@ -110,20 +115,28 @@ void BotButton::_handleStateChange(bool newState, unsigned long currentMillis, u
 
     _downStartTime = 0;
 
-    // Simple Press
-    if (onPress) {
-      if (duration < BTN_PRESS_DURATION) {
-        onPress(SIMPLE);
+    // Notify the listeners
+    if (onReleased) {
+      // Simple Press
+      if (duration < BTN_ACTIVATE_DOOR_DURATION) {
+        onReleased(SIMPLE);
       } 
       
-      // Register Remote
-      else if (duration > BTN_REGISTER_REMOTE_DURATION) {
-        onPress(REGISTER_REMOTE);
+      // These durations need to be in largest to smallest order to ensure the correct action type is selected
+
+      // Disable WiFi
+      else if (duration > BTN_DISABLE_WIFI_DURATION) {
+        onReleased(DISABLE_WIFI);
       }
       
-      // WiFi Reset
+      // Reset WiFi
       else if (duration > BTN_RESET_WIFI_DURATION) {
-        onPress(RESET_WIFI);
+        onReleased(RESET_WIFI);
+      }
+
+      // Register Remote
+      else if (duration > BTN_REGISTER_REMOTE_DURATION) {
+        onReleased(REGISTER_REMOTE);
       }
 
       // Factory reset happens automatically once the button has been held down for the maximum duration

@@ -18,7 +18,8 @@ class BotButton {
     bool init();
     void run(unsigned long currentMillis);
 
-    buttonPressedFunction onPress;
+    eventFiredFunction onPress;
+    buttonPressedFunction onReleased;
   private:
     String _name;                           // The name of the LED (for debugging)
     unsigned int _gpioNo;                   // The GPIO the led is connected to

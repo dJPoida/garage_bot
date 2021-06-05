@@ -131,13 +131,13 @@ void BotLED::nextCycle() {
 
     switch (_mode) {
       case LED_FLASH:
-        _cycleTicksRemaining = flash_ticks[_cycleNo];
+        _cycleTicksRemaining = flash_ticks[_cycleNo] - 1;
         break;
       case LED_FLASH_FAST:
-        _cycleTicksRemaining = flash_fast_ticks[_cycleNo];
+        _cycleTicksRemaining = flash_fast_ticks[_cycleNo] - 1;
         break;
       case LED_FLASH_REGISTER:
-        _cycleTicksRemaining = flash_register_ticks[_cycleNo];
+        _cycleTicksRemaining = flash_register_ticks[_cycleNo] - 1;
         break;
       default:
         break;

@@ -19,10 +19,11 @@ enum WiFiEngineMode {
 
 // The different types of button presses that the front panel can have
 enum ButtonPressType {
-  SIMPLE,         // The button was pressed
-  REGISTER_REMOTE,    // The user held the button down for a remote registration duration
-  RESET_WIFI,     // The user held the button down for a wifi reset duration
-  FACTORY_RESET,  // The user held the button down for a factory reset duration
+  SIMPLE,           // The button was pressed
+  REGISTER_REMOTE,  // The user held the button down for a remote registration duration
+  RESET_WIFI,       // The user held the button down for a wifi reset duration
+  DISABLE_WIFI,     // The user wants to wifi disable duration
+  FACTORY_RESET,    // The user held the button down for a factory reset duration
 };
 
 // Used to keep track of the mode the LED is in

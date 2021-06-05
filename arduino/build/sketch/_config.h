@@ -33,14 +33,17 @@
 // A delay (ms) to wait to prevent phantom button presses
 #define BTN_DEBOUNCE_DELAY 25      
 
-// Anything below this duration is considered a "button press"
-#define BTN_PRESS_DURATION 1000
+// Anything below this duration is considered a "simple" activate door press
+#define BTN_ACTIVATE_DOOR_DURATION 1000
 
 // Anything above this duration is considered a "Register an RF Remote" request
 #define BTN_REGISTER_REMOTE_DURATION 3000
 
 // Anything above this duration is considered a "Reset Wifi" request
 #define BTN_RESET_WIFI_DURATION 7000
+
+// Anything above this duration is considered a "Disable Wifi" request
+#define BTN_DISABLE_WIFI_DURATION 10000
 
 // Anything above this duration is considered a "Factory Reset"
 #define BTN_FACTORY_RESET_DURATION 15000
@@ -84,6 +87,7 @@
 struct Config {
   String mdns_name                  = "garagebot";          // The name to use in the mdns address that clients can use to connect to the device without the IP (i.e. http://garagebot.local)
   String network_device_name        = "GarageBot";          // The device name to display to other devices on the network
+  bool wifi_enabled                 = false;                // Whether WiFi is enabled
   String wifi_ssid                  = "";                   // The SSID of the wifi network that the garage bot is configured to connect to
   String wifi_password              = "";                   // The Password of the wifi network that the garage bot is configured to connect to
   String ip_address                 = "";                   // The allocated IP address when connected to the WiFi
