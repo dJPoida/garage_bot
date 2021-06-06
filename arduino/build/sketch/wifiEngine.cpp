@@ -309,7 +309,7 @@ void WiFiEngine::onWsEvent(AsyncWebSocketClient *client, AwsEventType type, void
   // Fired when a websocket client sends data
   else if (type == WS_EVT_DATA) {
     // Pass the data parsing off to a more detailed function
-    handleWebSocketData(arg, data, len);
+    handleWebSocketData(client, arg, data, len);
   }
 }
 
@@ -321,7 +321,7 @@ void WiFiEngine::onWsEvent(AsyncWebSocketClient *client, AwsEventType type, void
  * @param client - (Optional) A specific client to send the config to
  */
 void WiFiEngine::sendConfigToClients(AsyncWebSocketClient *client) {
-  DynamicJsonDocument doc(1024);
+  DynamicJsonDocument doc(MAX_SOCKET_SERVER_MESSAGE_SIZE);
   doc["m"] = SOCKET_SERVER_MESSAGE_CONFIG_CHANGE;
   JsonObject payload = doc.createNestedObject("p");
   payload["mdns_name"]              = config.mdns_name;
@@ -334,7 +334,7 @@ void WiFiEngine::sendConfigToClients(AsyncWebSocketClient *client) {
   payload["mqtt_topic"]             = config.mqtt_topic;
   payload["mqtt_state_topic"]       = config.mqtt_state_topic;
   
-  char json[1024];
+  char json[MAX_SOCKET_SERVER_MESSAGE_SIZE];
   serializeJsonPretty(doc, json);
   
   // Send the config to a specific client
@@ -356,14 +356,14 @@ void WiFiEngine::sendConfigToClients(AsyncWebSocketClient *client) {
  * @param client - (Optional) A specific client to send the config to
  */
 void WiFiEngine::sendStatusToClients(AsyncWebSocketClient *client) {
-  DynamicJsonDocument doc(1024);
+  DynamicJsonDocument doc(MAX_SOCKET_SERVER_MESSAGE_SIZE);
   doc["m"] = SOCKET_SERVER_MESSAGE_STATUS_CHANGE;
   JsonObject payload = doc.createNestedObject("p");
   
   // Add the door status
   payload["door_state"] = doorControl.getDoorStateAsString();
   
-  char json[1024];
+  char json[MAX_SOCKET_SERVER_MESSAGE_SIZE];
   serializeJsonPretty(doc, json);
   
   // Send the config to a specific client
@@ -433,7 +433,7 @@ void WiFiEngine::run (
     
     // If the appropriate amount of time has passed and the button is stable, register the change
     if ((currentMillis - _lastSensorBroadcast) > SENSOR_BROADCAST_INTERVAL) {
-      DynamicJsonDocument doc(1024);
+      DynamicJsonDocument doc(MAX_SOCKET_SERVER_MESSAGE_SIZE);
       // Message Type
       doc["m"] = SOCKET_SERVER_MESSAGE_SENSOR_DATA;
 
@@ -448,7 +448,7 @@ void WiFiEngine::run (
       payload["available_memory"] = heap_caps_get_free_size(MALLOC_CAP_8BIT);
     
       // Send the sensor data to all connected clients
-      char json[1024];
+      char json[MAX_SOCKET_SERVER_MESSAGE_SIZE];
       serializeJsonPretty(doc, json);
       _webSocket->textAll(json);
 
@@ -488,7 +488,7 @@ String WiFiEngine::templateProcessor(const String& var){
  */
 void WiFiEngine::handleSetWiFi(AsyncWebServerRequest *request, uint8_t *body){
   // Parse the new config details out of the document
-  DynamicJsonDocument doc(1024);
+  DynamicJsonDocument doc(MAX_SOCKET_CLIENT_MESSAGE_SIZE);
   deserializeJson(doc, (const char*)body);
   String wifiSSID = doc["wifiSSID"];
   String wifiPassword = doc["wifiPassword"];
@@ -504,12 +504,32 @@ void WiFiEngine::handleSetWiFi(AsyncWebServerRequest *request, uint8_t *body){
 /**
  * Parse and handle a websocket data message
  */
-void WiFiEngine::handleWebSocketData(void *arg, uint8_t *data, size_t len) {
+void WiFiEngine::handleWebSocketData(AsyncWebSocketClient *client, void *arg, uint8_t *data, size_t len) {
   AwsFrameInfo *info = (AwsFrameInfo*)arg;
   if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
+    
+    // We know we're only really receiving strings here so make sure the data is null-terminated
+    char message[MAX_SOCKET_CLIENT_MESSAGE_SIZE];
+    memcpy( message, data, len );
+    message[len] = '\0';
 
-    DynamicJsonDocument json(256);
-    deserializeJson(json, (char*)data);
+    // First, compare the data against the "PING" string.
+    if (strcmp(message, "PING") == 0) {
+      // Send back a "PONG"
+      client->text("PONG");
+    }
+
+    // Otherwise, attempt to parse the massage as JSON
+    else {
+      #ifdef SERIAL_DEBUG
+      Serial.print("Socket Message Received: '");
+      Serial.print(message);
+      Serial.println("'");
+      #endif
+
+
+      DynamicJsonDocument json(MAX_SOCKET_CLIENT_MESSAGE_SIZE);
+      deserializeJson(json, message);
 //    const char *message = json["m"];
 //    JsonObject payload = json["p"];
 //
@@ -519,5 +539,6 @@ void WiFiEngine::handleWebSocketData(void *arg, uint8_t *data, size_t len) {
 //      Serial.println("TODO: SOCKET_CLIENT_MESSAGE_PRESS_BUTTON");
 //      #endif
 //    }
+    }
   }
 }

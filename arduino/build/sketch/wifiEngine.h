@@ -62,7 +62,7 @@ class WiFiEngine {
     void initRoutes();                            // Initialise the AP mode Web Server routes
 
     void onWsEvent(AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len); // Handle websocket events
-    void handleWebSocketData(void *arg, uint8_t *data, size_t len);     // Handle a websocket data message
+    void handleWebSocketData(AsyncWebSocketClient *client, void *arg, uint8_t *data, size_t len);     // Handle a websocket data message
     
     void handleSetWiFi(AsyncWebServerRequest *request, uint8_t *body);  // Handle calls to set the WiFi Access Point
 };

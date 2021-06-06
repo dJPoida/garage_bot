@@ -81,7 +81,7 @@ bool BotFS::loadConfig() {
   }
 
   size_t size = configFile.size();
-  if (size > 1024) {
+  if (size > CONFIG_FILE_MAX_SIZE) {
     #ifdef SERIAL_DEBUG
     Serial.println(" ! Error - config file size is too large");
     #endif
@@ -91,7 +91,7 @@ bool BotFS::loadConfig() {
   // Allocate a temporary JsonDocument
   // Don't forget to change the capacity to match your requirements.
   // Use arduinojson.org/v6/assistant to compute the capacity.
-  StaticJsonDocument<1024> doc;
+  StaticJsonDocument<CONFIG_FILE_MAX_SIZE> doc;
 
   // Deserialize the JSON document
   DeserializationError error = deserializeJson(doc, configFile);
@@ -182,7 +182,7 @@ bool BotFS::saveConfig() {
   // Allocate a temporary JsonDocument
   // Don't forget to change the capacity to match your requirements.
   // Use arduinojson.org/assistant to compute the capacity.
-  StaticJsonDocument<1024> doc;
+  StaticJsonDocument<CONFIG_FILE_MAX_SIZE> doc;
 
   // Set the values in the document
   doc["network_device_name"]    = config.network_device_name;

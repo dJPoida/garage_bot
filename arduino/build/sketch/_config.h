@@ -84,6 +84,15 @@
 // How many consecutive successful RF receipts are required when registering a new remote
 #define REMOTE_CONSECUTIVE_CODES_FOR_REGISTRATION 10
 
+// The maximum number of bytes we can expect to send to the client
+#define MAX_SOCKET_SERVER_MESSAGE_SIZE 1024
+
+// The maximum number of bytes we can expect to received from the client
+#define MAX_SOCKET_CLIENT_MESSAGE_SIZE 256
+
+// The maximum size of the config file in bytes
+#define CONFIG_FILE_MAX_SIZE 1024
+
 /**
  * Config struct for storing and loading data from the SPIFFS partition
  */
