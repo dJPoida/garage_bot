@@ -72,6 +72,9 @@
 // The port that the web server is served on.
 #define WEB_SERVER_PORT 80          
 
+// How often the WiFi should attempt to re-connect when disconnected
+#define WIFI_RECONNECT_INTERVAL 30000
+
 // How many milliseconds for each interval/tick in the LED timer
 #define LED_TIMER_CYCLE_MS 125
 
@@ -90,7 +93,6 @@ struct Config {
   bool wifi_enabled                 = false;                // Whether WiFi is enabled
   String wifi_ssid                  = "";                   // The SSID of the wifi network that the garage bot is configured to connect to
   String wifi_password              = "";                   // The Password of the wifi network that the garage bot is configured to connect to
-  String ip_address                 = "";                   // The allocated IP address when connected to the WiFi
   String mqtt_broker_address        = "";                   // The IP address of the MQTT Broker
   unsigned int mqtt_broker_port     = 1833;                 // The MQTT Broker Port Number
   String mqtt_device_id             = "Garage_Bot";         // The Device ID to use when connecting to the MQTT Server

@@ -145,17 +145,21 @@ void setup() {
   doorControl.onStateChange = doorControlStateChanged;
 
   if (config.wifi_enabled) {
-    // MQTT Client (can only be initialised if WiFi is enabled)
-    mqttClient.init();
-    // TODO: handlers for MQTT subscriptions
-
+    // If the wifi engine is in access point mode
     if (wifiEngine.wifiEngineMode == WEM_AP) {
       // Put the WiFi LED in flash mode if it is in Access Point mode
       wiFiLED.setMode(LED_FLASH_REGISTER);
-    } else {
-      // Leave the WiFi LED as solid on, indicating active connection to the WiFi access point
-      // TODO: move this into an event handler that responds to the active connection of the WiFi engine
-      wiFiLED.setState(HIGH);
+    } 
+    
+    // IF the wifi engine is in regular mode
+    else {
+      // Initialise the MQTT Client
+      mqttClient.init();
+      // TODO: handlers for MQTT subscriptions
+
+      // Listen to changes in the WiFi client's connectivity
+      wifiEngine.onConnectedChanged = handleWiFiConnectedChanged;
+      handleWiFiConnectedChanged(wifiEngine.connected);
     }
   }
 
@@ -184,13 +188,9 @@ void loop() {
     
     // Wifi functions
     if (config.wifi_enabled) {
-      // If the wifiEngine is in Access Point mode, process DNS requests.
-      if (wifiEngine.wifiEngineMode == WEM_AP) {
-        dnsServer.processNextRequest();
-      }
-
-      // Send sensor data to any connected socket clients
-      wifiEngine.sendSensorDataToClients(
+      // The wifi engine.run will 
+      // This also sends sensor data to any connected socket clients
+      wifiEngine.run(
         currentMillis,
         topIRSensor.detected,
         topIRSensor.averageAmbientReading,
@@ -424,4 +424,22 @@ void doorControlStateChanged(DoorState newDoorState) {
       break;
   }
   #endif
+}
+
+
+/**
+ * Fired by the WiFi engine when the connected boolean changes
+ */
+void handleWiFiConnectedChanged(bool newConnected) {
+  // The WiFi engine is now connected to the configured hotspot
+  if (newConnected) {
+    // Display a solid blue WiFi LED
+    wiFiLED.set(true, LED_SOLID);
+  } 
+  
+  // The WiFi engine has lost connection to the configured hotspot
+  else {
+    // Flash the blue WiFi LED.
+    wiFiLED.set(false, LED_FLASH);
+  }
 }

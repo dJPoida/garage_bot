@@ -49,15 +49,19 @@ bool WiFiEngine::init(AsyncWebServer *webServer, AsyncWebSocket *webSocket, DNSS
   // At this point we can consider ourselves uninitialized
   wifiEngineMode = WEM_UNINIT;
   
-  // attempt to connect to the configured wifi 
-  if (!connectToHotSpot()) {
+  // Has the WiFi hotspot been configured?
+  if (!config.wifi_ssid.equals("")) {
+    connectToHotSpot();
+  }
+
+  else {
     // Attempt to serve up the dedicated Access Point
     if (!broadcastAP()) {
-      // Don't continue if unable to perform either connection
+      // Don't continue if unable to broadcast an Access Point
       return false;
     }
   }
-
+  
   // Some default headers for handling CORS problems in javascript
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
   
@@ -99,6 +103,9 @@ bool WiFiEngine::connectToHotSpot() {
       WiFi.hostname(config.network_device_name.c_str());
       WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
 
+      wifiEngineMode = WEM_CLIENT;
+      macAddress = WiFi.macAddress();
+
       // Attempt to connect to the configured wifi hotspot
       WiFi.begin(config.wifi_ssid.c_str(), config.wifi_password.c_str()); 
 
@@ -107,34 +114,12 @@ bool WiFiEngine::connectToHotSpot() {
           #ifdef SERIAL_DEBUG
           Serial.println(" ! Failed to connect!");
           #endif
+          _lastReconnectAttempt = millis();
+          connected = false;
           return false;
       }       
 
-      // Start the mDNS service to broadcast the device's location on the network
-      if(!MDNS.begin(config.mdns_name.c_str())) {
-        #ifdef SERIAL_DEBUG
-        Serial.println(" ! Error starting mDNS!");
-        #endif
-        return false;
-      }
-      
-      wifiEngineMode = WEM_CLIENT;
-      ipAddress = WiFi.localIP().toString();
-      macAddress = WiFi.macAddress();
-      config.ip_address = ipAddress;
-    
-      #ifdef SERIAL_DEBUG
-      Serial.print(" - WiFi connected."); 
-      Serial.print(" - IP address: "); 
-      Serial.println(ipAddress);
-      Serial.print(" - MAC address: ");
-      Serial.println(macAddress);
-      Serial.print(" - Device name: ");
-      Serial.println(config.network_device_name);
-      Serial.print(" - Web address: http://");
-      Serial.print(config.mdns_name);
-      Serial.println(".local");
-      #endif
+      _handleWiFiConnected();
 
       return true;
     }
@@ -177,6 +162,58 @@ bool WiFiEngine::broadcastAP() {
   #endif
 
   return true;
+}
+
+
+
+/**
+ * Fired whenever the device looses connection to the configured WiFi access point
+ */
+void WiFiEngine::_handleWiFiDisconnected() {
+  connected = false;
+
+  ipAddress = "";
+  
+  // Notify listeners
+  if (onConnectedChanged) {
+    onConnectedChanged(false);
+  }
+}
+
+
+/**
+ * Fired whenever the device connects or re-connects to the configured WiFi access point
+ */
+void WiFiEngine::_handleWiFiConnected() {
+  connected = true;
+  ipAddress = WiFi.localIP().toString();
+
+  #ifdef SERIAL_DEBUG
+  Serial.print(" - WiFi connected."); 
+  Serial.print(" - IP address: "); 
+  Serial.println(ipAddress);
+  Serial.print(" - MAC address: ");
+  Serial.println(macAddress);
+  Serial.print(" - Device name: ");
+  Serial.println(config.network_device_name);
+  Serial.print(" - Web address: http://");
+  Serial.print(config.mdns_name);
+  Serial.println(".local");
+  #endif
+
+  // Start the mDNS service to broadcast the device's location on the network
+  if(!MDNS.begin(config.mdns_name.c_str())) {
+    #ifdef SERIAL_DEBUG
+    Serial.println(" ! Error starting mDNS!");
+    #endif
+  }
+
+  // TODO: establish if the Web Server needs to be re-created etc...
+
+  // Notify listeners
+  if (onConnectedChanged) {
+    onConnectedChanged(true);
+  }
 }
 
 
@@ -342,12 +379,20 @@ void WiFiEngine::sendStatusToClients(AsyncWebSocketClient *client) {
 
 
 /**
- * Send the sensor data to the connected clients
- * Called on a regular basis by the main loop
+ * run
+ *
+ * Called on a regular basis by the main loop to Check the connectivity to the WiFi hotspot
+ * and Send the sensor data to the connected clients.
  *
  * @param currentMillis the current milliseconds as passed down from the main loop
+ * @param topIRSensorDetected whether the top IR sensor can sense the door
+ * @param topIRSensorAverageAmbientReading
+ * @param topIRSensorAverageActiveReading
+ * @param bottomIRSensorDetected whether the top IR sensor can sense the door
+ * @param bottomIRSensorAverageAmbientReading
+ * @param bottomIRSensorAverageActiveReading
  */
-void WiFiEngine::sendSensorDataToClients(
+void WiFiEngine::run (
   unsigned long currentMillis,
   boolean topIRSensorDetected,
   int topIRSensorAverageAmbientReading,
@@ -356,29 +401,59 @@ void WiFiEngine::sendSensorDataToClients(
   int bottomIRSensorAverageAmbientReading,
   int bottomIRSensorAverageActiveReading
 ) {
-  // TODO: Figure out how to only send data if there's a connected client. This is a waste of processing power.
-  
-  // If the appropriate amount of time has passed and the button is stable, register the change
-  if ((currentMillis - _lastSensorBroadcast) > SENSOR_BROADCAST_INTERVAL) {
-    DynamicJsonDocument doc(1024);
-    // Message Type
-    doc["m"] = SOCKET_SERVER_MESSAGE_SENSOR_DATA;
+  // If the wifiEngine is in Access Point mode, process DNS requests.
+  if (wifiEngineMode == WEM_AP) {
+    _dnsServer->processNextRequest();
+  }
 
-    // Payload
-    JsonObject payload = doc.createNestedObject("p");
-    payload["top_detected"] = topIRSensorDetected;
-    payload["top_ambient"] = topIRSensorAverageAmbientReading;
-    payload["top_active"] = topIRSensorAverageActiveReading;
-    payload["bottom_detected"] = bottomIRSensorDetected;
-    payload["bottom_ambient"] = bottomIRSensorAverageAmbientReading;
-    payload["bottom_active"] = bottomIRSensorAverageActiveReading;
-  
-    // Send the sensor data to all connected clients
-    char json[1024];
-    serializeJsonPretty(doc, json);
-    _webSocket->textAll(json);
+  // If the wifiEngine is in normal wifi client mode
+  else {
+    // evaluate the state of the WiFi connection and establish if it needs to be re-connected etc...
+    if ((WiFi.status() != WL_CONNECTED) && ((currentMillis - _lastReconnectAttempt) >= WIFI_RECONNECT_INTERVAL)) {
+      // To our knowledge, are we supposed to be connected?!
+      if (connected) {
+        _handleWiFiDisconnected();
+      }
+      
+      #ifdef SERIAL_DEBUG
+      Serial.println("Reconnecting to WiFi...");
+      #endif
 
-    _lastSensorBroadcast = currentMillis;
+      WiFi.disconnect();
+      WiFi.reconnect();
+      _lastReconnectAttempt = currentMillis;
+    }
+
+    // If the wifi is connected but we aren't aware of it, update the connected state and notify listeners
+    else if ((WiFi.status() == WL_CONNECTED) && !connected) {
+      _handleWiFiConnected();
+    }
+    
+    // TODO: Figure out how to only send data if there's a connected client. This is a waste of processing power.
+    
+    // If the appropriate amount of time has passed and the button is stable, register the change
+    if ((currentMillis - _lastSensorBroadcast) > SENSOR_BROADCAST_INTERVAL) {
+      DynamicJsonDocument doc(1024);
+      // Message Type
+      doc["m"] = SOCKET_SERVER_MESSAGE_SENSOR_DATA;
+
+      // Payload
+      JsonObject payload = doc.createNestedObject("p");
+      payload["top_detected"] = topIRSensorDetected;
+      payload["top_ambient"] = topIRSensorAverageAmbientReading;
+      payload["top_active"] = topIRSensorAverageActiveReading;
+      payload["bottom_detected"] = bottomIRSensorDetected;
+      payload["bottom_ambient"] = bottomIRSensorAverageAmbientReading;
+      payload["bottom_active"] = bottomIRSensorAverageActiveReading;
+      payload["available_memory"] = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    
+      // Send the sensor data to all connected clients
+      char json[1024];
+      serializeJsonPretty(doc, json);
+      _webSocket->textAll(json);
+
+      _lastSensorBroadcast = currentMillis;
+    }
   }
 }
 
@@ -389,14 +464,16 @@ void WiFiEngine::sendSensorDataToClients(
  * @param var - the %TEMPLATE% variable located in the html file
  */
 String WiFiEngine::templateProcessor(const String& var){
-  #ifdef SERIAL_DEBUG
-  Serial.println(var);
-  #endif
-
   if (var == "FIRMWARE_VERSION") {
     return FIRMWARE_VERSION;
   } else if (var == "DEVICE_ADDRESS") {
-    return config.ip_address;
+    return wifiEngine.ipAddress;
+  } else {
+    #ifdef SERIAL_DEBUG
+    Serial.print("Unhandled HTML template variable: '");
+    Serial.print(var);
+    Serial.println("'");
+    #endif
   }
 
   return var;

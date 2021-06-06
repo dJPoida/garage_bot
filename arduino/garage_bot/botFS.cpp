@@ -231,7 +231,6 @@ bool BotFS::resetWiFiConfig(bool enableWiFi) {
   config.wifi_enabled = enableWiFi;
   config.wifi_ssid = "";
   config.wifi_password = "";
-  config.ip_address = "";
   
   return saveConfig();
 }
