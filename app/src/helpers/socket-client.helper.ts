@@ -287,8 +287,8 @@ class SocketClient extends events.EventEmitter {
     payload: Record<string, unknown>
   ) => {
     const data = {
-      message,
-      payload: payload ?? {},
+      m: message,
+      p: payload ?? {},
     };
 
     const jsonEncodedMessage = JSON.stringify(data);

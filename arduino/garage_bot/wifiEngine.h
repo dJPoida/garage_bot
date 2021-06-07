@@ -30,6 +30,7 @@ class WiFiEngine {
     String macAddress;                                        // The MAC address of the wifi adaptor
 
     boolValueChangedFunction onConnectedChanged;              // Fired when connected changes from true to false etc...
+    eventFiredFunction onControlButtonPressed;                // Fired when a socket message is received when the user presses the control button
 
     void sendConfigToClients(AsyncWebSocketClient *client = NULL);  // Send the current device config to (a) connected client(s)
     void sendStatusToClients(AsyncWebSocketClient *client = NULL);  // Send the current device status to (a) connected client(s)

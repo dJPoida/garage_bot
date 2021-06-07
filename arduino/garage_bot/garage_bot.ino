@@ -159,6 +159,7 @@ void setup() {
 
       // Listen to changes in the WiFi client's connectivity
       wifiEngine.onConnectedChanged = handleWiFiConnectedChanged;
+      wifiEngine.onControlButtonPressed = handleWiFiClientControlButtonPressed;
       handleWiFiConnectedChanged(wifiEngine.connected);
     }
   }
@@ -442,4 +443,15 @@ void handleWiFiConnectedChanged(bool newConnected) {
     // Flash the blue WiFi LED.
     wiFiLED.set(false, LED_FLASH);
   }
+}
+
+
+/**
+ * Fired by the WiFi engine when the user presses the control button
+ */
+void handleWiFiClientControlButtonPressed() {
+  #ifdef SERIAL_DEBUG
+  Serial.println("Simple Button Press Detected via WiFi");
+  #endif
+  remoteRepeater.activate();
 }

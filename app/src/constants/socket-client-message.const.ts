@@ -4,9 +4,6 @@
  * Make sure these match the values defined on the device firmware in `_config.h`
  */
 export const SOCKET_CLIENT_MESSAGE = {
-  // Send a PING to the device to check if it's still there
-  PING: "PI",
-
   // Simulate the pressing of a button
   PRESS_BUTTON: "BD",
 

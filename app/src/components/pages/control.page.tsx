@@ -21,13 +21,23 @@ export const ControlPage: React.FC = () => {
       </div>
       <div className="control-wrapper">
         <div className="control-buttons">
-          <button>
+          <button
+            disabled={([
+              DOOR_STATE.OPEN,
+              DOOR_STATE.OPENING,
+            ] as A_DOOR_STATE[]).includes(doorState)}
+          >
             <span className={ICON.UP} />
           </button>
           <button onMouseDown={pressButton} onMouseUp={releaseButton}>
             <span className={ICON.TOGGLE} />
           </button>
-          <button>
+          <button
+            disabled={([
+              DOOR_STATE.CLOSED,
+              DOOR_STATE.CLOSING,
+            ] as A_DOOR_STATE[]).includes(doorState)}
+          >
             <span className={ICON.DOWN} />
           </button>
         </div>

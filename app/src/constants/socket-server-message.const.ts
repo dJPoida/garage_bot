@@ -4,9 +4,6 @@
  * Make sure these match the values defined on the device firmware in `_config.h`
  */
 export const SOCKET_SERVER_MESSAGE = {
-  // A Pong sent back from the device to prove that it is still connected
-  PONG: "PO",
-
   // The status of the door has changed
   STATUS_CHANGE: "SC",
 

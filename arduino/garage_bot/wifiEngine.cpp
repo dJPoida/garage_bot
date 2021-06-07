@@ -527,18 +527,30 @@ void WiFiEngine::handleWebSocketData(AsyncWebSocketClient *client, void *arg, ui
       Serial.println("'");
       #endif
 
-
       DynamicJsonDocument json(MAX_SOCKET_CLIENT_MESSAGE_SIZE);
       deserializeJson(json, message);
-//    const char *message = json["m"];
-//    JsonObject payload = json["p"];
-//
-//    // SOCKET_CLIENT_MESSAGE_PRESS_BUTTON
-//    if (strcmp(message, SOCKET_CLIENT_MESSAGE_PRESS_BUTTON) == 0) {
-//      #ifdef SERIAL_DEBUG
-//      Serial.println("TODO: SOCKET_CLIENT_MESSAGE_PRESS_BUTTON");
-//      #endif
-//    }
+      
+      String message = json["m"].as<String>();
+      JsonObject payload = json["p"];
+
+      // SOCKET_CLIENT_MESSAGE_PRESS_BUTTON
+      if (message == SOCKET_CLIENT_MESSAGE_PRESS_BUTTON) {
+        #ifdef SERIAL_DEBUG
+        Serial.println("SOCKET_CLIENT_MESSAGE_PRESS_BUTTON");
+        #endif
+      }
+
+      // SOCKET_CLIENT_MESSAGE_RELEASE_BUTTON
+      if (message == SOCKET_CLIENT_MESSAGE_RELEASE_BUTTON) {
+        #ifdef SERIAL_DEBUG
+        Serial.println("SOCKET_CLIENT_MESSAGE_RELEASE_BUTTON");
+        #endif
+
+        // Notify Listeners
+        if (onControlButtonPressed) {
+          onControlButtonPressed();
+        }
+      }
     }
   }
 }
