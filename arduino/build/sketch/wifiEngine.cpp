@@ -531,24 +531,20 @@ void WiFiEngine::handleWebSocketData(AsyncWebSocketClient *client, void *arg, ui
       deserializeJson(json, message);
       
       String message = json["m"].as<String>();
-      JsonObject payload = json["p"];
+      JsonVariant payload = json["p"];
 
-      // SOCKET_CLIENT_MESSAGE_PRESS_BUTTON
-      if (message == SOCKET_CLIENT_MESSAGE_PRESS_BUTTON) {
-        #ifdef SERIAL_DEBUG
-        Serial.println("SOCKET_CLIENT_MESSAGE_PRESS_BUTTON");
-        #endif
-      }
+      // SOCKET_CLIENT_MESSAGE_BUTTON_PRESS
+      if (message == SOCKET_CLIENT_MESSAGE_BUTTON_PRESS) {
+        String virtualButton = payload["b"];
 
-      // SOCKET_CLIENT_MESSAGE_RELEASE_BUTTON
-      if (message == SOCKET_CLIENT_MESSAGE_RELEASE_BUTTON) {
         #ifdef SERIAL_DEBUG
-        Serial.println("SOCKET_CLIENT_MESSAGE_RELEASE_BUTTON");
+        Serial.print("SOCKET_CLIENT_MESSAGE_BUTTON_PRESS: ");
+        Serial.println(virtualButton);
         #endif
 
         // Notify Listeners
-        if (onControlButtonPressed) {
-          onControlButtonPressed();
+        if (onVirtualButtonPressed) {
+          onVirtualButtonPressed(toVirtualButtonType(virtualButton));
         }
       }
     }

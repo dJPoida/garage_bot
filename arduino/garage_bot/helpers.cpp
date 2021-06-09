@@ -6,6 +6,7 @@
 \*============================================================================*/
 
 #include "Arduino.h"
+#include "helpers.h"
 
 /**
  * Determine the Mime Type of a file based on its extension
@@ -24,4 +25,22 @@ String getMimeType(const String& fileName){
     return "image/svg+xml";
   }
   return "text/plain";
+}
+
+
+/**
+ * Convert a string representation of a virtual button type
+ * to a VirtualButtonType enum value
+ * 
+ * @param button the string representation of the virtual button type
+ */
+VirtualButtonType toVirtualButtonType(const String& button){
+  // TODO: turn this into a mapped array at some point
+  if (button == "OPEN") {
+    return OPEN;
+  } else if (button == "CLOSE") {
+    return CLOSE;
+  }
+
+  return ACTIVATE;
 }

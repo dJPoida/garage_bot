@@ -5,13 +5,11 @@
  */
 export const SOCKET_CLIENT_MESSAGE = {
   // Simulate the pressing of a button
-  PRESS_BUTTON: "BD",
-
-  // Simulate the release of the button
-  RELEASE_BUTTON: "BU",
+  BUTTON_PRESS: "BP",
 
   // Restart the device
   REBOOT: "RS",
 } as const;
 export type SOCKET_CLIENT_MESSAGE = typeof SOCKET_CLIENT_MESSAGE;
-export type A_SOCKET_CLIENT_MESSAGE = SOCKET_CLIENT_MESSAGE[keyof SOCKET_CLIENT_MESSAGE];
+export type A_SOCKET_CLIENT_MESSAGE =
+  SOCKET_CLIENT_MESSAGE[keyof SOCKET_CLIENT_MESSAGE];

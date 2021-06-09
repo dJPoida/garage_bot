@@ -6,7 +6,7 @@ export const ConfigPage: React.FC = () => {
 
   return (
     <div>
-      TODO: config page
+      {/* TODO: config page */}
       <div className="config-list">
         {Object.keys(config).map((configKey: string) => {
           return (

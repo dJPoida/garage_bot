@@ -26,6 +26,13 @@ enum ButtonPressType {
   FACTORY_RESET,    // The user held the button down for a factory reset duration
 };
 
+// The different types of virtual buttons that can be "pressed" by connected devices and API calls
+enum VirtualButtonType {
+  ACTIVATE,       // Activate the Remote Repeater (don't care about open/close)
+  OPEN,           // Open the door
+  CLOSE,          // Close the door
+};
+
 // Used to keep track of the mode the LED is in
 enum LEDMode {
   LED_SOLID,      // Solid
@@ -62,11 +69,19 @@ typedef void (*receiverModeChangedFunction)(RFReceiverMode);
 
 typedef void (*errorFunction)(String);
 
+typedef void (*virtualButtonPressedFunction)(VirtualButtonType);
+
 /**
  * Determine the Mime Type of a file based on its extension
  * @param String& filename the name of the file to check
  * @return char* the calculated mime-type of the file in question
  */
 String getMimeType(const String& fileName);
+
+/**
+ * Convert a string representation of a virtual button type
+ * to a VirtualButtonType enum value
+ */
+VirtualButtonType toVirtualButtonType(const String& button);
 
 #endif

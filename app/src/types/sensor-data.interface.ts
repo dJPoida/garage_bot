@@ -17,5 +17,6 @@ export const mapPayloadToSensorData = (
     bottomIRSensorDetected: payload["bottom_detected"] as boolean,
     bottomIRSensorAverageAmbientReading: payload["bottom_ambient"] as number,
     bottomIRSensorAverageActiveReading: payload["bottom_active"] as number,
+    availableMemory: payload["available_memory"] as number,
   };
 };

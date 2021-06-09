@@ -120,8 +120,7 @@ extern Config config;
  * These need to be kept in sync with the `socket-server-message.const.ts` and  
  * `socket-client-message.const.ts` in the `app` website code
  */
-#define SOCKET_CLIENT_MESSAGE_PRESS_BUTTON "BD"
-#define SOCKET_CLIENT_MESSAGE_RELEASE_BUTTON "BU"
+#define SOCKET_CLIENT_MESSAGE_BUTTON_PRESS "BP"
 #define SOCKET_CLIENT_MESSAGE_REBOOT "RS"
 #define SOCKET_SERVER_MESSAGE_STATUS_CHANGE "SC"
 #define SOCKET_SERVER_MESSAGE_CONFIG_CHANGE "CC"

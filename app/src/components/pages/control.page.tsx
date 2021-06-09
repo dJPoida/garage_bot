@@ -7,9 +7,10 @@ import {
 } from "../../constants/door-state.const";
 import { ICON } from "../../constants/icon.const";
 import { DeviceContext } from "../../providers/device.provider";
+import { VIRTUAL_BUTTON } from "../../constants/device-button.const";
 
 export const ControlPage: React.FC = () => {
-  const { doorState, pressButton, releaseButton } = useContext(DeviceContext);
+  const { doorState, pressButton } = useContext(DeviceContext);
 
   return (
     <div>
@@ -22,21 +23,21 @@ export const ControlPage: React.FC = () => {
       <div className="control-wrapper">
         <div className="control-buttons">
           <button
-            disabled={([
-              DOOR_STATE.OPEN,
-              DOOR_STATE.OPENING,
-            ] as A_DOOR_STATE[]).includes(doorState)}
+            onClick={() => pressButton(VIRTUAL_BUTTON.OPEN)}
+            disabled={(
+              [DOOR_STATE.OPEN, DOOR_STATE.OPENING] as A_DOOR_STATE[]
+            ).includes(doorState)}
           >
             <span className={ICON.UP} />
           </button>
-          <button onMouseDown={pressButton} onMouseUp={releaseButton}>
+          <button onClick={() => pressButton(VIRTUAL_BUTTON.ACTIVATE)}>
             <span className={ICON.TOGGLE} />
           </button>
           <button
-            disabled={([
-              DOOR_STATE.CLOSED,
-              DOOR_STATE.CLOSING,
-            ] as A_DOOR_STATE[]).includes(doorState)}
+            onClick={() => pressButton(VIRTUAL_BUTTON.CLOSE)}
+            disabled={(
+              [DOOR_STATE.CLOSED, DOOR_STATE.CLOSING] as A_DOOR_STATE[]
+            ).includes(doorState)}
           >
             <span className={ICON.DOWN} />
           </button>
@@ -54,10 +55,9 @@ export const ControlPage: React.FC = () => {
           <div className="transitioning">
             <div
               className={classNames("state-indicator", {
-                active: ([
-                  DOOR_STATE.OPENING,
-                  DOOR_STATE.CLOSING,
-                ] as A_DOOR_STATE[]).includes(doorState),
+                active: (
+                  [DOOR_STATE.OPENING, DOOR_STATE.CLOSING] as A_DOOR_STATE[]
+                ).includes(doorState),
               })}
             >
               {doorState === DOOR_STATE.OPENING && <span>OPENING</span>}

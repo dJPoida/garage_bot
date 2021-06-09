@@ -1,8 +1,8 @@
-import React, { createRef, useCallback, useState } from "react";
+import React, { createRef, useCallback, useEffect, useState } from "react";
+import { Link, NavLink } from "react-router-dom";
 import {
   A_CONTROL_PAGE,
-  ControlPageIcon,
-  ControlPageTitle,
+  ControlPageConfig,
 } from "../constants/control-page.const";
 import { globals } from "../helpers/globals.helper";
 import { AppIcon } from "./app-icon";
@@ -10,24 +10,20 @@ import { AppIcon } from "./app-icon";
 export type AppMenuProps = {
   pages: A_CONTROL_PAGE[];
   currentPage: A_CONTROL_PAGE;
-  onChangePage: (newPage: A_CONTROL_PAGE) => void;
 };
 
 export const AppMenu: React.FC<AppMenuProps> = (props) => {
-  const { pages, currentPage, onChangePage } = props;
+  const { pages, currentPage } = props;
   const [visible, setVisible] = useState<boolean>(false);
 
   /**
-   * Fired when one of the buttons is clicked
+   * When the location changes, hide the nav
    */
-  const handleButtonClick = useCallback((page: A_CONTROL_PAGE) => {
-    // Call the page change function
-    onChangePage(page);
-
-    // Close the menu drawer
+  useEffect(() => {
     setVisible(false);
-  }, []);
+  }, [currentPage]);
 
+  // Render
   return (
     <div className="app-menu">
       <label htmlFor="drawer-control" className="drawer-toggle persistent" />
@@ -50,16 +46,22 @@ export const AppMenu: React.FC<AppMenuProps> = (props) => {
               <span>{`v${globals.version} (${globals.firmwareVersion})`}</span>
             </div>
           </div>
-          {pages.map((page) => (
-            <button
-              key={page}
-              className={page === currentPage ? "primary" : ""}
-              onClick={() => handleButtonClick(page)}
-            >
-              <span className={ControlPageIcon[page]}></span>
-              <span>{ControlPageTitle[page]}</span>
-            </button>
-          ))}
+          <div className="button-wrapper">
+            {pages.map((pageKey) => {
+              const config = ControlPageConfig[pageKey];
+              return (
+                <NavLink
+                  exact
+                  key={pageKey}
+                  className="button"
+                  to={config.route}
+                  activeClassName="primary"
+                >
+                  {config.title}
+                </NavLink>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>

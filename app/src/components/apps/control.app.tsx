@@ -1,7 +1,13 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  useLocation,
+} from "react-router-dom";
 import {
   A_CONTROL_PAGE,
-  ControlPageComponentMap,
+  ControlPageConfig,
   CONTROL_PAGE,
 } from "../../constants/control-page.const";
 import { SOCKET_CLIENT_STATE } from "../../constants/socket-client-state.const";
@@ -12,12 +18,28 @@ import { AppMenu } from "../app-menu";
 export const ControlApp: React.FC = () => {
   const { socketClientState } = useContext(DeviceContext);
 
+  const location = useLocation();
   const [currentPage, setCurrentPage] = useState<A_CONTROL_PAGE>(
     CONTROL_PAGE.CONTROL
   );
 
-  const CurrentPageComponent = ControlPageComponentMap[currentPage];
+  /**
+   * Evaluate the current location.pathname and convert it to a pageKey
+   */
+  useEffect(() => {
+    const foundPage: null | A_CONTROL_PAGE = Object.keys(
+      ControlPageConfig
+    ).find(
+      (controlPageKey) =>
+        ControlPageConfig[controlPageKey as A_CONTROL_PAGE].route ===
+        location.pathname
+    ) as null | A_CONTROL_PAGE;
+    if (foundPage) {
+      setCurrentPage(foundPage ?? CONTROL_PAGE.CONTROL);
+    }
+  }, [location]);
 
+  // Render
   return (
     <div className="app control">
       <AppMenu
@@ -28,7 +50,6 @@ export const ControlApp: React.FC = () => {
           CONTROL_PAGE.ABOUT,
         ]}
         currentPage={currentPage}
-        onChangePage={setCurrentPage}
       />
       <AppHeader />
 
@@ -50,7 +71,19 @@ export const ControlApp: React.FC = () => {
 
       {/* Connected - render the appropriate page */}
       {socketClientState === SOCKET_CLIENT_STATE.CONNECTED && (
-        <CurrentPageComponent />
+        <Switch>
+          {Object.values(CONTROL_PAGE).map((controlPageKey) => {
+            const config = ControlPageConfig[controlPageKey];
+            return (
+              <Route
+                exact
+                key={controlPageKey}
+                path={config.route}
+                component={config.pageComponent}
+              />
+            );
+          })}
+        </Switch>
       )}
     </div>
   );

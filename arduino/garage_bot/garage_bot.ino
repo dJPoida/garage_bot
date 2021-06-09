@@ -159,7 +159,7 @@ void setup() {
 
       // Listen to changes in the WiFi client's connectivity
       wifiEngine.onConnectedChanged = handleWiFiConnectedChanged;
-      wifiEngine.onControlButtonPressed = handleWiFiClientControlButtonPressed;
+      wifiEngine.onVirtualButtonPressed = handleVirtualButtonPressed;
       handleWiFiConnectedChanged(wifiEngine.connected);
     }
   }
@@ -447,11 +447,31 @@ void handleWiFiConnectedChanged(bool newConnected) {
 
 
 /**
- * Fired by the WiFi engine when the user presses the control button
+ * Fired when a virtual button is pressed
  */
-void handleWiFiClientControlButtonPressed() {
-  #ifdef SERIAL_DEBUG
-  Serial.println("Simple Button Press Detected via WiFi");
-  #endif
-  remoteRepeater.activate();
+void handleVirtualButtonPressed(VirtualButtonType virtualButton) {
+  switch (virtualButton) {
+    case ACTIVATE:
+      #ifdef SERIAL_DEBUG
+      Serial.println("Virtual Activate Button Press Detected");
+      #endif
+      remoteRepeater.activate();
+      break;
+
+    case OPEN:
+      #ifdef SERIAL_DEBUG
+      Serial.println("Virtual Open Button Press Detected");
+      #endif
+
+      // TODO: do something on virtual OPEN press
+      break;
+
+    case CLOSE:
+      #ifdef SERIAL_DEBUG
+      Serial.println("Virtual Close Button Press Detected");
+      #endif
+
+      // TODO: do something on virtual CLOSE press
+      break;
+  }
 }

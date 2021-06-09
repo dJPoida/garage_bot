@@ -78,3 +78,9 @@ span[class^="icon-"] {
 span[class^="icon-"] + span {
   margin-left: var(--universal-margin);
 }
+
+button {
+  &:disabled {
+    pointer-events: none;
+  }
+}

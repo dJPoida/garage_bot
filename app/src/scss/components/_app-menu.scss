@@ -2,10 +2,6 @@
   .drawer {
     position: relative;
 
-    button {
-      width: calc(100% - (var(--universal-padding) * 2));
-    }
-
     .app-title {
       height: 4rem;
       display: flex;
@@ -34,6 +30,16 @@
             font-weight: 500;
           }
         }
+      }
+    }
+
+    .button-wrapper {
+      padding: var(--universal-padding);
+
+      a.button {
+        width: calc(100% - (var(--universal-padding) * 3) - (2 * 0.0625rem));
+        text-align: center;
+        margin: var(--universal-margin) 0;
       }
     }
   }

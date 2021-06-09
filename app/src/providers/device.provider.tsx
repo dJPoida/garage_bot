@@ -14,6 +14,7 @@ import {
   mapPayloadToSensorData,
 } from "../types/sensor-data.interface";
 import { SOCKET_CLIENT_MESSAGE } from "../constants/socket-client-message.const";
+import { A_VIRTUAL_BUTTON } from "../constants/device-button.const";
 
 type DeviceProviderProps = {};
 type DeviceProviderState = {
@@ -28,8 +29,7 @@ type DeviceContextProps = Pick<
   DeviceProviderState,
   "socketClientState" | "error" | "doorState" | "config" | "sensorData"
 > & {
-  pressButton: () => void;
-  releaseButton: () => void;
+  pressButton: (button: A_VIRTUAL_BUTTON) => void;
 };
 
 export const DeviceContext = createContext<DeviceContextProps>(null as any);
@@ -68,6 +68,7 @@ export class DeviceProvider extends React.Component<
         bottomIRSensorDetected: false,
         bottomIRSensorAverageAmbientReading: 0,
         bottomIRSensorAverageActiveReading: 0,
+        available_memory: 0,
       },
     };
     this._bindEvents();
@@ -131,7 +132,6 @@ export class DeviceProvider extends React.Component<
 
       // Device Status has changed
       case SOCKET_SERVER_MESSAGE.SENSOR_DATA:
-        console.log(mapPayloadToSensorData(payload));
         this.setState({
           sensorData: mapPayloadToSensorData(payload),
         });
@@ -152,15 +152,10 @@ export class DeviceProvider extends React.Component<
   /**
    * Fired when the user presses the "activate door" button
    */
-  handlePressButton = () => {
-    socketClient.sendMessage(SOCKET_CLIENT_MESSAGE.PRESS_BUTTON, {});
-  };
-
-  /**
-   * Fired when the user releases the "activate door" button
-   */
-  handleReleaseButton = () => {
-    socketClient.sendMessage(SOCKET_CLIENT_MESSAGE.RELEASE_BUTTON, {});
+  handleButtonPress = (button: A_VIRTUAL_BUTTON) => {
+    socketClient.sendMessage(SOCKET_CLIENT_MESSAGE.BUTTON_PRESS, {
+      b: button,
+    });
   };
 
   /**
@@ -168,13 +163,8 @@ export class DeviceProvider extends React.Component<
    */
   render() {
     const { children } = this.props;
-    const {
-      socketClientState,
-      error,
-      doorState,
-      config,
-      sensorData,
-    } = this.state;
+    const { socketClientState, error, doorState, config, sensorData } =
+      this.state;
     return (
       <DeviceContext.Provider
         value={{
@@ -183,8 +173,7 @@ export class DeviceProvider extends React.Component<
           doorState,
           config,
           sensorData,
-          pressButton: this.handlePressButton,
-          releaseButton: this.handleReleaseButton,
+          pressButton: this.handleButtonPress,
         }}
       >
         {children}
