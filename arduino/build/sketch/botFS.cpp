@@ -112,6 +112,8 @@ bool BotFS::loadConfig() {
   config.wifi_enabled = wifiEnabled.isNull() ? config.wifi_enabled : wifiEnabled.as<bool>();
   config.wifi_ssid = doc["wifi_ssid"] | config.wifi_ssid;
   config.wifi_password = doc["wifi_password"] | config.wifi_password;
+  JsonVariant mqttEnabled = doc["mqtt_enabled"];
+  config.mqtt_enabled = mqttEnabled.isNull() ? config.mqtt_enabled : mqttEnabled.as<bool>();
   config.mqtt_broker_address = doc["mqtt_broker_address"] | config.mqtt_broker_address;
   JsonVariant mqttPort = doc["mqtt_broker_port"];
   config.mqtt_broker_port = mqttPort.isNull() ? config.mqtt_broker_port : mqttPort.as<int>();
@@ -150,6 +152,8 @@ bool BotFS::loadConfig() {
     Serial.print(config.rf_codes[i]);
     Serial.println("'");
   }
+  Serial.print("   + MQTT: ");
+  Serial.println(config.mqtt_enabled ? "Enabled" : "Disabled");
   #endif
     
   return true;
@@ -189,6 +193,7 @@ bool BotFS::saveConfig() {
   doc["wifi_enabled"]           = config.wifi_enabled;
   doc["wifi_ssid"]              = config.wifi_ssid;
   doc["wifi_password"]          = config.wifi_password;
+  doc["mqtt_enabled"]           = config.mqtt_enabled;
   doc["mqtt_broker_address"]    = config.mqtt_broker_address;
   doc["mqtt_broker_port"]       = config.mqtt_broker_port;
   doc["mqtt_device_id"]         = config.mqtt_device_id;

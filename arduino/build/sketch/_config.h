@@ -102,6 +102,7 @@ struct Config {
   bool wifi_enabled                 = false;                // Whether WiFi is enabled
   String wifi_ssid                  = "";                   // The SSID of the wifi network that the garage bot is configured to connect to
   String wifi_password              = "";                   // The Password of the wifi network that the garage bot is configured to connect to
+  bool mqtt_enabled                 = false;                // Whether the device should attempt to integrate with an MQTT broker
   String mqtt_broker_address        = "";                   // The IP address of the MQTT Broker
   unsigned int mqtt_broker_port     = 1833;                 // The MQTT Broker Port Number
   String mqtt_device_id             = "Garage_Bot";         // The Device ID to use when connecting to the MQTT Server

@@ -1,3 +1,10 @@
+// These are lifted directly from the MiniCSS docs
+// @see https://minicss.org/docs#grid
+$viewport-sm-max: 767px;
+$viewport-md-min: 768px;
+$viewport-md-max: 1279px;
+$viewport-lg-min: 1280px;
+
 @import "/node_modules/mini.css/dist/mini-dark.css";
 @import "components/.components";
 
@@ -9,18 +16,25 @@
   --color-warning: #dabf28;
 }
 
+body {
+  min-width: 320px;
+}
+
 #app {
   height: 100vh;
   width: 100vw;
+  min-height: 100vh;
+  min-width: 320px;
+  overflow-x: hidden;
 }
 
 .app {
   position: relative;
-  width: calc(100vw - (var(--universal-padding) * 2));
-  min-height: calc(100vh - (var(--universal-padding) * 2));
+  width: calc(100% - (var(--universal-padding) * 2));
+  min-height: calc(100% - (var(--universal-padding) * 2));
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
   padding: var(--universal-padding);
 }
@@ -51,7 +65,7 @@
 .app-menu {
   .drawer-toggle,
   .drawer-close {
-    border: 0.15rem solid var(--border-color);
+    border: 0.15rem solid var(--button-back-color);
     position: absolute;
     top: var(--universal-margin);
     right: var(--universal-margin);
@@ -64,6 +78,10 @@
     display: flex;
     justify-content: center;
     align-items: center;
+
+    &:hover {
+      border-color: var(--button-hover-back-color);
+    }
   }
 
   .drawer-toggle {

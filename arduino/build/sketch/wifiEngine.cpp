@@ -26,6 +26,7 @@
 #include "wifiCaptivePortalHandler.h"
 #include "botFS.h"
 #include "doorControl.h"
+#include "irsensor.h"
 
 /**
  * Constructor
@@ -36,7 +37,7 @@ WiFiEngine::WiFiEngine(){}
 /**
  * Initialise
  */
-bool WiFiEngine::init(AsyncWebServer *webServer, AsyncWebSocket *webSocket, DNSServer *dnsServer) {
+bool WiFiEngine::init(AsyncWebServer *webServer, AsyncWebSocket *webSocket, DNSServer *dnsServer, IRSensor *topIRSensor, IRSensor *bottomIRSensor) {
   #ifdef SERIAL_DEBUG
   Serial.println("Initialising WiFi engine...");
   #endif
@@ -45,6 +46,8 @@ bool WiFiEngine::init(AsyncWebServer *webServer, AsyncWebSocket *webSocket, DNSS
   _webServer = webServer;
   _webSocket = webSocket;
   _dnsServer = dnsServer;
+  _topIRSensor = topIRSensor;
+  _bottomIRSensor = bottomIRSensor;
 
   // At this point we can consider ourselves uninitialized
   wifiEngineMode = WEM_UNINIT;
@@ -245,9 +248,12 @@ void WiFiEngine::initRoutes() {
 
   // Set the wifi access point details
   _webServer->on("/setwifi", HTTP_POST, [&](AsyncWebServerRequest *request){}, NULL, [&](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
-    if (request->url() == "/setwifi") {
-      handleSetWiFi(request, data);
-    }
+    _handleSetWiFi(request, data);
+  });
+
+  // Set the config
+  _webServer->on("/setConfig", HTTP_POST, [&](AsyncWebServerRequest *request){}, NULL, [&](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
+    _handleSetWiFi(request, data);
   });
 
   // All other Files / Routes
@@ -297,6 +303,7 @@ void WiFiEngine::onWsEvent(AsyncWebSocketClient *client, AwsEventType type, void
     // Send the current device config and status to the connected client
     sendConfigToClients(client);
     sendStatusToClients(client);
+    sendSensorDataToClients(client);
   }
 
   // Fired when a websocket client disconnects
@@ -324,9 +331,11 @@ void WiFiEngine::sendConfigToClients(AsyncWebSocketClient *client) {
   DynamicJsonDocument doc(MAX_SOCKET_SERVER_MESSAGE_SIZE);
   doc["m"] = SOCKET_SERVER_MESSAGE_CONFIG_CHANGE;
   JsonObject payload = doc.createNestedObject("p");
+  payload["ip_address"]             = ipAddress;
   payload["mdns_name"]              = config.mdns_name;
   payload["network_device_name"]    = config.network_device_name;
   payload["wifi_ssid"]              = config.wifi_ssid;
+  payload["mqtt_enabled"]           = config.mqtt_enabled;
   payload["mqtt_broker_address"]    = config.mqtt_broker_address;
   payload["mqtt_broker_port"]       = config.mqtt_broker_port;
   payload["mqtt_device_id"]         = config.mqtt_device_id;
@@ -379,28 +388,51 @@ void WiFiEngine::sendStatusToClients(AsyncWebSocketClient *client) {
 
 
 /**
+ * Send the sensor data to connected clients
+ * This is called on a regular basis to keep the connected clients up to date with sensor information
+ *
+ * @param client - (Optional) A specific client to send the config to
+ */
+void WiFiEngine::sendSensorDataToClients(AsyncWebSocketClient *client) {
+  DynamicJsonDocument doc(MAX_SOCKET_SERVER_MESSAGE_SIZE);
+  // Message Type
+  doc["m"] = SOCKET_SERVER_MESSAGE_SENSOR_DATA;
+
+  // Payload
+  JsonObject payload = doc.createNestedObject("p");
+  payload["top_detected"] = _topIRSensor->detected;
+  payload["top_ambient"] = _topIRSensor->averageAmbientReading;
+  payload["top_active"] = _topIRSensor->averageActiveReading;
+  payload["bottom_detected"] = _bottomIRSensor->detected;
+  payload["bottom_ambient"] = _bottomIRSensor->averageAmbientReading;
+  payload["bottom_active"] = _bottomIRSensor->averageActiveReading;
+  payload["available_memory"] = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+
+  // Send the sensor data to all connected clients
+  char json[MAX_SOCKET_SERVER_MESSAGE_SIZE];
+  serializeJsonPretty(doc, json);
+
+  // Send the config to a specific client
+  if (client != NULL && (client->status() == WS_CONNECTED)) {
+    client->text(json);
+  } 
+
+  // Send the config to all clients
+  else {
+    _webSocket->textAll(json);
+  }
+}
+
+
+/**
  * run
  *
  * Called on a regular basis by the main loop to Check the connectivity to the WiFi hotspot
  * and Send the sensor data to the connected clients.
  *
  * @param currentMillis the current milliseconds as passed down from the main loop
- * @param topIRSensorDetected whether the top IR sensor can sense the door
- * @param topIRSensorAverageAmbientReading
- * @param topIRSensorAverageActiveReading
- * @param bottomIRSensorDetected whether the top IR sensor can sense the door
- * @param bottomIRSensorAverageAmbientReading
- * @param bottomIRSensorAverageActiveReading
  */
-void WiFiEngine::run (
-  unsigned long currentMillis,
-  boolean topIRSensorDetected,
-  int topIRSensorAverageAmbientReading,
-  int topIRSensorAverageActiveReading,
-  boolean bottomIRSensorDetected,
-  int bottomIRSensorAverageAmbientReading,
-  int bottomIRSensorAverageActiveReading
-) {
+void WiFiEngine::run (unsigned long currentMillis) {
   // If the wifiEngine is in Access Point mode, process DNS requests.
   if (wifiEngineMode == WEM_AP) {
     _dnsServer->processNextRequest();
@@ -433,25 +465,7 @@ void WiFiEngine::run (
     
     // If the appropriate amount of time has passed and the button is stable, register the change
     if ((currentMillis - _lastSensorBroadcast) > SENSOR_BROADCAST_INTERVAL) {
-      DynamicJsonDocument doc(MAX_SOCKET_SERVER_MESSAGE_SIZE);
-      // Message Type
-      doc["m"] = SOCKET_SERVER_MESSAGE_SENSOR_DATA;
-
-      // Payload
-      JsonObject payload = doc.createNestedObject("p");
-      payload["top_detected"] = topIRSensorDetected;
-      payload["top_ambient"] = topIRSensorAverageAmbientReading;
-      payload["top_active"] = topIRSensorAverageActiveReading;
-      payload["bottom_detected"] = bottomIRSensorDetected;
-      payload["bottom_ambient"] = bottomIRSensorAverageAmbientReading;
-      payload["bottom_active"] = bottomIRSensorAverageActiveReading;
-      payload["available_memory"] = heap_caps_get_free_size(MALLOC_CAP_8BIT);
-    
-      // Send the sensor data to all connected clients
-      char json[MAX_SOCKET_SERVER_MESSAGE_SIZE];
-      serializeJsonPretty(doc, json);
-      _webSocket->textAll(json);
-
+      sendSensorDataToClients();
       _lastSensorBroadcast = currentMillis;
     }
   }
@@ -486,7 +500,7 @@ String WiFiEngine::templateProcessor(const String& var){
  * @param request   - the incoming HTTP Post Request that triggered the action
  * @param body      - the body of the HTTP Post Request
  */
-void WiFiEngine::handleSetWiFi(AsyncWebServerRequest *request, uint8_t *body){
+void WiFiEngine::_handleSetWiFi(AsyncWebServerRequest *request, uint8_t *body){
   // Parse the new config details out of the document
   DynamicJsonDocument doc(MAX_SOCKET_CLIENT_MESSAGE_SIZE);
   deserializeJson(doc, (const char*)body);
@@ -495,6 +509,30 @@ void WiFiEngine::handleSetWiFi(AsyncWebServerRequest *request, uint8_t *body){
 
   // Call the FileSystem method responsible for updating the WiFi config
   botFS.setWiFiSettings(wifiSSID, wifiPassword);
+
+  // Return a 200 - Success
+  request->send(200, "text/json", "{\"success\":true}");
+}
+
+
+/**
+ * Handles setting new config details
+ * 
+ * @param request   - the incoming HTTP Post Request that triggered the action
+ * @param body      - the body of the HTTP Post Request
+ */
+void WiFiEngine::_handleSetConfig(AsyncWebServerRequest *request, uint8_t *body){
+  // Parse the new config details out of the document
+  DynamicJsonDocument doc(MAX_SOCKET_CLIENT_MESSAGE_SIZE);
+  deserializeJson(doc, (const char*)body);
+
+  // TODO: update the config
+
+  // String wifiSSID = doc["wifiSSID"];
+  // String wifiPassword = doc["wifiPassword"];
+
+  // // Call the FileSystem method responsible for updating the WiFi config
+  // botFS.setWiFiSettings(wifiSSID, wifiPassword);
 
   // Return a 200 - Success
   request->send(200, "text/json", "{\"success\":true}");

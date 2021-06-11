@@ -1,10 +1,6 @@
-import React, { useCallback, useContext } from "react";
+import React, { useContext } from "react";
 import classNames from "classnames";
-import {
-  A_DOOR_STATE,
-  DoorStateDescriptionMap,
-  DOOR_STATE,
-} from "../../constants/door-state.const";
+import { A_DOOR_STATE, DOOR_STATE } from "../../constants/door-state.const";
 import { ICON } from "../../constants/icon.const";
 import { DeviceContext } from "../../providers/device.provider";
 import { VIRTUAL_BUTTON } from "../../constants/device-button.const";
@@ -13,13 +9,7 @@ export const ControlPage: React.FC = () => {
   const { doorState, pressButton } = useContext(DeviceContext);
 
   return (
-    <div>
-      <div>
-        <span>Connected.</span>
-      </div>
-      <div>
-        <span>{DoorStateDescriptionMap[doorState]}</span>
-      </div>
+    <div className="page control">
       <div className="control-wrapper">
         <div className="control-buttons">
           <button

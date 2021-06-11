@@ -22,12 +22,18 @@ type DeviceProviderState = {
   error: null | Error;
   doorState: A_DOOR_STATE;
   config: IConfig;
+  configChecksum: number;
   sensorData: ISensorData;
 };
 
 type DeviceContextProps = Pick<
   DeviceProviderState,
-  "socketClientState" | "error" | "doorState" | "config" | "sensorData"
+  | "socketClientState"
+  | "error"
+  | "doorState"
+  | "config"
+  | "configChecksum"
+  | "sensorData"
 > & {
   pressButton: (button: A_VIRTUAL_BUTTON) => void;
 };
@@ -49,17 +55,20 @@ export class DeviceProvider extends React.Component<
       socketClientState: socketClient.state,
       doorState: DOOR_STATE.UNKNOWN,
       error: socketClient.error,
+      configChecksum: 0,
       config: {
-        mdnsName: null,
-        networkDeviceName: null,
-        wifiSSID: null,
-        ipAddress: null,
-        mqttBrokerAddress: null,
-        mqttBrokerPort: null,
-        mqttDeviceId: null,
-        mqttUserName: null,
-        mqttTopic: null,
-        mqttStateTopic: null,
+        mdns_name: null,
+        network_device_name: null,
+        wifi_ssid: null,
+        ip_address: null,
+        mqtt_enabled: false,
+        mqtt_broker_address: null,
+        mqtt_broker_port: null,
+        mqtt_device_id: null,
+        mqtt_username: null,
+        mqtt_password: null,
+        mqtt_topic: null,
+        mqtt_state_topic: null,
       },
       sensorData: {
         topIRSensorDetected: false,
@@ -125,8 +134,10 @@ export class DeviceProvider extends React.Component<
 
       // Config has changed
       case SOCKET_SERVER_MESSAGE.CONFIG_CHANGE:
+        const { configChecksum } = this.state;
         this.setState({
           config: mapPayloadToConfig(payload),
+          configChecksum: configChecksum + 1,
         });
         return;
 
@@ -163,8 +174,14 @@ export class DeviceProvider extends React.Component<
    */
   render() {
     const { children } = this.props;
-    const { socketClientState, error, doorState, config, sensorData } =
-      this.state;
+    const {
+      socketClientState,
+      error,
+      doorState,
+      config,
+      configChecksum,
+      sensorData,
+    } = this.state;
     return (
       <DeviceContext.Provider
         value={{
@@ -172,6 +189,7 @@ export class DeviceProvider extends React.Component<
           error,
           doorState,
           config,
+          configChecksum,
           sensorData,
           pressButton: this.handleButtonPress,
         }}

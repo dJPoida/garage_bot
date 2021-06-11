@@ -4,9 +4,9 @@ import { DeviceContext } from "../../providers/device.provider";
 export const CalibrationPage: React.FC = () => {
   const { sensorData } = useContext(DeviceContext);
 
+  // TODO: calibration page
   return (
-    <div>
-      TODO: calibration page
+    <div className="page calibration">
       <div className="sensor-data">
         {/* Headings */}
         <div></div>

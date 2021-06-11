@@ -1,0 +1,7 @@
+.tool-tip {
+  cursor: pointer;
+
+  span + & {
+    margin-left: var(--universal-margin);
+  }
+}

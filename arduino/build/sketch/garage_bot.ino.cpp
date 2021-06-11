@@ -84,29 +84,29 @@ bool inError = false;                                                     // Whe
 void setup();
 #line 178 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void loop();
-#line 216 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 208 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void topSensorChanged(bool detected);
-#line 233 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 225 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void bottomSensorChanged(bool detected);
-#line 250 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 242 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void remoteRepeaterActivationChanged(bool activated);
-#line 265 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 257 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void rfReceiverButtonPressed(bool down);
-#line 289 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 281 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void rfReceiverModeChanged(RFReceiverMode newMode);
-#line 304 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 296 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void generalErrorOccurred(String errorMessage);
-#line 322 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 314 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void panelButtonPressed();
-#line 334 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 326 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void panelButtonReleased(ButtonPressType buttonPressType);
-#line 396 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 388 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void updateLEDFlashes();
-#line 406 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 398 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void doorControlStateChanged(DoorState newDoorState);
-#line 434 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 426 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void handleWiFiConnectedChanged(bool newConnected);
-#line 452 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 444 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void handleVirtualButtonPressed(VirtualButtonType virtualButton);
 #line 81 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void setup() {
@@ -137,20 +137,20 @@ void setup() {
     return;
   }
 
-  // Initialise the WiFi Engine (if enabled)
-  // This will automatically attempt to connect to a pre-configured
-  // WiFi hotspot and if unable to do so will broadcast an Access Point
-  if (config.wifi_enabled && !wifiEngine.init(&webServer, &webSocket, &dnsServer)) {
-    // Failed to initialise the WiFi hotspot. Oh well. Bail.
-    generalErrorOccurred("\n\nFAILED TO INITIALIZE THE WIFI ENGINE. HALTED!");
-    return;
-  }
-
   // Sensors
   topIRSensor.init(PIN_SENSOR_TOP_EMITTER, PIN_SENSOR_TOP_RECEIVER, DEFAULT_IR_THRESHOLD);
   topIRSensor.onChange = topSensorChanged;
   bottomIRSensor.init(PIN_SENSOR_BOTTOM_EMITTER, PIN_SENSOR_BOTTOM_RECEIVER, DEFAULT_IR_THRESHOLD);
   bottomIRSensor.onChange = bottomSensorChanged;
+
+  // Initialise the WiFi Engine (if enabled)
+  // This will automatically attempt to connect to a pre-configured
+  // WiFi hotspot and if unable to do so will broadcast an Access Point
+  if (config.wifi_enabled && !wifiEngine.init(&webServer, &webSocket, &dnsServer, &topIRSensor, &bottomIRSensor)) {
+    // Failed to initialise the WiFi hotspot. Oh well. Bail.
+    generalErrorOccurred("\n\nFAILED TO INITIALIZE THE WIFI ENGINE. HALTED!");
+    return;
+  }
 
   // Buttons
   panelButton.init();
@@ -220,17 +220,9 @@ void loop() {
     
     // Wifi functions
     if (config.wifi_enabled) {
-      // The wifi engine.run will 
+      // The wifi engine.run will process Access Point requests and check and manage for wifi disconnections
       // This also sends sensor data to any connected socket clients
-      wifiEngine.run(
-        currentMillis,
-        topIRSensor.detected,
-        topIRSensor.averageAmbientReading,
-        topIRSensor.averageActiveReading,
-        bottomIRSensor.detected,
-        bottomIRSensor.averageAmbientReading,
-        bottomIRSensor.averageActiveReading
-      );
+      wifiEngine.run(currentMillis);
     }
 
     // Check to see if the reboot flag has been tripped

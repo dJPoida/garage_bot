@@ -102,3 +102,5 @@ This LED indicates whether the bottom sensor on the garage door can detect the p
 - Improve reliability
     - When the client socket disconnects, attempt to re-connect
     - When the WiFi on the device is disconnected, attempt to re-connect
+- REST API
+    - Provide access to activate Virtual Buttons from an HTTP POST endpoint (perhaps add creds)

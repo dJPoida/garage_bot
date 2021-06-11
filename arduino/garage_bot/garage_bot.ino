@@ -106,20 +106,20 @@ void setup() {
     return;
   }
 
-  // Initialise the WiFi Engine (if enabled)
-  // This will automatically attempt to connect to a pre-configured
-  // WiFi hotspot and if unable to do so will broadcast an Access Point
-  if (config.wifi_enabled && !wifiEngine.init(&webServer, &webSocket, &dnsServer)) {
-    // Failed to initialise the WiFi hotspot. Oh well. Bail.
-    generalErrorOccurred("\n\nFAILED TO INITIALIZE THE WIFI ENGINE. HALTED!");
-    return;
-  }
-
   // Sensors
   topIRSensor.init(PIN_SENSOR_TOP_EMITTER, PIN_SENSOR_TOP_RECEIVER, DEFAULT_IR_THRESHOLD);
   topIRSensor.onChange = topSensorChanged;
   bottomIRSensor.init(PIN_SENSOR_BOTTOM_EMITTER, PIN_SENSOR_BOTTOM_RECEIVER, DEFAULT_IR_THRESHOLD);
   bottomIRSensor.onChange = bottomSensorChanged;
+
+  // Initialise the WiFi Engine (if enabled)
+  // This will automatically attempt to connect to a pre-configured
+  // WiFi hotspot and if unable to do so will broadcast an Access Point
+  if (config.wifi_enabled && !wifiEngine.init(&webServer, &webSocket, &dnsServer, &topIRSensor, &bottomIRSensor)) {
+    // Failed to initialise the WiFi hotspot. Oh well. Bail.
+    generalErrorOccurred("\n\nFAILED TO INITIALIZE THE WIFI ENGINE. HALTED!");
+    return;
+  }
 
   // Buttons
   panelButton.init();
@@ -189,17 +189,9 @@ void loop() {
     
     // Wifi functions
     if (config.wifi_enabled) {
-      // The wifi engine.run will 
+      // The wifi engine.run will process Access Point requests and check and manage for wifi disconnections
       // This also sends sensor data to any connected socket clients
-      wifiEngine.run(
-        currentMillis,
-        topIRSensor.detected,
-        topIRSensor.averageAmbientReading,
-        topIRSensor.averageActiveReading,
-        bottomIRSensor.detected,
-        bottomIRSensor.averageAmbientReading,
-        bottomIRSensor.averageActiveReading
-      );
+      wifiEngine.run(currentMillis);
     }
 
     // Check to see if the reboot flag has been tripped

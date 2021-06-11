@@ -18,11 +18,12 @@
 #include "ESPAsyncWebServer.h"
 #include "DNSServer.h"
 #include "helpers.h"
+#include "irsensor.h"
 
 class WiFiEngine {
   public:
     WiFiEngine();
-    bool init(AsyncWebServer *webServer, AsyncWebSocket *webSocket, DNSServer *dnsServer);
+    bool init(AsyncWebServer *webServer, AsyncWebSocket *webSocket, DNSServer *dnsServer, IRSensor *topIRSensor, IRSensor *bottomIRSensor);
 
     WiFiEngineMode wifiEngineMode = WEM_UNINIT;               // The current mode of the WiFi engine (uninitialised, client or AP mode)
     bool connected = false;                                   // Whether the WiFi client is connected to the configured hotspot
@@ -34,16 +35,9 @@ class WiFiEngine {
 
     void sendConfigToClients(AsyncWebSocketClient *client = NULL);  // Send the current device config to (a) connected client(s)
     void sendStatusToClients(AsyncWebSocketClient *client = NULL);  // Send the current device status to (a) connected client(s)
+    void sendSensorDataToClients(AsyncWebSocketClient *client = NULL);  // Send the current sensor readings to (a) connected client(s)
     
-    void run (
-      unsigned long currentMillis,
-      boolean topIRSensorDetected,
-      int topIRSensorAverageAmbientReading,
-      int topIRSensorAverageActiveReading,
-      boolean bottomIRSensorDetected,
-      int bottomIRSensorAverageAmbientReading,
-      int bottomIRSensorAverageActiveReading
-    );                                                        // Send sensor data to connected web socket clients
+    void run (unsigned long currentMillis);                   // Send sensor data to connected web socket clients
 
   private:
     AsyncWebServer *_webServer;                   // A pointer to the web server passed into the init function
@@ -65,7 +59,12 @@ class WiFiEngine {
     void onWsEvent(AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len); // Handle websocket events
     void handleWebSocketData(AsyncWebSocketClient *client, void *arg, uint8_t *data, size_t len);     // Handle a websocket data message
     
-    void handleSetWiFi(AsyncWebServerRequest *request, uint8_t *body);  // Handle calls to set the WiFi Access Point
+    void _handleSetWiFi(AsyncWebServerRequest *request, uint8_t *body);  // Handle calls to set the WiFi Access Point
+    void _handleSetConfig(AsyncWebServerRequest *request, uint8_t *body);  // Handle calls to set the device config
+
+    // References to other objects required during broadcasts and message handling
+    IRSensor *_topIRSensor;       // The Top IR sensor
+    IRSensor *_bottomIRSensor;    // The Bottom IR sensor
 };
 
 extern WiFiEngine wifiEngine;

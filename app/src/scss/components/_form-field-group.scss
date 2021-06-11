@@ -1,0 +1,31 @@
+.form-field-group {
+  display: grid;
+
+  grid-template-columns: 1fr;
+
+  legend {
+    margin: 1rem 0;
+    background-color: var(--table-body-alt-back-color);
+  }
+
+  &:first-of-type {
+    legend {
+      margin-top: 0;
+    }
+  }
+
+  @media screen and (min-width: $viewport-md-min) {
+    grid-template-columns: 2fr 5fr;
+
+    legend {
+      grid-column-start: span 2;
+    }
+
+    label {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      text-align: right;
+    }
+  }
+}

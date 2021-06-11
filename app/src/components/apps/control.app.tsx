@@ -51,11 +51,13 @@ export const ControlApp: React.FC = () => {
         ]}
         currentPage={currentPage}
       />
+
+      {/* AppHeader */}
       <AppHeader />
 
       {/* Connecting to the device */}
       {socketClientState === SOCKET_CLIENT_STATE.CONNECTING && (
-        <div className="please-wait">
+        <div className="connection please-wait">
           <span className="spinner" />
           <span>Connecting to device...</span>
         </div>
@@ -63,7 +65,7 @@ export const ControlApp: React.FC = () => {
 
       {/* Disconnected */}
       {socketClientState === SOCKET_CLIENT_STATE.DISCONNECTED && (
-        <div className="disconnected">
+        <div className="connection disconnected">
           <span className="icon-alert"></span>
           <span>Disconnected!</span>
         </div>
