@@ -90,6 +90,9 @@
 // The maximum number of bytes we can expect to received from the client
 #define MAX_SOCKET_CLIENT_MESSAGE_SIZE 256
 
+// The maximum number of concurrent socket connections to accept
+#define MAX_SOCKET_CONNECTIONS 10
+
 // The maximum size of the config file in bytes
 #define CONFIG_FILE_MAX_SIZE 1024
 

@@ -1,10 +1,10 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
-import { DeviceContext } from "../../providers/device.provider";
-import { useIsDirty } from "../../react-hooks/use-is-dirty.hook";
-import { usePreviousValue } from "../../react-hooks/use-previous-value.hook";
-import { IConfig } from "../../types/config.interface";
-import { FormField } from "../form-field";
-import { FormFieldGroup } from "../form-field-group";
+import React, { useCallback, useContext, useEffect, useState } from 'react';
+import { DeviceContext } from '../../providers/device.provider';
+import { useIsDirty } from '../../react-hooks/use-is-dirty.hook';
+import { usePreviousValue } from '../../react-hooks/use-previous-value.hook';
+import { IConfig } from '../../types/config.interface';
+import { FormField } from '../form-field';
+import { FormFieldGroup } from '../form-field-group';
 
 export const ConfigPage: React.FC = () => {
   const { config, configChecksum } = useContext(DeviceContext);
@@ -14,9 +14,7 @@ export const ConfigPage: React.FC = () => {
 
   const [isSubmitting, setISubmitting] = useState<boolean>(false);
   const [submitSuccess, setSubmitSuccess] = useState<null | boolean>(null);
-  const [submitErrorMessage, setSubmitErrorMessage] = useState<null | string>(
-    null
-  );
+  const [submitErrorMessage, setSubmitErrorMessage] = useState<null | string>(null);
 
   const [configValues, setConfigValues] = useState<IConfig>(config);
 
@@ -27,11 +25,11 @@ export const ConfigPage: React.FC = () => {
     setISubmitting(true);
 
     try {
-      const response = await fetch("/setwifi", {
-        method: "POST",
+      const response = await fetch('/setwifi', {
+        method: 'POST',
         headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(configValues),
       });
@@ -55,7 +53,7 @@ export const ConfigPage: React.FC = () => {
    */
   const fieldChanged = (
     fieldName: string,
-    newValue: null | string | number | boolean
+    newValue: null | string | number | boolean,
   ) => {
     setDirty();
     setConfigValues((currentConfigValues) => ({
@@ -70,7 +68,7 @@ export const ConfigPage: React.FC = () => {
   const handleReset = useCallback(async () => {
     setDirty(false);
     setConfigValues(config);
-  }, [config]);
+  }, [config, setDirty]);
 
   /**
    * Update the local config whenever a new config is received from the device
@@ -99,10 +97,10 @@ export const ConfigPage: React.FC = () => {
               value={configValues.mdns_name}
               onChange={fieldChanged}
               toolTip={[
-                "The name to use in the mdns address that clients",
-                "can use to connect to the device without the IP",
-                "(i.e. http://garagebot.local)",
-              ].join(" <br/>")}
+                'The name to use in the mdns address that clients',
+                'can use to connect to the device without the IP',
+                '(i.e. http://garagebot.local)',
+              ].join(' <br/>')}
             />
 
             {/* Network Device Name */}
@@ -114,9 +112,9 @@ export const ConfigPage: React.FC = () => {
               value={configValues.network_device_name}
               onChange={fieldChanged}
               toolTip={[
-                "The device name to display",
-                "to other devices on the network",
-              ].join(" <br/>")}
+                'The device name to display',
+                'to other devices on the network',
+              ].join(' <br/>')}
             />
           </FormFieldGroup>
 
@@ -130,7 +128,7 @@ export const ConfigPage: React.FC = () => {
               value={configValues.mqtt_enabled}
               onChange={fieldChanged}
               type="checkbox"
-              toolTip={["Disable or Enable MQTT"].join(" <br/>")}
+              toolTip={['Disable or Enable MQTT'].join(' <br/>')}
             />
             {/* All of the MQTT Config values */}
             {configValues.mqtt_enabled && (
@@ -144,8 +142,8 @@ export const ConfigPage: React.FC = () => {
                   value={configValues.mqtt_broker_address}
                   onChange={fieldChanged}
                   toolTip={[
-                    "The IP address or network name of the MQTT Broker",
-                  ].join(" <br/>")}
+                    'The IP address or network name of the MQTT Broker',
+                  ].join(' <br/>')}
                 />
 
                 {/* TODO: MQTT Broker Port */}
@@ -159,8 +157,8 @@ export const ConfigPage: React.FC = () => {
                   value={configValues.mqtt_device_id}
                   onChange={fieldChanged}
                   toolTip={[
-                    "The Device ID to use when connecting to the MQTT Broker",
-                  ].join(" <br/>")}
+                    'The Device ID to use when connecting to the MQTT Broker',
+                  ].join(' <br/>')}
                 />
 
                 {/* MQTT Username */}
@@ -172,8 +170,8 @@ export const ConfigPage: React.FC = () => {
                   value={configValues.mqtt_username}
                   onChange={fieldChanged}
                   toolTip={[
-                    "The username when connecting to the MQTT broker",
-                  ].join(" <br/>")}
+                    'The username when connecting to the MQTT broker',
+                  ].join(' <br/>')}
                 />
 
                 {/* MQTT Password */}
@@ -185,8 +183,8 @@ export const ConfigPage: React.FC = () => {
                   value={configValues.mqtt_password}
                   onChange={fieldChanged}
                   toolTip={[
-                    "The password when connecting to the MQTT broker",
-                  ].join(" <br/>")}
+                    'The password when connecting to the MQTT broker',
+                  ].join(' <br/>')}
                 />
 
                 {/* MQTT Topic */}
@@ -198,9 +196,9 @@ export const ConfigPage: React.FC = () => {
                   value={configValues.mqtt_topic}
                   onChange={fieldChanged}
                   toolTip={[
-                    "The MQTT topic used for communicating",
-                    "instructions (open / close etc)",
-                  ].join(" <br/>")}
+                    'The MQTT topic used for communicating',
+                    'instructions (open / close etc)',
+                  ].join(' <br/>')}
                 />
 
                 {/* MQTT State Topic */}
@@ -212,9 +210,9 @@ export const ConfigPage: React.FC = () => {
                   value={configValues.mqtt_state_topic}
                   onChange={fieldChanged}
                   toolTip={[
-                    "The MQTT topic used for communicating the state",
-                    "of the door (opened / closed / etc)",
-                  ].join(" <br/>")}
+                    'The MQTT topic used for communicating the state',
+                    'of the door (opened / closed / etc)',
+                  ].join(' <br/>')}
                 />
               </>
             )}
@@ -222,13 +220,14 @@ export const ConfigPage: React.FC = () => {
           <div className="button-row">
             {/* Reset Button */}
             {isDirty && (
-              <button type="reset" className="secondary" onClick={handleReset}>
+              <button type="button" className="secondary" onClick={handleReset}>
                 Cancel
               </button>
             )}
 
             {/* Submit Button */}
             <button
+              type="button"
               className="primary"
               onClick={handleSubmit}
               disabled={!isDirty}

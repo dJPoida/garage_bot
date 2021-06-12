@@ -1,6 +1,6 @@
-import React, { useContext } from "react";
-import { prettyFileSize } from "../../helpers/pretty-file-size.helper";
-import { DeviceContext } from "../../providers/device.provider";
+import React, { useContext } from 'react';
+import { prettyFileSize } from '../../helpers/pretty-file-size.helper';
+import { DeviceContext } from '../../providers/device.provider';
 
 export const AboutPage: React.FC = () => {
   const { config, sensorData } = useContext(DeviceContext);

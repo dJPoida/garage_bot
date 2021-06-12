@@ -1,22 +1,18 @@
-import React, { createContext } from "react";
-import { A_DOOR_STATE, DOOR_STATE } from "../constants/door-state.const";
-import { SOCKET_CLIENT_EVENT } from "../constants/socket-client-event.const";
-import { A_SOCKET_CLIENT_STATE } from "../constants/socket-client-state.const";
-import { IConfig, mapPayloadToConfig } from "../types/config.interface";
-import {
-  A_SOCKET_SERVER_MESSAGE,
-  SOCKET_SERVER_MESSAGE,
-} from "../constants/socket-server-message.const";
+import React, { createContext } from 'react';
 
-import { socketClient } from "../helpers/socket-client.helper";
-import {
-  ISensorData,
-  mapPayloadToSensorData,
-} from "../types/sensor-data.interface";
-import { SOCKET_CLIENT_MESSAGE } from "../constants/socket-client-message.const";
-import { A_VIRTUAL_BUTTON } from "../constants/device-button.const";
+import { IConfig, mapPayloadToConfig } from '../types/config.interface';
+import { ISensorData, mapPayloadToSensorData } from '../types/sensor-data.interface';
 
-type DeviceProviderProps = {};
+import { socketClient } from '../singletons/socket-client.singleton';
+
+import { A_DOOR_STATE, DOOR_STATE } from '../constants/door-state.const';
+import { A_SOCKET_CLIENT_STATE } from '../constants/socket-client-state.const';
+import { A_SOCKET_SERVER_MESSAGE, SOCKET_SERVER_MESSAGE } from '../constants/socket-server-message.const';
+import { A_VIRTUAL_BUTTON } from '../constants/device-button.const';
+import { SOCKET_CLIENT_EVENT } from '../constants/socket-client-event.const';
+import { SOCKET_CLIENT_MESSAGE } from '../constants/socket-client-message.const';
+
+type DeviceProviderProps = Record<string, unknown>;
 type DeviceProviderState = {
   socketClientState: A_SOCKET_CLIENT_STATE;
   error: null | Error;
@@ -28,16 +24,17 @@ type DeviceProviderState = {
 
 type DeviceContextProps = Pick<
   DeviceProviderState,
-  | "socketClientState"
-  | "error"
-  | "doorState"
-  | "config"
-  | "configChecksum"
-  | "sensorData"
+  | 'socketClientState'
+  | 'error'
+  | 'doorState'
+  | 'config'
+  | 'configChecksum'
+  | 'sensorData'
 > & {
   pressButton: (button: A_VIRTUAL_BUTTON) => void;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const DeviceContext = createContext<DeviceContextProps>(null as any);
 
 export const DeviceContextConsumer = DeviceContext.Consumer;
@@ -45,10 +42,7 @@ export const DeviceContextConsumer = DeviceContext.Consumer;
 /**
  * a uniform way of delivering props to a component that is dependent on the socketClient
  */
-export class DeviceProvider extends React.Component<
-  DeviceProviderProps,
-  DeviceProviderState
-> {
+export class DeviceProvider extends React.Component<DeviceProviderProps, DeviceProviderState> {
   constructor(props: DeviceProviderProps) {
     super(props);
     this.state = {
@@ -86,14 +80,14 @@ export class DeviceProvider extends React.Component<
   /**
    * @inheritdoc
    */
-  componentWillUnmount = () => {
+  componentWillUnmount = (): void => {
     this._unbindEvents();
   };
 
   /**
    * Setup the event listeners
    */
-  _bindEvents = () => {
+  _bindEvents = (): void => {
     socketClient
       .on(SOCKET_CLIENT_EVENT.STATE_CHANGE, this.handleSocketClientStateChange)
       .on(SOCKET_CLIENT_EVENT.MESSAGE, this.handleSocketServerMessage);
@@ -102,7 +96,7 @@ export class DeviceProvider extends React.Component<
   /**
    * Tear down the event listeners
    */
-  _unbindEvents = () => {
+  _unbindEvents = (): void => {
     socketClient
       .off(SOCKET_CLIENT_EVENT.STATE_CHANGE, this.handleSocketClientStateChange)
       .off(SOCKET_CLIENT_EVENT.MESSAGE, this.handleSocketServerMessage);
@@ -111,7 +105,7 @@ export class DeviceProvider extends React.Component<
   /**
    * Fired when the socket client state changes
    */
-  handleSocketClientStateChange = (newState: A_SOCKET_CLIENT_STATE) => {
+  handleSocketClientStateChange = (newState: A_SOCKET_CLIENT_STATE): void => {
     this.setState({
       socketClientState: newState,
     });
@@ -122,24 +116,25 @@ export class DeviceProvider extends React.Component<
    */
   handleSocketServerMessage = (
     message: A_SOCKET_SERVER_MESSAGE,
-    payload: Record<string, unknown>
-  ) => {
+    payload: Record<string, unknown>,
+  ): void => {
     switch (message) {
       // Device Status has changed
       case SOCKET_SERVER_MESSAGE.STATUS_CHANGE:
         this.setState({
-          doorState: payload["door_state"] as A_DOOR_STATE,
+          doorState: payload.door_state as A_DOOR_STATE,
         });
         return;
 
       // Config has changed
-      case SOCKET_SERVER_MESSAGE.CONFIG_CHANGE:
+      case SOCKET_SERVER_MESSAGE.CONFIG_CHANGE: {
         const { configChecksum } = this.state;
         this.setState({
           config: mapPayloadToConfig(payload),
           configChecksum: configChecksum + 1,
         });
         return;
+      }
 
       // Device Status has changed
       case SOCKET_SERVER_MESSAGE.SENSOR_DATA:
@@ -149,21 +144,21 @@ export class DeviceProvider extends React.Component<
         return;
 
       default:
-        console.error("Unhandled Server Message: ", message);
+        console.error('Unhandled Server Message: ', message);
     }
   };
 
   /**
    * Fired when the device state changes
    */
-  handleDeviceStateChange = (newState: { doorState: A_DOOR_STATE }) => {
+  handleDeviceStateChange = (newState: { doorState: A_DOOR_STATE }): void => {
     this.setState({ ...newState });
   };
 
   /**
    * Fired when the user presses the "activate door" button
    */
-  handleButtonPress = (button: A_VIRTUAL_BUTTON) => {
+  handleButtonPress = (button: A_VIRTUAL_BUTTON): void => {
     socketClient.sendMessage(SOCKET_CLIENT_MESSAGE.BUTTON_PRESS, {
       b: button,
     });
@@ -172,7 +167,7 @@ export class DeviceProvider extends React.Component<
   /**
    * Render
    */
-  render() {
+  render(): JSX.Element {
     const { children } = this.props;
     const {
       socketClientState,

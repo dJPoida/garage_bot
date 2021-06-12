@@ -1,15 +1,13 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { AppFooter } from "../app-footer";
-import { AppHeader } from "../app-header";
+import React, { useCallback, useState } from 'react';
+import { AppFooter } from '../app-footer';
+import { AppHeader } from '../app-header';
 
 export const APModeApp: React.FC = () => {
-  const [wifiSSID, setWifiSSID] = useState<string>("");
-  const [wifiPassword, setWifiPassword] = useState<string>("");
+  const [wifiSSID, setWifiSSID] = useState<string>('');
+  const [wifiPassword, setWifiPassword] = useState<string>('');
   const [isSubmitting, setISubmitting] = useState<boolean>(false);
   const [submitSuccess, setSubmitSuccess] = useState<null | boolean>(null);
-  const [submitErrorMessage, setSubmitErrorMessage] = useState<null | string>(
-    null
-  );
+  const [submitErrorMessage, setSubmitErrorMessage] = useState<null | string>(null);
 
   /**
    * Fired when the user clicks the submit button
@@ -18,11 +16,11 @@ export const APModeApp: React.FC = () => {
     setISubmitting(true);
 
     try {
-      const response = await fetch("/setwifi", {
-        method: "POST",
+      const response = await fetch('/setwifi', {
+        method: 'POST',
         headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           wifiSSID,
@@ -60,7 +58,7 @@ export const APModeApp: React.FC = () => {
           </p>
           <fieldset>
             <div className="input-group vertical">
-              <label>SSID</label>
+              <label htmlFor="wifiSSID">SSID</label>
               <input
                 id="wifiSSID"
                 name="wifiSSID"
@@ -70,7 +68,7 @@ export const APModeApp: React.FC = () => {
               />
             </div>
             <div className="input-group vertical">
-              <label>Password</label>
+              <label htmlFor="password">Password</label>
               <input
                 id="password"
                 name="password"
@@ -80,7 +78,7 @@ export const APModeApp: React.FC = () => {
             </div>
           </fieldset>
           <div className="button-row">
-            <button className="primary" onClick={handleSubmit}>
+            <button type="button" className="primary" onClick={handleSubmit}>
               Submit
             </button>
           </div>

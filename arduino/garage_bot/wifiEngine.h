@@ -44,6 +44,8 @@ class WiFiEngine {
     AsyncWebSocket *_webSocket;                   // A pointer to the web socket passed into the init function
     DNSServer *_dnsServer;                        // A pointer to the dns server passed into the init function
 
+    byte _connectedSocketClientCount = 0;         // the number of actively connected clients
+
     unsigned long _lastSensorBroadcast = 0;       // the millis() that the sensor data was last broadcast to connected socket clients
     unsigned long _lastReconnectAttempt = 0;      // the millis() that the WiFi client last attempted to connect to the configured access point
 

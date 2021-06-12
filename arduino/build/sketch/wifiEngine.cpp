@@ -222,6 +222,8 @@ void WiFiEngine::_handleWiFiConnected() {
 
 /**
  * Initialise the routes for serving the web app content
+ * 
+ * TODO: Better lockdown of sending pages when in AP mode
  */
 void WiFiEngine::initRoutes() {
   _webSocket->onEvent([&](AsyncWebSocket *ws, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len){
@@ -245,6 +247,19 @@ void WiFiEngine::initRoutes() {
       request->send(LITTLEFS, "/index.html", String(), false, templateProcessor);
     }
   });
+
+  // Route for control panel pages. These just prevent the device from 404ing when a control panel page is reloaded
+  // TODO: come up with a better way of falling back onto these routes
+  _webServer->on("/config", HTTP_GET, [&](AsyncWebServerRequest *request) {
+    request->send(LITTLEFS, "/index.html", String(), false, templateProcessor);
+  });
+  _webServer->on("/calibration", HTTP_GET, [&](AsyncWebServerRequest *request) {
+    request->send(LITTLEFS, "/index.html", String(), false, templateProcessor);
+  });
+  _webServer->on("/about", HTTP_GET, [&](AsyncWebServerRequest *request) {
+    request->send(LITTLEFS, "/index.html", String(), false, templateProcessor);
+  });
+
 
   // Set the wifi access point details
   _webServer->on("/setwifi", HTTP_POST, [&](AsyncWebServerRequest *request){}, NULL, [&](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
@@ -296,8 +311,13 @@ void WiFiEngine::initRoutes() {
 void WiFiEngine::onWsEvent(AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
   // Fired when a client connects to the websocket
   if (type == WS_EVT_CONNECT){
+    // increment the connected socket client count
+    _connectedSocketClientCount += 1;
+
     #ifdef SERIAL_DEBUG
-    Serial.println("Websocket client connection received");
+    Serial.println("New incoming WebSocket connection.");
+    Serial.print("Total active WebSocket connetctions: ");
+    Serial.println(_connectedSocketClientCount);
     #endif
 
     // Send the current device config and status to the connected client
@@ -308,8 +328,13 @@ void WiFiEngine::onWsEvent(AsyncWebSocketClient *client, AwsEventType type, void
 
   // Fired when a websocket client disconnects
   else if (type == WS_EVT_DISCONNECT){
+    // decrement the connected client count
+    _connectedSocketClientCount -= 1;
+
     #ifdef SERIAL_DEBUG
-    Serial.println("Websocket client connection finished");
+    Serial.println("WebSocket connection terminated.");
+    Serial.print("Total active WebSocket connetctions: ");
+    Serial.println(_connectedSocketClientCount);
     #endif
   }
 
@@ -328,6 +353,11 @@ void WiFiEngine::onWsEvent(AsyncWebSocketClient *client, AwsEventType type, void
  * @param client - (Optional) A specific client to send the config to
  */
 void WiFiEngine::sendConfigToClients(AsyncWebSocketClient *client) {
+  // Don't bother if we're not sending to a direct client and there are no active connections
+  if (!client || _connectedSocketClientCount == 0) {
+    return;
+  }
+
   DynamicJsonDocument doc(MAX_SOCKET_SERVER_MESSAGE_SIZE);
   doc["m"] = SOCKET_SERVER_MESSAGE_CONFIG_CHANGE;
   JsonObject payload = doc.createNestedObject("p");
@@ -365,6 +395,11 @@ void WiFiEngine::sendConfigToClients(AsyncWebSocketClient *client) {
  * @param client - (Optional) A specific client to send the config to
  */
 void WiFiEngine::sendStatusToClients(AsyncWebSocketClient *client) {
+  // Don't bother if we're not sending to a direct client and there are no active connections
+  if (!client || _connectedSocketClientCount == 0) {
+    return;
+  }
+
   DynamicJsonDocument doc(MAX_SOCKET_SERVER_MESSAGE_SIZE);
   doc["m"] = SOCKET_SERVER_MESSAGE_STATUS_CHANGE;
   JsonObject payload = doc.createNestedObject("p");
@@ -394,6 +429,11 @@ void WiFiEngine::sendStatusToClients(AsyncWebSocketClient *client) {
  * @param client - (Optional) A specific client to send the config to
  */
 void WiFiEngine::sendSensorDataToClients(AsyncWebSocketClient *client) {
+  // Don't bother if we're not sending to a direct client and there are no active connections
+  if (!client || _connectedSocketClientCount == 0) {
+    return;
+  }
+
   DynamicJsonDocument doc(MAX_SOCKET_SERVER_MESSAGE_SIZE);
   // Message Type
   doc["m"] = SOCKET_SERVER_MESSAGE_SENSOR_DATA;
@@ -460,8 +500,6 @@ void WiFiEngine::run (unsigned long currentMillis) {
     else if ((WiFi.status() == WL_CONNECTED) && !connected) {
       _handleWiFiConnected();
     }
-    
-    // TODO: Figure out how to only send data if there's a connected client. This is a waste of processing power.
     
     // If the appropriate amount of time has passed and the button is stable, register the change
     if ((currentMillis - _lastSensorBroadcast) > SENSOR_BROADCAST_INTERVAL) {

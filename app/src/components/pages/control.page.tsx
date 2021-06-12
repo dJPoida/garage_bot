@@ -1,9 +1,9 @@
-import React, { useContext } from "react";
-import classNames from "classnames";
-import { A_DOOR_STATE, DOOR_STATE } from "../../constants/door-state.const";
-import { ICON } from "../../constants/icon.const";
-import { DeviceContext } from "../../providers/device.provider";
-import { VIRTUAL_BUTTON } from "../../constants/device-button.const";
+import React, { useContext } from 'react';
+import classNames from 'classnames';
+import { A_DOOR_STATE, DOOR_STATE } from '../../constants/door-state.const';
+import { ICON } from '../../constants/icon.const';
+import { DeviceContext } from '../../providers/device.provider';
+import { VIRTUAL_BUTTON } from '../../constants/device-button.const';
 
 export const ControlPage: React.FC = () => {
   const { doorState, pressButton } = useContext(DeviceContext);
@@ -12,7 +12,9 @@ export const ControlPage: React.FC = () => {
     <div className="page control">
       <div className="control-wrapper">
         <div className="control-buttons">
+          {/* Up Button */}
           <button
+            type="button"
             onClick={() => pressButton(VIRTUAL_BUTTON.OPEN)}
             disabled={(
               [DOOR_STATE.OPEN, DOOR_STATE.OPENING] as A_DOOR_STATE[]
@@ -20,10 +22,18 @@ export const ControlPage: React.FC = () => {
           >
             <span className={ICON.UP} />
           </button>
-          <button onClick={() => pressButton(VIRTUAL_BUTTON.ACTIVATE)}>
+
+          {/* Activate Button */}
+          <button
+            type="button"
+            onClick={() => pressButton(VIRTUAL_BUTTON.ACTIVATE)}
+          >
             <span className={ICON.TOGGLE} />
           </button>
+
+          {/* Down Button */}
           <button
+            type="button"
             onClick={() => pressButton(VIRTUAL_BUTTON.CLOSE)}
             disabled={(
               [DOOR_STATE.CLOSED, DOOR_STATE.CLOSING] as A_DOOR_STATE[]
@@ -32,10 +42,12 @@ export const ControlPage: React.FC = () => {
             <span className={ICON.DOWN} />
           </button>
         </div>
+
+        {/* Status Indicators */}
         <div className="status-indicators">
           <div className="open">
             <div
-              className={classNames("state-indicator", {
+              className={classNames('state-indicator', {
                 active: doorState === DOOR_STATE.OPEN,
               })}
             >
@@ -44,7 +56,7 @@ export const ControlPage: React.FC = () => {
           </div>
           <div className="transitioning">
             <div
-              className={classNames("state-indicator", {
+              className={classNames('state-indicator', {
                 active: (
                   [DOOR_STATE.OPENING, DOOR_STATE.CLOSING] as A_DOOR_STATE[]
                 ).includes(doorState),
@@ -56,7 +68,7 @@ export const ControlPage: React.FC = () => {
           </div>
           <div className="closed">
             <div
-              className={classNames("state-indicator", {
+              className={classNames('state-indicator', {
                 active: doorState === DOOR_STATE.CLOSED,
               })}
             >

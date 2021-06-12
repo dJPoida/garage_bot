@@ -58,35 +58,35 @@ export type A_SOCKET_CLIENT_CLOSE_CODE =
 export const SocketClientCloseCodeDescriptionMap: {
   [K in A_SOCKET_CLIENT_CLOSE_CODE]: string;
 } = {
-  [SOCKET_CLIENT_CLOSE_CODE.NORMAL_CLOSURE]: "Closed Normally",
+  [SOCKET_CLIENT_CLOSE_CODE.NORMAL_CLOSURE]: 'Closed Normally',
   [SOCKET_CLIENT_CLOSE_CODE.GOING_AWAY]:
-    "The endpoint is going away, either because of a server failure or because the browser is navigating away from the page that opened the connection.",
+    'The endpoint is going away, either because of a server failure or because the browser is navigating away from the page that opened the connection.',
   [SOCKET_CLIENT_CLOSE_CODE.PROTOCOL_ERROR]:
-    "The endpoint is terminating the connection due to a protocol error.",
+    'The endpoint is terminating the connection due to a protocol error.',
   [SOCKET_CLIENT_CLOSE_CODE.UNSUPPORTED_DATA]:
-    "The connection is being terminated because the endpoint received data of a type it cannot accept.",
+    'The connection is being terminated because the endpoint received data of a type it cannot accept.',
   [SOCKET_CLIENT_CLOSE_CODE.NO_STATUS_RECEIVED]:
-    "No status code was provided even though one was expected.",
+    'No status code was provided even though one was expected.',
   [SOCKET_CLIENT_CLOSE_CODE.ABNORMAL_CLOSURE]:
-    "A connection was closed abnormally (that is, with no close frame being sent) when a status code is expected.",
+    'A connection was closed abnormally (that is, with no close frame being sent) when a status code is expected.',
   [SOCKET_CLIENT_CLOSE_CODE.INVALID_FRAME_PAYLOAD_DATA]:
-    "The endpoint is terminating the connection because a message was received that contained inconsistent data (e.g., non-UTF-8 data within a text message).",
+    'The endpoint is terminating the connection because a message was received that contained inconsistent data (e.g., non-UTF-8 data within a text message).',
   [SOCKET_CLIENT_CLOSE_CODE.POLICY_VIOLATION]:
-    "The endpoint is terminating the connection because it received a message that violates its policy.",
+    'The endpoint is terminating the connection because it received a message that violates its policy.',
   [SOCKET_CLIENT_CLOSE_CODE.MESSAGE_TOO_BIG]:
-    "The endpoint is terminating the connection because a data frame was received that is too large.",
+    'The endpoint is terminating the connection because a data frame was received that is too large.',
   [SOCKET_CLIENT_CLOSE_CODE.MISSING_EXTENSION]:
     "The client is terminating the connection because it expected the server to negotiate one or more extension, but the server didn't.",
   [SOCKET_CLIENT_CLOSE_CODE.INTERNAL_ERROR]:
-    "The server is terminating the connection because it encountered an unexpected condition that prevented it from fulfilling the request.",
+    'The server is terminating the connection because it encountered an unexpected condition that prevented it from fulfilling the request.',
   [SOCKET_CLIENT_CLOSE_CODE.SERVICE_RESTART]:
-    "The server is terminating the connection because it is restarting.",
+    'The server is terminating the connection because it is restarting.',
   [SOCKET_CLIENT_CLOSE_CODE.TRY_AGAIN_LATER]:
-    "The server is terminating the connection due to a temporary condition, e.g. it is overloaded and is casting off some of its clients.",
+    'The server is terminating the connection due to a temporary condition, e.g. it is overloaded and is casting off some of its clients.',
   [SOCKET_CLIENT_CLOSE_CODE.BAD_GATEWAY]:
-    "The server was acting as a gateway or proxy and received an invalid response from the upstream server.",
+    'The server was acting as a gateway or proxy and received an invalid response from the upstream server.',
   [SOCKET_CLIENT_CLOSE_CODE.TLS_HANDSHAKE]:
-    "Indicates that the connection was closed due to a failure to perform a TLS handshake.",
+    'Indicates that the connection was closed due to a failure to perform a TLS handshake.',
   [SOCKET_CLIENT_CLOSE_CODE.CLOSING_FOR_RECONNECT]:
-    "Pre-existing connection closed in anticipation of new connection",
+    'Pre-existing connection closed in anticipation of new connection',
 };

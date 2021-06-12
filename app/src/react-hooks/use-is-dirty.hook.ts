@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from 'react';
 
 /**
  * Simple hook to flag that a form has been touched and is dirty
@@ -15,7 +15,7 @@ import { useState } from "react";
 export const useIsDirty = (): [boolean, (isDirty?: boolean) => void] => {
   const [isDirty, setIsDirty] = useState(false);
 
-  const setDirty = (isDirty?: boolean) => setIsDirty(isDirty !== false);
+  const setDirty = (newIsDirty?: boolean) => setIsDirty(newIsDirty !== false);
 
   return [isDirty, setDirty];
 };

@@ -9,12 +9,12 @@ declare const deviceAddress: string;
 
 export const globals = {
   environment: __ENVIRONMENT__,
-  development: __ENVIRONMENT__ === "development",
-  production: __ENVIRONMENT__ !== "development",
+  development: __ENVIRONMENT__ === 'development',
+  production: __ENVIRONMENT__ !== 'development',
   appTitle: __TITLE__,
   version: __VERSION__,
   homepage: __HOMEPAGE__,
   firmwareVersion,
   deviceAddress:
-    __ENVIRONMENT__ === "development" ? __DEVICE_ADDRESS__ : deviceAddress,
+    __ENVIRONMENT__ === 'development' ? __DEVICE_ADDRESS__ : deviceAddress,
 };

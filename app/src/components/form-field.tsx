@@ -1,6 +1,6 @@
-import React from "react";
-import classNames from "classnames";
-import { ToolTip } from "./tooltip";
+import React from 'react';
+import classNames from 'classnames';
+import { ToolTip } from './tooltip';
 
 export type TextboxChangeFunction = (
   fieldName: string,
@@ -20,12 +20,12 @@ export type FormFieldProps = {
   toolTip?: string;
 } & (
   | {
-      type: "text";
+      type: 'text';
       value: null | string;
       onChange: TextboxChangeFunction;
     }
   | {
-      type: "checkbox";
+      type: 'checkbox';
       value: boolean;
       onChange: CheckboxChangeFunction;
     }
@@ -46,41 +46,37 @@ export const FormField: React.FC<FormFieldProps> = (props) => {
 
   return (
     <>
-      <label className={classNames("form-field", labelClassName)} htmlFor={id}>
+      <label className={classNames('form-field', labelClassName)} htmlFor={id}>
         <span>{label}</span>
         {toolTip && <ToolTip tip={toolTip} />}
       </label>
 
       {/* Checkbox */}
-      {type === "checkbox" && (
+      {type === 'checkbox' && (
         <input
           key={id}
-          className={classNames("form-field", className)}
+          className={classNames('form-field', className)}
           id={id}
           name={fieldName}
           type={type}
           checked={(value as null | boolean) ?? false}
-          onChange={(e) =>
-            (onChange as CheckboxChangeFunction)(fieldName, e.target.checked)
-          }
+          onChange={(e) => (onChange as CheckboxChangeFunction)(fieldName, e.target.checked)}
         />
       )}
 
       {/* Textbox */}
-      {type === "text" && (
+      {type === 'text' && (
         <input
           key={id}
-          className={classNames("form-field", className)}
+          className={classNames('form-field', className)}
           id={id}
           name={fieldName}
           type={type}
-          value={(value ?? "").toString()}
-          onChange={(e) =>
-            (onChange as TextboxChangeFunction)(
-              fieldName,
-              (e.target.value ?? "") !== "" ? e.target.value ?? "" : null
-            )
-          }
+          value={(value ?? '').toString()}
+          onChange={(e) => (onChange as TextboxChangeFunction)(
+            fieldName,
+            (e.target.value ?? '') !== '' ? e.target.value ?? '' : null,
+          )}
         />
       )}
     </>

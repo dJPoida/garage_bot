@@ -15,16 +15,16 @@ const arduinoDataPath = path.resolve(__dirname, '../arduino/garage_bot/data/');
 
 module.exports = merge(common, {
   mode: 'production',
-  
+
   // Where webpack outputs the assets and bundles
   output: {
     path: paths.dist,
     publicPath: '/',
     filename: `js/[name].${appVersionSuffix}.bnd.js`,
   },
-  
+
   devtool: false,
-  
+
   module: {
     rules: [
       {
@@ -32,7 +32,7 @@ module.exports = merge(common, {
         exclude: /node_modules/,
         loader: 'ts-loader',
         options: {
-          configFile: tsConfigPath
+          configFile: tsConfigPath,
         },
       },
       {
@@ -62,7 +62,7 @@ module.exports = merge(common, {
     // Provide some global variables to the client
     new webpack.DefinePlugin({
       // Put: 'client side variables here'
-      __ENVIRONMENT__: JSON.stringify("production"),
+      __ENVIRONMENT__: JSON.stringify('production'),
     }),
 
     // Extracts CSS into separate files
@@ -88,7 +88,7 @@ module.exports = merge(common, {
             // Copy the dist output into the directory
             { source: paths.dist, destination: arduinoDataPath },
             // Copy the local config.json to the arduino esp data path
-            { source: './config.json', destination: `${arduinoDataPath}/config.json` }
+            { source: './config.json', destination: `${arduinoDataPath}/config.json` },
           ],
         },
       },

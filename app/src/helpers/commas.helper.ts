@@ -8,7 +8,7 @@
  */
 export const commas = (num: number | string): string => {
   if (num) {
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
 
   return num.toString();

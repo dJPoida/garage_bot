@@ -1,12 +1,13 @@
 const path = require('path');
-const webpack = require('webpack')
-const { merge } = require('webpack-merge')
+const webpack = require('webpack');
+const { merge } = require('webpack-merge');
 
-const paths = require('./webpack.paths')
-const common = require('./webpack.config.common.js')
+const paths = require('./webpack.paths');
+const common = require('./webpack.config.common.js');
 
 const tsConfigPath = path.resolve(__dirname, 'tsconfig.dev.json');
 const dotEnv = require('dotenv');
+
 dotEnv.config();
 
 module.exports = merge(common, {
@@ -29,7 +30,7 @@ module.exports = merge(common, {
     contentBase: paths.dist,
     compress: true,
     hot: true,
-    port: 3000
+    port: 3000,
   },
 
   module: {
@@ -55,18 +56,18 @@ module.exports = merge(common, {
           'style-loader',
           {
             loader: 'css-loader',
-            options: { 
+            options: {
               sourceMap: true,
               // importLoaders: 1,
               // modules: true,
               url: false,
             },
           },
-          { 
+          {
             loader: 'sass-loader',
             options: {
-              sourceMap: true
-            }
+              sourceMap: true,
+            },
           },
         ],
       },
@@ -77,11 +78,11 @@ module.exports = merge(common, {
     // Provide some global variables to the client
     new webpack.DefinePlugin({
       // Put: 'client side variables here'
-      __ENVIRONMENT__: JSON.stringify("development"),
+      __ENVIRONMENT__: JSON.stringify('development'),
       __DEVICE_ADDRESS__: JSON.stringify(process.env.DEVICE_ADDRESS),
     }),
-    
+
     // Only update what has changed on hot reload
     new webpack.HotModuleReplacementPlugin(),
   ],
-})
+});

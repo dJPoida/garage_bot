@@ -1,19 +1,12 @@
-import events from "events";
-import { A_SOCKET_CLIENT_MESSAGE } from "../constants/socket-client-message.const";
-import { SOCKET_CLIENT_EVENT } from "../constants/socket-client-event.const";
-import { A_SOCKET_SERVER_MESSAGE } from "../constants/socket-server-message.const";
-import { globals } from "./globals.helper";
-import {
-  A_SOCKET_CLIENT_STATE,
-  SOCKET_CLIENT_STATE,
-} from "../constants/socket-client-state.const";
-import {
-  A_SOCKET_CLIENT_CLOSE_CODE,
-  SocketClientCloseCodeDescriptionMap,
-  SOCKET_CLIENT_CLOSE_CODE,
-} from "../constants/socket-client-close-code.const";
+import events from 'events';
+import { A_SOCKET_CLIENT_MESSAGE } from '../constants/socket-client-message.const';
+import { SOCKET_CLIENT_EVENT } from '../constants/socket-client-event.const';
+import { A_SOCKET_SERVER_MESSAGE } from '../constants/socket-server-message.const';
+import { globals } from './globals.singleton';
+import { A_SOCKET_CLIENT_STATE, SOCKET_CLIENT_STATE } from '../constants/socket-client-state.const';
+import { A_SOCKET_CLIENT_CLOSE_CODE, SocketClientCloseCodeDescriptionMap, SOCKET_CLIENT_CLOSE_CODE } from '../constants/socket-client-close-code.const';
+import { pageVisibility, PAGE_ACTIVITY_EVENT } from './page-visibility.singleton';
 
-const RECONNECTION_ATTEMPTS = 20;
 const PING_INTERVAL = 2000;
 const PONG_TIMEOUT = 2000;
 const MAX_MISSED_PINGS = 3;
@@ -29,29 +22,29 @@ let socketClientInstance: SocketClient;
  */
 class SocketClient extends events.EventEmitter {
   // The host can be overridden for local device modes
-  private readonly host: string = `ws://${
-    globals.development ? globals.deviceAddress : window.location.host
-  }/ws`;
+  private readonly host: string = `ws://${globals.development ? globals.deviceAddress : window.location.host}/ws`;
 
   private _socket: null | WebSocket = null;
   private _state: A_SOCKET_CLIENT_STATE = SOCKET_CLIENT_STATE.DISCONNECTED;
-  private _connectionFailed: boolean = false;
   private _error: null | Error = null;
 
   private _pingTimeout: undefined | ReturnType<typeof setTimeout>;
   private _pongTimeout: undefined | ReturnType<typeof setTimeout>;
-  private _missedPings: number = 0;
+  private _missedPings = 0;
 
   /**
-   * @var retryInfinitely whether the socket client should attempt to maintain the connection to the device at all costs
+   * @var keepConnectionOpen whether the socket client should attempt to maintain the connection to the device at all costs
    */
-  public retryInfinitely: boolean = true;
+  public keepConnectionOpen = true;
 
   /**
    * @Constructor
    */
   constructor() {
     super();
+
+    // Bind events
+    this.bindEvents();
 
     // Connect the socket
     this.connect();
@@ -90,10 +83,13 @@ class SocketClient extends events.EventEmitter {
   };
 
   /**
-   * Call this method when the connection has failed or is dropped
+   * Bind the event listeners that this class cares about
    */
-  private reconnect = () => {
-    // TODO: reconnect
+  private bindEvents = () => {
+    pageVisibility.on(
+      PAGE_ACTIVITY_EVENT.USER_ACTIVE_CHANGE,
+      this.handleUserActiveChanged.bind(this),
+    );
   };
 
   /**
@@ -101,7 +97,7 @@ class SocketClient extends events.EventEmitter {
    * If the PONG is not received, the connection will be severed
    * and an attempt to reconnect will commence.
    */
-  private sendPing = (received: boolean = true) => {
+  private sendPing = async () => {
     if (this._pingTimeout) {
       clearTimeout(this._pingTimeout);
     }
@@ -115,7 +111,7 @@ class SocketClient extends events.EventEmitter {
 
       // Send the PING message
       if (this._socket?.readyState === 1) {
-        this._socket.send("PING");
+        this._socket.send('PING');
       }
 
       // Prepare a timeout
@@ -126,12 +122,30 @@ class SocketClient extends events.EventEmitter {
   };
 
   /**
+   * Fired when the page becomes visible or hidden
+   */
+  private handleUserActiveChanged = (newUserActive: boolean) => {
+    // Reconnect if the device is disconnected and the user returns to the page
+    if (
+      newUserActive
+      && (
+        [
+          SOCKET_CLIENT_STATE.DISCONNECTED,
+          SOCKET_CLIENT_STATE.ERROR,
+        ] as A_SOCKET_CLIENT_STATE[]
+      ).includes(this.state)
+    ) {
+      this.reconnect();
+    }
+  };
+
+  /**
    * Fired when a PONG message is received in response to a PING message
    * Also fired when a PONG message is missed
    *
    * @param received whether the pong was received or missed
    */
-  private handlePongReceived = (received: boolean = true) => {
+  private handlePongReceived = async (received = true) => {
     if (this._pongTimeout) {
       clearTimeout(this._pongTimeout);
     }
@@ -152,7 +166,7 @@ class SocketClient extends events.EventEmitter {
       if (this._missedPings >= MAX_MISSED_PINGS) {
         this.disconnect(
           SOCKET_CLIENT_CLOSE_CODE.CLOSING_FOR_RECONNECT,
-          "Missed Heartbeat"
+          'Missed Heartbeat',
         );
       } else {
         // Send another ping
@@ -165,33 +179,16 @@ class SocketClient extends events.EventEmitter {
    * Fired when the socket connects to the device
    */
   private handleSocketOpen = () => {
-    this._connectionFailed = false;
     this._error = null;
     this.setState(SOCKET_CLIENT_STATE.CONNECTED);
     this.sendPing();
-    console.info("Socket Connected.");
+    console.info('Socket Connected.');
   };
 
   /**
    * Fired when the socket is disconnected from the device
    */
   private handleSocketClose = (e: CloseEvent) => {
-    // If the closure was an error, log it otherwise reset the class
-    if (e.code > 1001 && e.code < 4000) {
-      console.error(
-        new Error(
-          SocketClientCloseCodeDescriptionMap[
-            e.code as A_SOCKET_CLIENT_CLOSE_CODE
-          ]
-        )
-      );
-    } else {
-      console.info("Socket Closed.");
-    }
-
-    this._error = null;
-    this.setState(SOCKET_CLIENT_STATE.DISCONNECTED);
-
     // Clear the PingPong timeouts
     if (this._pingTimeout) {
       clearTimeout(this._pingTimeout);
@@ -201,21 +198,43 @@ class SocketClient extends events.EventEmitter {
       clearTimeout(this._pongTimeout);
     }
     this._pongTimeout = undefined;
+
+    // If the closure was an error, log it otherwise reset the class
+    if (e.code > 1001 && e.code < 4000) {
+      // Spit out a connection lost error
+      console.error(
+        new Error(
+          SocketClientCloseCodeDescriptionMap[
+            e.code as A_SOCKET_CLIENT_CLOSE_CODE
+          ],
+        ),
+      );
+
+      this._error = new Error('Connection Lost!');
+
+      // Attempt to to reconnect
+      this.reconnect();
+    } else {
+      // This is a graceful close. Just shut the connection down
+      console.info('Socket Closed.');
+      this._error = null;
+      this.setState(SOCKET_CLIENT_STATE.DISCONNECTED);
+    }
   };
 
   /**
    * Fired when the socket encounters an error
    */
-  private handleSocketError = (e: Event) => {
+  private handleSocketError = () => {
     switch (this.state) {
       case SOCKET_CLIENT_STATE.CONNECTING:
-        this._error = new Error("Failed to connect to the device!");
+        this._error = new Error('Failed to connect to the device!');
         break;
       case SOCKET_CLIENT_STATE.CONNECTED:
-        this._error = new Error("Connection to the device was Lost!");
+        this._error = new Error('Connection to the device was Lost!');
         break;
       default:
-        this._error = new Error("An unexpected error has occurred!");
+        this._error = new Error('An unexpected error has occurred!');
     }
     this.setState(SOCKET_CLIENT_STATE.ERROR);
     console.error(this.error);
@@ -226,7 +245,7 @@ class SocketClient extends events.EventEmitter {
    */
   private handleSocketMessage = (e: MessageEvent) => {
     // First, check to see if the message data is a "PONG" in response to our heartbeat ping
-    if (e.data === "PONG") {
+    if (e.data === 'PONG') {
       this.handlePongReceived();
     }
 
@@ -244,39 +263,48 @@ class SocketClient extends events.EventEmitter {
   /**
    * Call this method to establish the initial connection
    */
-  public connect = (): Promise<void> => {
-    return new Promise(async () => {
-      // Disconnect an  existing socket
-      if (this.state === SOCKET_CLIENT_STATE.CONNECTED && this._socket) {
-        this._socket?.close(-1);
-      }
+  public connect = async () => {
+    // Disconnect an  existing socket
+    if (this.state === SOCKET_CLIENT_STATE.CONNECTED && this._socket) {
+      this._socket?.close(SOCKET_CLIENT_CLOSE_CODE.CLOSING_FOR_RECONNECT);
+    }
 
-      // Notify Listeners that we're connecting to the client
-      this.setState(SOCKET_CLIENT_STATE.CONNECTING);
+    // Notify Listeners that we're connecting to the client
+    this.setState(SOCKET_CLIENT_STATE.CONNECTING);
 
-      // Reset some of the state values
-      this._connectionFailed = false;
-      this._error = null;
-      this._socket = new WebSocket(this.host);
+    // Reset some of the state values
+    this._error = null;
+    this._socket = new WebSocket(this.host);
 
-      // Bind the websocket event listeners
-      this._socket.onopen = this.handleSocketOpen;
-      this._socket.onclose = this.handleSocketClose;
-      this._socket.onmessage = this.handleSocketMessage;
-      this._socket.onerror = this.handleSocketError;
-    });
+    // Bind the websocket event listeners
+    this._socket.onopen = this.handleSocketOpen;
+    this._socket.onclose = this.handleSocketClose;
+    this._socket.onmessage = this.handleSocketMessage;
+    this._socket.onerror = this.handleSocketError;
+  };
+
+  /**
+   * Call this method when the connection has failed or is dropped
+   */
+  private reconnect = () => {
+    // Only attempt to reconnect if the page is visible and we want to keep the connection open
+    if (this.keepConnectionOpen && pageVisibility.userActive) {
+      console.info('Attempting to re-connect...');
+      this.connect();
+    } else {
+      console.info('User is inactive. No point re-connecting.');
+      this.setState(SOCKET_CLIENT_STATE.DISCONNECTED);
+    }
   };
 
   /**
    * Disconnect from the WebSocket
    */
-  public disconnect = (
+  public disconnect = async (
     code: A_SOCKET_CLIENT_CLOSE_CODE = SOCKET_CLIENT_CLOSE_CODE.NORMAL_CLOSURE,
-    reason: string = "Closed by user"
-  ): Promise<void> => {
-    return new Promise(() => {
-      this._socket?.close(code, reason);
-    });
+    reason = 'Closed by user',
+  ) => {
+    this._socket?.close(code, reason);
   };
 
   /**
@@ -284,7 +312,7 @@ class SocketClient extends events.EventEmitter {
    */
   public sendMessage = (
     message: A_SOCKET_CLIENT_MESSAGE,
-    payload: Record<string, unknown>
+    payload: Record<string, unknown>,
   ) => {
     const data = {
       m: message,
@@ -295,7 +323,7 @@ class SocketClient extends events.EventEmitter {
     const messageLength = jsonEncodedMessage.length;
     if (messageLength > MAX_SOCKET_CLIENT_MESSAGE_SIZE) {
       throw new Error(
-        `Failed to send message to device. MAX_SOCKET_CLIENT_MESSAGE_SIZE exceeded. Max = ${MAX_SOCKET_CLIENT_MESSAGE_SIZE}, Message = ${messageLength}.`
+        `Failed to send message to device. MAX_SOCKET_CLIENT_MESSAGE_SIZE exceeded. Max = ${MAX_SOCKET_CLIENT_MESSAGE_SIZE}, Message = ${messageLength}.`,
       );
     }
 

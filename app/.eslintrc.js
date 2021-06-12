@@ -2,18 +2,22 @@ module.exports = {
   extends: [
     'airbnb',
     'plugin:@typescript-eslint/recommended',
-    'plugin:node/recommended',
-    'prettier/@typescript-eslint',
+    'plugin:react/recommended',
+    'plugin:css-modules/recommended',
   ],
   parser: '@typescript-eslint/parser',
   plugins: [
+    'react',
+    'jsx-a11y',
+    'import',
+    'css-modules',
+    'react-hooks',
     '@typescript-eslint',
-    'node',
     'prettier',
   ],
   env: {
     browser: true,
-    node: true,
+    es6: true,
   },
   settings: {
     'import/parsers': {
@@ -24,7 +28,13 @@ module.exports = {
     },
   },
   parserOptions: {
+    ecmaVersion: 2020,
     sourceType: 'module',
+    ecmaFeatures: {
+      jsx: true,
+      classes: true,
+      defaultParams: true,
+    },
   },
   rules: {
     'class-methods-use-this': 'off',
@@ -43,10 +53,13 @@ module.exports = {
     'react/prop-types': 'off',
     'prefer-arrow-callback': 'off',
     'object-curly-newline': 'off',
+    'no-multiple-empty-lines': ['error', { max: 2 }],
     'max-len': ['error', { code: 180, ignoreComments: true }],
+    'comma-spacing': ['error', { before: false, after: true }],
+    'comma-dangle': ['error', 'always-multiline'],
     'no-underscore-dangle': 'off',
     'no-await-in-loop': 'off',
-    'no-console': ['error', { allow: ['warn', 'error'] }],
+    'no-console': ['error', { allow: ['warn', 'error', 'info'] }],
     'react/jsx-props-no-spreading': 'off',
     'react/jsx-filename-extension': [2, { extensions: ['.js', '.jsx', '.ts', '.tsx'] }],
     '@typescript-eslint/explicit-function-return-type': 'off',
@@ -55,6 +68,9 @@ module.exports = {
     '@typescript-eslint/camelcase': 'off',
     'no-use-before-define': 'off',
     '@typescript-eslint/no-use-before-define': ['error', { variables: false }],
+    'react/destructuring-assignment': ['warn', 'always', { ignoreClassFields: true }],
+    'react-hooks/rules-of-hooks': 'error',
+    'react-hooks/exhaustive-deps': 'error',
     'import/extensions': [
       'error',
       'ignorePackages',
@@ -67,16 +83,17 @@ module.exports = {
     ],
     'import/no-extraneous-dependencies': [2, { devDependencies: ['**/test.tsx', '**/test.ts'] }],
     'import/prefer-default-export': 'off',
-    'node/no-unsupported-features/es-syntax': [
-      'error',
-      {
-        ignores: ['modules'],
-      },
-    ],
-    'node/no-missing-import': ['error', {
-      allowModules: [],
-      tryExtensions: ['.ts', '.js', '.d.ts', '.tsx'],
+    'jsx-a11y/label-has-associated-control': ['warn', {
+      labelAttributes: ['label'],
+      depth: 3,
     }],
-
   },
+  overrides: [
+    {
+      files: ['*.js', '*.jsx'],
+      rules: {
+        '@typescript-eslint/explicit-module-boundary-types': ['off'],
+      },
+    },
+  ],
 };

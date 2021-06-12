@@ -1,14 +1,12 @@
 const path = require('path');
 const webpack = require('webpack');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin')
-const CopyWebpackPlugin = require('copy-webpack-plugin')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
-const PrettierPlugin = require('prettier-webpack-plugin')
-const ESLintPlugin = require('eslint-webpack-plugin')
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const packageJson = require('./package.json');
 const entryPoints = require('./webpack.entrypoints');
-const paths = require('./webpack.paths')
+const paths = require('./webpack.paths');
 
 const appVersionSuffix = packageJson.version.replace(/\./g, '-');
 
@@ -61,16 +59,7 @@ module.exports = {
         appVersionSuffix,
         appTitle: packageJson.displayName,
       },
-    })),    
-
-    // ESLint configuration
-    new ESLintPlugin({
-      files: ['.', 'src'],
-      formatter: 'table',
-    }),
-
-    // Prettier configuration
-    new PrettierPlugin(),
+    })),
   ],
 
   resolve: {
@@ -80,4 +69,4 @@ module.exports = {
       '@': paths.src,
     },
   },
-}
+};

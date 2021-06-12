@@ -90,6 +90,9 @@
 // The maximum number of bytes we can expect to received from the client
 #define MAX_SOCKET_CLIENT_MESSAGE_SIZE 256
 
+// The maximum number of concurrent socket connections to accept
+#define MAX_SOCKET_CONNECTIONS 10
+
 // The maximum size of the config file in bytes
 #define CONFIG_FILE_MAX_SIZE 1024
 
@@ -105,9 +108,9 @@ struct Config {
   bool mqtt_enabled                 = false;                // Whether the device should attempt to integrate with an MQTT broker
   String mqtt_broker_address        = "";                   // The IP address of the MQTT Broker
   unsigned int mqtt_broker_port     = 1833;                 // The MQTT Broker Port Number
-  String mqtt_device_id             = "Garage_Bot";         // The Device ID to use when connecting to the MQTT Server
+  String mqtt_device_id             = "Garage_Bot";         // The Device ID to use when connecting to the MQTT Broker
   String mqtt_username              = "";                   // The username when connecting to the MQTT broker
-  String mqtt_password              = "";                   // The password when connecting to the MQTT server
+  String mqtt_password              = "";                   // The password when connecting to the MQTT broker
   String mqtt_topic                 = "garage/door";        // The MQTT topic used for communicating instructions (open / close etc)
   String mqtt_state_topic           = "garage/door/state";  // The MQTT topic used for communicating the state of the door (opened / closed / etc)
   byte stored_rf_code_count         = 0;                    // The number of registered RF remote codes (5 Max)

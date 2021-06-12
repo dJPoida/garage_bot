@@ -1,5 +1,5 @@
-import React, { useContext } from "react";
-import { DeviceContext } from "../../providers/device.provider";
+import React, { useContext } from 'react';
+import { DeviceContext } from '../../providers/device.provider';
 
 export const CalibrationPage: React.FC = () => {
   const { sensorData } = useContext(DeviceContext);
@@ -9,7 +9,7 @@ export const CalibrationPage: React.FC = () => {
     <div className="page calibration">
       <div className="sensor-data">
         {/* Headings */}
-        <div></div>
+        <div />
         <div>Ambient</div>
         <div>Active</div>
         <div>Delta</div>
@@ -20,20 +20,20 @@ export const CalibrationPage: React.FC = () => {
         <div>{sensorData.topIRSensorAverageAmbientReading}</div>
         <div>{sensorData.topIRSensorAverageActiveReading}</div>
         <div>
-          {sensorData.topIRSensorAverageAmbientReading -
-            sensorData.topIRSensorAverageActiveReading}
+          {sensorData.topIRSensorAverageAmbientReading
+            - sensorData.topIRSensorAverageActiveReading}
         </div>
-        <div>{sensorData.topIRSensorDetected ? "✔" : "-"}</div>
+        <div>{sensorData.topIRSensorDetected ? '✔' : '-'}</div>
 
         {/* Bottom Sensor */}
         <div>Bottom</div>
         <div>{sensorData.bottomIRSensorAverageAmbientReading}</div>
         <div>{sensorData.bottomIRSensorAverageActiveReading}</div>
         <div>
-          {sensorData.bottomIRSensorAverageAmbientReading -
-            sensorData.bottomIRSensorAverageActiveReading}
+          {sensorData.bottomIRSensorAverageAmbientReading
+            - sensorData.bottomIRSensorAverageActiveReading}
         </div>
-        <div>{sensorData.bottomIRSensorDetected ? "✔" : "-"}</div>
+        <div>{sensorData.bottomIRSensorDetected ? '✔' : '-'}</div>
       </div>
     </div>
   );

@@ -1,11 +1,8 @@
-import React, { createRef, useCallback, useEffect, useState } from "react";
-import { Link, NavLink } from "react-router-dom";
-import {
-  A_CONTROL_PAGE,
-  ControlPageConfig,
-} from "../constants/control-page.const";
-import { globals } from "../helpers/globals.helper";
-import { AppIcon } from "./app-icon";
+import React, { useEffect, useState } from 'react';
+import { NavLink } from 'react-router-dom';
+import { A_CONTROL_PAGE, ControlPageConfig } from '../constants/control-page.const';
+import { globals } from '../singletons/globals.singleton';
+import { AppIcon } from './app-icon';
 
 export type AppMenuProps = {
   pages: A_CONTROL_PAGE[];
@@ -26,6 +23,7 @@ export const AppMenu: React.FC<AppMenuProps> = (props) => {
   // Render
   return (
     <div className="app-menu">
+      {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
       <label htmlFor="drawer-control" className="drawer-toggle persistent" />
       <input
         type="checkbox"
@@ -38,7 +36,8 @@ export const AppMenu: React.FC<AppMenuProps> = (props) => {
       />
       <div className="drawer-wrapper">
         <div className="drawer">
-          <label htmlFor="drawer-control" className="drawer-close"></label>
+          {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+          <label htmlFor="drawer-control" className="drawer-close" />
           <div className="app-title">
             <AppIcon />
             <div className="title-wrapper">

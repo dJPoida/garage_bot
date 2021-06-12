@@ -1,26 +1,24 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from 'react';
 import {
-  BrowserRouter as Router,
   Switch,
   Route,
   useLocation,
-} from "react-router-dom";
-import {
-  A_CONTROL_PAGE,
-  ControlPageConfig,
-  CONTROL_PAGE,
-} from "../../constants/control-page.const";
-import { SOCKET_CLIENT_STATE } from "../../constants/socket-client-state.const";
-import { DeviceContext } from "../../providers/device.provider";
-import { AppHeader } from "../app-header";
-import { AppMenu } from "../app-menu";
+} from 'react-router-dom';
+
+import { DeviceContext } from '../../providers/device.provider';
+
+import { AppHeader } from '../app-header';
+import { AppMenu } from '../app-menu';
+
+import { SOCKET_CLIENT_STATE } from '../../constants/socket-client-state.const';
+import { A_CONTROL_PAGE, ControlPageConfig, CONTROL_PAGE } from '../../constants/control-page.const';
 
 export const ControlApp: React.FC = () => {
   const { socketClientState } = useContext(DeviceContext);
 
   const location = useLocation();
   const [currentPage, setCurrentPage] = useState<A_CONTROL_PAGE>(
-    CONTROL_PAGE.CONTROL
+    CONTROL_PAGE.CONTROL,
   );
 
   /**
@@ -28,11 +26,10 @@ export const ControlApp: React.FC = () => {
    */
   useEffect(() => {
     const foundPage: null | A_CONTROL_PAGE = Object.keys(
-      ControlPageConfig
+      ControlPageConfig,
     ).find(
-      (controlPageKey) =>
-        ControlPageConfig[controlPageKey as A_CONTROL_PAGE].route ===
-        location.pathname
+      (controlPageKey) => ControlPageConfig[controlPageKey as A_CONTROL_PAGE].route
+        === location.pathname,
     ) as null | A_CONTROL_PAGE;
     if (foundPage) {
       setCurrentPage(foundPage ?? CONTROL_PAGE.CONTROL);
@@ -66,8 +63,10 @@ export const ControlApp: React.FC = () => {
       {/* Disconnected */}
       {socketClientState === SOCKET_CLIENT_STATE.DISCONNECTED && (
         <div className="connection disconnected">
-          <span className="icon-alert"></span>
+          <span className="icon-alert" />
           <span>Disconnected!</span>
+          <br />
+          <small>Interact with the page to re-connect.</small>
         </div>
       )}
 
