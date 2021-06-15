@@ -1,7 +1,7 @@
 import events from 'events';
 import { A_SOCKET_CLIENT_MESSAGE } from '../constants/socket-client-message.const';
 import { SOCKET_CLIENT_EVENT } from '../constants/socket-client-event.const';
-import { A_SOCKET_SERVER_MESSAGE } from '../constants/socket-server-message.const';
+import { A_SOCKET_SERVER_MESSAGE, SOCKET_SERVER_MESSAGE } from '../constants/socket-server-message.const';
 import { globals } from './globals.singleton';
 import { A_SOCKET_CLIENT_STATE, SOCKET_CLIENT_STATE } from '../constants/socket-client-state.const';
 import { A_SOCKET_CLIENT_CLOSE_CODE, SocketClientCloseCodeDescriptionMap, SOCKET_CLIENT_CLOSE_CODE } from '../constants/socket-client-close-code.const';
@@ -50,6 +50,7 @@ class SocketClient extends events.EventEmitter {
     this.connect();
   }
 
+
   /**
    * Create a new instance of the socket handler if one does not already exist
    */
@@ -59,6 +60,7 @@ class SocketClient extends events.EventEmitter {
     }
     return socketClientInstance;
   };
+
 
   /**
    * The state of the socket client
@@ -74,6 +76,7 @@ class SocketClient extends events.EventEmitter {
     return this._error;
   }
 
+
   /**
    * Change the state of the socket client
    */
@@ -81,6 +84,7 @@ class SocketClient extends events.EventEmitter {
     this._state = newState;
     this.emit(SOCKET_CLIENT_EVENT.STATE_CHANGE, newState);
   };
+
 
   /**
    * Bind the event listeners that this class cares about
@@ -91,6 +95,7 @@ class SocketClient extends events.EventEmitter {
       this.handleUserActiveChanged.bind(this),
     );
   };
+
 
   /**
    * Once connected, a PING is periodically sent to the server.
@@ -121,6 +126,7 @@ class SocketClient extends events.EventEmitter {
     }, PING_INTERVAL);
   };
 
+
   /**
    * Fired when the page becomes visible or hidden
    */
@@ -138,6 +144,7 @@ class SocketClient extends events.EventEmitter {
       this.reconnect();
     }
   };
+
 
   /**
    * Fired when a PONG message is received in response to a PING message
@@ -175,6 +182,7 @@ class SocketClient extends events.EventEmitter {
     }
   };
 
+
   /**
    * Fired when the socket connects to the device
    */
@@ -184,6 +192,7 @@ class SocketClient extends events.EventEmitter {
     this.sendPing();
     console.info('Socket Connected.');
   };
+
 
   /**
    * Fired when the socket is disconnected from the device
@@ -222,6 +231,7 @@ class SocketClient extends events.EventEmitter {
     }
   };
 
+
   /**
    * Fired when the socket encounters an error
    */
@@ -240,6 +250,7 @@ class SocketClient extends events.EventEmitter {
     console.error(this.error);
   };
 
+
   /**
    * Fired when the client receives a message from the server
    */
@@ -256,9 +267,15 @@ class SocketClient extends events.EventEmitter {
       const message: A_SOCKET_SERVER_MESSAGE = data.m;
       const payload: Record<string, unknown> = data.p ?? {};
 
+      // Keep the page alive if we receive a reboot message
+      if (message === SOCKET_SERVER_MESSAGE.REBOOTING) {
+        pageVisibility.poke();
+      }
+
       this.emit(SOCKET_CLIENT_EVENT.MESSAGE, message, payload);
     }
   };
+
 
   /**
    * Call this method to establish the initial connection
@@ -283,6 +300,7 @@ class SocketClient extends events.EventEmitter {
     this._socket.onerror = this.handleSocketError;
   };
 
+
   /**
    * Call this method when the connection has failed or is dropped
    */
@@ -297,6 +315,7 @@ class SocketClient extends events.EventEmitter {
     }
   };
 
+
   /**
    * Disconnect from the WebSocket
    */
@@ -306,6 +325,7 @@ class SocketClient extends events.EventEmitter {
   ) => {
     this._socket?.close(code, reason);
   };
+
 
   /**
    * Send a message back to the server (device)

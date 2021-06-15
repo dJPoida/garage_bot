@@ -29,9 +29,10 @@ class PageActivity extends events.EventEmitter {
   private _userActive: boolean = document.visibilityState === 'visible';
 
   // The number of milliseconds of inactivity before a user is considered inactive
-  private _inactivityThreshold = 10; // Default 2 mins
+  private _inactivityThreshold = 120; // Default 2 mins
 
   private visibilityTimeout: null | ReturnType<typeof setTimeout> = null;
+
 
   /**
    * @constructor
@@ -42,6 +43,7 @@ class PageActivity extends events.EventEmitter {
     this.handleUserActivity();
   }
 
+
   /**
    * @property whether the page is currently in the foreground and active
    */
@@ -49,12 +51,14 @@ class PageActivity extends events.EventEmitter {
     return this._pageVisible;
   }
 
+
   /**
    * @property whether the user is considered active on the current page
    */
   public get userActive(): boolean {
     return this._userActive;
   }
+
 
   /**
    * @property the number of seconds before a user is considered inactive
@@ -67,6 +71,7 @@ class PageActivity extends events.EventEmitter {
     this.handleUserActivity();
   }
 
+
   /**
    * Create a new instance of the page visibility class if one does not already exist
    */
@@ -76,6 +81,15 @@ class PageActivity extends events.EventEmitter {
     }
     return pageActivityInstance;
   };
+
+
+  /**
+   * Programmatically poke the page to stay alive
+   */
+  public poke = (): void => {
+    this.handleUserActivity();
+  }
+
 
   /**
    * Bind the event listeners that make this class work
@@ -97,6 +111,7 @@ class PageActivity extends events.EventEmitter {
       }
     });
   };
+
 
   /**
    * Fired whenever an action that is considered "user activity"

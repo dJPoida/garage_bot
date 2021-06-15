@@ -1,20 +1,56 @@
 {
-    "cSpell.words": [
-        "BOTFS",
-        "IRAM",
-        "LITTLEFS",
-        "Poida",
-        "RFRECEIVER",
-        "apmode",
-        "arduinojson",
-        "bot",
-        "bot's",
-        "comms",
-        "mdns",
-        "mqtt",
-        "uninitialised"
-    ],
-    "files.associations": {
-        "array": "cpp"
+  "cSpell.words": [
+    "BOTFS",
+    "IRAM",
+    "LITTLEFS",
+    "Poida",
+    "RFRECEIVER",
+    "apmode",
+    "arduinojson",
+    "bot",
+    "bot's",
+    "comms",
+    "mdns",
+    "mqtt",
+    "uninitialised"
+  ],
+  "files.associations": {
+    "array": "cpp"
+  },
+  "todo-tree.general.tags": [
+    "todo",
+    "deprecated",
+    "test",
+    "note",
+  ],
+  "todo-tree.highlights.defaultHighlight": {
+    "background": "#1E1E1E",
+    "type": "tag-and-comment"
+  },
+  "todo-tree.highlights.customHighlight": {
+    "todo": {
+      "background": "yellow",
+      "foreground": "#1E1E1E",
+    },
+    "deprecated": {
+      "background": "darkred",
+      "foreground": "white"
+    },
+    "test": {
+      "foreground": "green"
+    },
+    "note": {
+      "foreground": "fuchsia",
+      "type": "text"
     }
+  },
+  "todo-tree.tree.showCountsInTree": true,
+  "todo-tree.tree.flat": true,
+  "todo-tree.general.revealBehaviour": "start of line",
+  "todo-tree.filtering.excludeGlobs": [
+    "dist",
+    "node_modules"
+  ],
+  "todo-tree.regex.regexCaseSensitive": false,
+  "todo-tree.regex.regex": "((//|#|<!--|;|/\\*|\\*|^)\\s*(@)*($TAGS)|^\\s*- \\[ \\])"
 }

@@ -17,6 +17,7 @@ type DeviceProviderState = {
   socketClientState: A_SOCKET_CLIENT_STATE;
   error: null | Error;
   doorState: A_DOOR_STATE;
+  rebooting: boolean,
   config: IConfig;
   configChecksum: number;
   sensorData: ISensorData;
@@ -27,11 +28,14 @@ type DeviceContextProps = Pick<
   | 'socketClientState'
   | 'error'
   | 'doorState'
+  | 'rebooting'
   | 'config'
   | 'configChecksum'
   | 'sensorData'
 > & {
   pressButton: (button: A_VIRTUAL_BUTTON) => void;
+  reboot: () => void;
+  resetToFactoryDefaults: () => void;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -50,6 +54,7 @@ export class DeviceProvider extends React.Component<DeviceProviderProps, DeviceP
       doorState: DOOR_STATE.UNKNOWN,
       error: socketClient.error,
       configChecksum: 0,
+      rebooting: false,
       config: {
         mdns_name: null,
         network_device_name: null,
@@ -77,12 +82,14 @@ export class DeviceProvider extends React.Component<DeviceProviderProps, DeviceP
     this._bindEvents();
   }
 
+
   /**
    * @inheritdoc
    */
   componentWillUnmount = (): void => {
     this._unbindEvents();
   };
+
 
   /**
    * Setup the event listeners
@@ -93,6 +100,7 @@ export class DeviceProvider extends React.Component<DeviceProviderProps, DeviceP
       .on(SOCKET_CLIENT_EVENT.MESSAGE, this.handleSocketServerMessage);
   };
 
+
   /**
    * Tear down the event listeners
    */
@@ -102,14 +110,17 @@ export class DeviceProvider extends React.Component<DeviceProviderProps, DeviceP
       .off(SOCKET_CLIENT_EVENT.MESSAGE, this.handleSocketServerMessage);
   };
 
+
   /**
    * Fired when the socket client state changes
    */
   handleSocketClientStateChange = (newState: A_SOCKET_CLIENT_STATE): void => {
     this.setState({
       socketClientState: newState,
+      rebooting: false,
     });
   };
+
 
   /**
    * Fired when the socket client receives a message
@@ -136,6 +147,13 @@ export class DeviceProvider extends React.Component<DeviceProviderProps, DeviceP
         return;
       }
 
+      // Device is rebooting
+      case SOCKET_SERVER_MESSAGE.REBOOTING:
+        this.setState({
+          rebooting: true,
+        });
+        return;
+
       // Device Status has changed
       case SOCKET_SERVER_MESSAGE.SENSOR_DATA:
         this.setState({
@@ -148,12 +166,14 @@ export class DeviceProvider extends React.Component<DeviceProviderProps, DeviceP
     }
   };
 
+
   /**
    * Fired when the device state changes
    */
   handleDeviceStateChange = (newState: { doorState: A_DOOR_STATE }): void => {
     this.setState({ ...newState });
   };
+
 
   /**
    * Fired when the user presses the "activate door" button
@@ -164,6 +184,27 @@ export class DeviceProvider extends React.Component<DeviceProviderProps, DeviceP
     });
   };
 
+
+  /**
+   * Fired when the user wants to send a reboot command
+   */
+  handleReboot = (): void => {
+    this.setState({ rebooting: true }, () => {
+      socketClient.sendMessage(SOCKET_CLIENT_MESSAGE.REBOOT, {});
+    });
+  };
+
+
+  /**
+   * Fired when the user wants to reset the device to factory defaults
+   */
+  handleResetToFactoryDefaults = (): void => {
+    this.setState({ rebooting: true }, () => {
+      socketClient.sendMessage(SOCKET_CLIENT_MESSAGE.RESET_TO_FACTORY_DEFAULTS, {});
+    });
+  };
+
+
   /**
    * Render
    */
@@ -173,6 +214,7 @@ export class DeviceProvider extends React.Component<DeviceProviderProps, DeviceP
       socketClientState,
       error,
       doorState,
+      rebooting,
       config,
       configChecksum,
       sensorData,
@@ -183,10 +225,13 @@ export class DeviceProvider extends React.Component<DeviceProviderProps, DeviceP
           socketClientState,
           error,
           doorState,
+          rebooting,
           config,
           configChecksum,
           sensorData,
           pressButton: this.handleButtonPress,
+          reboot: this.handleReboot,
+          resetToFactoryDefaults: this.handleResetToFactoryDefaults,
         }}
       >
         {children}

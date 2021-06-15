@@ -3,6 +3,7 @@ import {
   Switch,
   Route,
   useLocation,
+  useHistory,
 } from 'react-router-dom';
 
 import { DeviceContext } from '../../providers/device.provider';
@@ -12,14 +13,26 @@ import { AppMenu } from '../app-menu';
 
 import { SOCKET_CLIENT_STATE } from '../../constants/socket-client-state.const';
 import { A_CONTROL_PAGE, ControlPageConfig, CONTROL_PAGE } from '../../constants/control-page.const';
+import { usePreviousValue } from '../../react-hooks/use-previous-value.hook';
 
 export const ControlApp: React.FC = () => {
-  const { socketClientState } = useContext(DeviceContext);
+  const { rebooting, socketClientState } = useContext(DeviceContext);
 
+  const history = useHistory();
   const location = useLocation();
-  const [currentPage, setCurrentPage] = useState<A_CONTROL_PAGE>(
-    CONTROL_PAGE.CONTROL,
-  );
+  const [currentPage, setCurrentPage] = useState<A_CONTROL_PAGE>(CONTROL_PAGE.CONTROL);
+
+  const oldRebooting = usePreviousValue(rebooting);
+
+  /**
+   * After the device has finished rebooting, switch back to the control page
+   */
+  useEffect(() => {
+    if ((oldRebooting !== rebooting) && !rebooting) {
+      history.push('/');
+    }
+  }, [rebooting, oldRebooting, history]);
+
 
   /**
    * Evaluate the current location.pathname and convert it to a pageKey
@@ -35,6 +48,7 @@ export const ControlApp: React.FC = () => {
       setCurrentPage(foundPage ?? CONTROL_PAGE.CONTROL);
     }
   }, [location]);
+
 
   // Render
   return (
@@ -52,39 +66,51 @@ export const ControlApp: React.FC = () => {
       {/* AppHeader */}
       <AppHeader />
 
-      {/* Connecting to the device */}
-      {socketClientState === SOCKET_CLIENT_STATE.CONNECTING && (
+      {/* Device is rebooting */}
+      {rebooting && (
         <div className="connection please-wait">
           <span className="spinner" />
-          <span>Connecting to device...</span>
+          <span>Device is rebooting...</span>
         </div>
       )}
 
-      {/* Disconnected */}
-      {socketClientState === SOCKET_CLIENT_STATE.DISCONNECTED && (
-        <div className="connection disconnected">
-          <span className="icon-alert" />
-          <span>Disconnected!</span>
-          <br />
-          <small>Interact with the page to re-connect.</small>
-        </div>
-      )}
+      {!rebooting && (
+        <>
+          {/* Connecting to the device */}
+          {socketClientState === SOCKET_CLIENT_STATE.CONNECTING && (
+            <div className="connection please-wait">
+              <span className="spinner" />
+              <span>Connecting to device...</span>
+            </div>
+          )}
 
-      {/* Connected - render the appropriate page */}
-      {socketClientState === SOCKET_CLIENT_STATE.CONNECTED && (
-        <Switch>
-          {Object.values(CONTROL_PAGE).map((controlPageKey) => {
-            const config = ControlPageConfig[controlPageKey];
-            return (
-              <Route
-                exact
-                key={controlPageKey}
-                path={config.route}
-                component={config.pageComponent}
-              />
-            );
-          })}
-        </Switch>
+          {/* Disconnected */}
+          {socketClientState === SOCKET_CLIENT_STATE.DISCONNECTED && (
+            <div className="connection disconnected">
+              <span className="icon-alert" />
+              <span>Disconnected!</span>
+              <br />
+              <small>Interact with the page to re-connect.</small>
+            </div>
+          )}
+
+          {/* Connected - render the appropriate page */}
+          {socketClientState === SOCKET_CLIENT_STATE.CONNECTED && (
+            <Switch>
+              {Object.values(CONTROL_PAGE).map((controlPageKey) => {
+                const config = ControlPageConfig[controlPageKey];
+                return (
+                  <Route
+                    exact
+                    key={controlPageKey}
+                    path={config.route}
+                    component={config.pageComponent}
+                  />
+                );
+              })}
+            </Switch>
+          )}
+        </>
       )}
     </div>
   );

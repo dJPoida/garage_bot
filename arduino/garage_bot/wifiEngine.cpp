@@ -27,6 +27,7 @@
 #include "botFS.h"
 #include "doorControl.h"
 #include "irsensor.h"
+#include "reboot.h"
 
 /**
  * Constructor
@@ -316,7 +317,7 @@ void WiFiEngine::onWsEvent(AsyncWebSocketClient *client, AwsEventType type, void
 
     #ifdef SERIAL_DEBUG
     Serial.println("New incoming WebSocket connection.");
-    Serial.print("Total active WebSocket connetctions: ");
+    Serial.print("Total active WebSocket connections: ");
     Serial.println(_connectedSocketClientCount);
     #endif
 
@@ -419,6 +420,28 @@ void WiFiEngine::sendStatusToClients(AsyncWebSocketClient *client) {
   else {
     _webSocket->textAll(json);
   }
+}
+
+
+/**
+ * Send the device rebooting message to connected clients
+ * Happens just after the device is requested to reboot
+ */
+void WiFiEngine::sendRebootingToClients() {
+  // Don't bother if we're not sending to a direct client and there are no active connections
+  if (_connectedSocketClientCount == 0) {
+    return;
+  }
+
+  DynamicJsonDocument doc(MAX_SOCKET_SERVER_MESSAGE_SIZE);
+  doc["m"] = SOCKET_SERVER_MESSAGE_REBOOTING;
+  JsonObject payload = doc.createNestedObject("p");
+  
+  char json[MAX_SOCKET_SERVER_MESSAGE_SIZE];
+  serializeJsonPretty(doc, json);
+  
+  // Send the config to all clients
+  _webSocket->textAll(json);
 }
 
 
@@ -622,6 +645,11 @@ void WiFiEngine::handleWebSocketData(AsyncWebSocketClient *client, void *arg, ui
         if (onVirtualButtonPressed) {
           onVirtualButtonPressed(toVirtualButtonType(virtualButton));
         }
+      }
+
+      // SOCKET_CLIENT_MESSAGE_REBOOT
+      else if (message == SOCKET_CLIENT_MESSAGE_REBOOT) {
+        reboot();
       }
     }
   }

@@ -8,6 +8,7 @@
 #include "LITTLEFS.h"
 #include "_config.h"
 #include "reboot.h"
+#include "wifiEngine.h"
 
 // Flag to tell the kernel it's time for a reset
 bool rebootFlag = false;
@@ -32,6 +33,13 @@ void reboot() {
  */
 void checkReboot() {
   if (rebootFlag) {
+    // Notify clients
+    #ifdef SERIAL_DEBUG
+    Serial.println("Notifying connected clients of impending reboot...");
+    #endif
+    wifiEngine.sendRebootingToClients();
+    delay(200);
+
     #ifdef SERIAL_DEBUG
     Serial.println("Shutting Down LITTLEFS...");
     #endif

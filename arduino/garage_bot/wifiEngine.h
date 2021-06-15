@@ -35,6 +35,7 @@ class WiFiEngine {
 
     void sendConfigToClients(AsyncWebSocketClient *client = NULL);  // Send the current device config to (a) connected client(s)
     void sendStatusToClients(AsyncWebSocketClient *client = NULL);  // Send the current device status to (a) connected client(s)
+    void sendRebootingToClients();                                  // Send information about the device rebooting to connected client(s)
     void sendSensorDataToClients(AsyncWebSocketClient *client = NULL);  // Send the current sensor readings to (a) connected client(s)
     
     void run (unsigned long currentMillis);                   // Send sensor data to connected web socket clients
