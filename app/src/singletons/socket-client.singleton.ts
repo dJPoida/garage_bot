@@ -5,7 +5,7 @@ import { A_SOCKET_SERVER_MESSAGE, SOCKET_SERVER_MESSAGE } from '../constants/soc
 import { globals } from './globals.singleton';
 import { A_SOCKET_CLIENT_STATE, SOCKET_CLIENT_STATE } from '../constants/socket-client-state.const';
 import { A_SOCKET_CLIENT_CLOSE_CODE, SocketClientCloseCodeDescriptionMap, SOCKET_CLIENT_CLOSE_CODE } from '../constants/socket-client-close-code.const';
-import { pageVisibility, PAGE_ACTIVITY_EVENT } from './page-visibility.singleton';
+import { pageActivity, PAGE_ACTIVITY_EVENT } from './page-activity.singleton';
 
 const PING_INTERVAL = 2000;
 const PONG_TIMEOUT = 2000;
@@ -90,7 +90,7 @@ class SocketClient extends events.EventEmitter {
    * Bind the event listeners that this class cares about
    */
   private bindEvents = () => {
-    pageVisibility.on(
+    pageActivity.on(
       PAGE_ACTIVITY_EVENT.USER_ACTIVE_CHANGE,
       this.handleUserActiveChanged.bind(this),
     );
@@ -269,7 +269,7 @@ class SocketClient extends events.EventEmitter {
 
       // Keep the page alive if we receive a reboot message
       if (message === SOCKET_SERVER_MESSAGE.REBOOTING) {
-        pageVisibility.poke();
+        pageActivity.poke();
       }
 
       this.emit(SOCKET_CLIENT_EVENT.MESSAGE, message, payload);
@@ -306,7 +306,7 @@ class SocketClient extends events.EventEmitter {
    */
   private reconnect = () => {
     // Only attempt to reconnect if the page is visible and we want to keep the connection open
-    if (this.keepConnectionOpen && pageVisibility.userActive) {
+    if (this.keepConnectionOpen && pageActivity.userActive) {
       console.info('Attempting to re-connect...');
       this.connect();
     } else {

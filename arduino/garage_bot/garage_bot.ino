@@ -161,6 +161,9 @@ void setup() {
       wifiEngine.onConnectedChanged = handleWiFiConnectedChanged;
       wifiEngine.onVirtualButtonPressed = handleVirtualButtonPressed;
       handleWiFiConnectedChanged(wifiEngine.connected);
+
+      // Allow incoming websocket connections
+      wifiEngine.allowIncomingWebSockets();
     }
   }
 
@@ -414,6 +417,9 @@ void doorControlStateChanged(DoorState newDoorState) {
       break;
     case DOORSTATE_CLOSING:
       Serial.println("DOOR CLOSING");
+      break;
+    default:
+      Serial.println("DOOR STATE UNKNOWN");
       break;
   }
   #endif

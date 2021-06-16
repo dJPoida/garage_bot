@@ -139,4 +139,4 @@ class PageActivity extends events.EventEmitter {
   };
 }
 
-export const pageVisibility: PageActivity = PageActivity.getInstance();
+export const pageActivity: PageActivity = PageActivity.getInstance();

@@ -44,6 +44,7 @@ enum LEDMode {
 // Used to keep track of the state of the door
 // These values need to match the `door-state.const.ts` constants in the client app
 enum DoorState {
+  DOORSTATE_UNKNOWN,   // Door state is unknown
   DOORSTATE_OPEN,      // Door is open
   DOORSTATE_CLOSING,   // Door is closing
   DOORSTATE_CLOSED,    // Door is closed

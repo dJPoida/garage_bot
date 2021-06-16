@@ -82,31 +82,31 @@ bool inError = false;                                                     // Whe
  */
 #line 81 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void setup();
-#line 178 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 181 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void loop();
-#line 208 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 211 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void topSensorChanged(bool detected);
-#line 225 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 228 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void bottomSensorChanged(bool detected);
-#line 242 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 245 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void remoteRepeaterActivationChanged(bool activated);
-#line 257 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 260 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void rfReceiverButtonPressed(bool down);
-#line 281 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 284 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void rfReceiverModeChanged(RFReceiverMode newMode);
-#line 296 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 299 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void generalErrorOccurred(String errorMessage);
-#line 314 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 317 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void panelButtonPressed();
-#line 326 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 329 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void panelButtonReleased(ButtonPressType buttonPressType);
-#line 388 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 391 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void updateLEDFlashes();
-#line 398 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 401 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void doorControlStateChanged(DoorState newDoorState);
-#line 426 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 432 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void handleWiFiConnectedChanged(bool newConnected);
-#line 444 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 450 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void handleVirtualButtonPressed(VirtualButtonType virtualButton);
 #line 81 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void setup() {
@@ -192,6 +192,9 @@ void setup() {
       wifiEngine.onConnectedChanged = handleWiFiConnectedChanged;
       wifiEngine.onVirtualButtonPressed = handleVirtualButtonPressed;
       handleWiFiConnectedChanged(wifiEngine.connected);
+
+      // Allow incoming websocket connections
+      wifiEngine.allowIncomingWebSockets();
     }
   }
 
@@ -445,6 +448,9 @@ void doorControlStateChanged(DoorState newDoorState) {
       break;
     case DOORSTATE_CLOSING:
       Serial.println("DOOR CLOSING");
+      break;
+    default:
+      Serial.println("DOOR STATE UNKNOWN");
       break;
   }
   #endif

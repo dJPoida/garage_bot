@@ -23,6 +23,8 @@ void DoorControl::init() {
   Serial.print("Initialising Door Control...");
   #endif
 
+  _doorState = DOORSTATE_UNKNOWN;
+
   #ifdef SERIAL_DEBUG
   Serial.println(" done.");
   #endif
@@ -48,11 +50,13 @@ void DoorControl::setSensorStates(bool topSensor, bool bottomSensor) {
       _doorState = DOORSTATE_OPEN;
     }
 
+    // Door is closed
     else if (topSensor && bottomSensor) {
       _doorState = DOORSTATE_CLOSED;
     }
 
-    else {
+    // Don't allow transitioning states if we don't know the previous state of the door
+    else if (oldDoorState != DOORSTATE_UNKNOWN) {
       if (_doorState == DOORSTATE_OPEN) {
         _doorState = DOORSTATE_CLOSING;
       } else {

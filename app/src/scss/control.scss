@@ -18,21 +18,19 @@
   }
 }
 
-.config-list {
+.item-list {
   margin-top: 1em;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: var(--universal-margin);
 
-  .item {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-
-    .key {
-      flex: 1;
-      font-weight: 500;
-    }
-    .value {
-      flex: 1;
-    }
+  .key {
+    flex: 1;
+    font-weight: 500;
+    text-align: right;
+  }
+  .value {
+    flex: 1;
   }
 }
 

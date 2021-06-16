@@ -33,6 +33,8 @@ class WiFiEngine {
     boolValueChangedFunction onConnectedChanged;              // Fired when connected changes from true to false etc...
     virtualButtonPressedFunction onVirtualButtonPressed;      // Fired when a socket message is received when the user pressed a virtual button
 
+    void allowIncomingWebSockets();                           // Once the device has initialised, incoming web sockets will be allowed
+
     void sendConfigToClients(AsyncWebSocketClient *client = NULL);  // Send the current device config to (a) connected client(s)
     void sendStatusToClients(AsyncWebSocketClient *client = NULL);  // Send the current device status to (a) connected client(s)
     void sendRebootingToClients();                                  // Send information about the device rebooting to connected client(s)

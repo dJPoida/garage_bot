@@ -92,6 +92,21 @@ bool WiFiEngine::init(AsyncWebServer *webServer, AsyncWebSocket *webSocket, DNSS
 
 
 /**
+ * Once the device has been initialised and the WiFi is connected, incoming websockets will be allowed
+ */
+void WiFiEngine::allowIncomingWebSockets() {
+  #ifdef SERIAL_DEBUG
+  Serial.println("Incoming WebSocket connections enabled.");
+  #endif
+
+  _webSocket->onEvent([&](AsyncWebSocket *ws, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len){
+    onWsEvent(client, type, arg, data, len);
+  });
+  _webServer->addHandler(_webSocket);
+}
+
+
+/**
  * Attempt to connect to the configured WiFi hotspot
  */
 bool WiFiEngine::connectToHotSpot() {
@@ -227,10 +242,6 @@ void WiFiEngine::_handleWiFiConnected() {
  * TODO: Better lockdown of sending pages when in AP mode
  */
 void WiFiEngine::initRoutes() {
-  _webSocket->onEvent([&](AsyncWebSocket *ws, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len){
-    onWsEvent(client, type, arg, data, len);
-  });
-  _webServer->addHandler(_webSocket);
   
   // Route for root / web page (apmode.html)
   _webServer->on("/", HTTP_GET, [&](AsyncWebServerRequest *request){
@@ -317,7 +328,7 @@ void WiFiEngine::onWsEvent(AsyncWebSocketClient *client, AwsEventType type, void
 
     #ifdef SERIAL_DEBUG
     Serial.println("New incoming WebSocket connection.");
-    Serial.print("Total active WebSocket connetctions: ");
+    Serial.print("Total active WebSocket connections: ");
     Serial.println(_connectedSocketClientCount);
     #endif
 
@@ -355,7 +366,7 @@ void WiFiEngine::onWsEvent(AsyncWebSocketClient *client, AwsEventType type, void
  */
 void WiFiEngine::sendConfigToClients(AsyncWebSocketClient *client) {
   // Don't bother if we're not sending to a direct client and there are no active connections
-  if (!client || _connectedSocketClientCount == 0) {
+  if (!client && (_connectedSocketClientCount == 0)) {
     return;
   }
 
@@ -397,7 +408,7 @@ void WiFiEngine::sendConfigToClients(AsyncWebSocketClient *client) {
  */
 void WiFiEngine::sendStatusToClients(AsyncWebSocketClient *client) {
   // Don't bother if we're not sending to a direct client and there are no active connections
-  if (!client || _connectedSocketClientCount == 0) {
+  if (!client && (_connectedSocketClientCount == 0)) {
     return;
   }
 
@@ -453,7 +464,7 @@ void WiFiEngine::sendRebootingToClients() {
  */
 void WiFiEngine::sendSensorDataToClients(AsyncWebSocketClient *client) {
   // Don't bother if we're not sending to a direct client and there are no active connections
-  if (!client || _connectedSocketClientCount == 0) {
+  if (!client && (_connectedSocketClientCount == 0)) {
     return;
   }
 
