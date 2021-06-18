@@ -19,6 +19,8 @@ class IRSensor {
     
     void init(unsigned int pin_emitter, unsigned int pin_receiver, int threshold);
     void run(unsigned long currentMillis);
+    
+    void setThreshold(int newThreshold);                        // Set the detection threshold
 
     bool detected = false;                                      // Whether the difference between ambient and activated readings constitutes a detection
     int averageAmbientReading = 0;                              // The average ambient reading

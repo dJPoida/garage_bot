@@ -12,6 +12,8 @@ export interface IConfig
   mqtt_password: null | string;
   mqtt_topic: null | string;
   mqtt_state_topic: null | string;
+  top_ir_sensor_threshold: number;
+  bottom_ir_sensor_threshold: number;
 }
 
 export const mapPayloadToConfig = (payload: Record<string, unknown>): IConfig => ({
@@ -27,4 +29,6 @@ export const mapPayloadToConfig = (payload: Record<string, unknown>): IConfig =>
   mqtt_password: payload.mqtt_password as string,
   mqtt_topic: payload.mqtt_topic as string,
   mqtt_state_topic: payload.mqtt_state_topic as string,
+  top_ir_sensor_threshold: payload.top_ir_sensor_threshold as number,
+  bottom_ir_sensor_threshold: payload.bottom_ir_sensor_threshold as number,
 });

@@ -12,8 +12,10 @@ export const ConnectionStatus: React.FC = () => {
     return (
       <div className="connection-status please-wait">
         <AppTitle />
-        <span className="spinner" />
-        <span>Device is rebooting...</span>
+        <div className="status-description">
+          <span className="spinner" />
+          <span>Device is rebooting...</span>
+        </div>
       </div>
     );
   }
@@ -23,8 +25,10 @@ export const ConnectionStatus: React.FC = () => {
     return (
       <div className="connection-status please-wait">
         <AppTitle />
-        <span className="spinner" />
-        <span>Connecting to device...</span>
+        <div className="status-description">
+          <span className="spinner" />
+          <span>Connecting to device...</span>
+        </div>
       </div>
     );
   }
@@ -34,8 +38,10 @@ export const ConnectionStatus: React.FC = () => {
     return (
       <div className="connection-status disconnected">
         <AppTitle />
-        <span className="icon-alert" />
-        <span>Disconnected!</span>
+        <div className="status-description">
+          <span className="icon-alert" />
+          <span>Disconnected!</span>
+        </div>
         <br />
         <small>Interact with the page to re-connect.</small>
       </div>

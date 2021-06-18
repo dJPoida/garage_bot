@@ -60,8 +60,8 @@ AsyncWebSocket webSocket("/ws");                                          // The
 DNSServer dnsServer;                                                      // A DNS Server for use when in Access Point mode
 Config config;                                                            // The configuration struct for storing and reading from LITTLEFS
 BotFS botFS = BotFS();                                                    // A File System Wrapper for simplifying LITTLEFS interaction
-IRSensor topIRSensor = IRSensor("Top");                                   // The Top IR Sensor
-IRSensor bottomIRSensor = IRSensor("Bottom");                             // The Bottom IR Sensor
+IRSensor topIRSensor = IRSensor("TOP");                                   // The Top IR Sensor
+IRSensor bottomIRSensor = IRSensor("BOTTOM");                             // The Bottom IR Sensor
 BotLED powerLED = BotLED(PIN_LED_POWER, "Power");                         // The Power LED
 BotLED wiFiLED = BotLED(PIN_LED_WIFI, "WiFi");                            // The WiFi LED
 BotLED repeaterLED = BotLED(PIN_LED_REPEATER, "Repeater");                // The Garage Remoter Repeater Activation LED
@@ -138,9 +138,9 @@ void setup() {
   }
 
   // Sensors
-  topIRSensor.init(PIN_SENSOR_TOP_EMITTER, PIN_SENSOR_TOP_RECEIVER, DEFAULT_IR_THRESHOLD);
+  topIRSensor.init(PIN_SENSOR_TOP_EMITTER, PIN_SENSOR_TOP_RECEIVER, config.top_ir_sensor_threshold);
   topIRSensor.onChange = topSensorChanged;
-  bottomIRSensor.init(PIN_SENSOR_BOTTOM_EMITTER, PIN_SENSOR_BOTTOM_RECEIVER, DEFAULT_IR_THRESHOLD);
+  bottomIRSensor.init(PIN_SENSOR_BOTTOM_EMITTER, PIN_SENSOR_BOTTOM_RECEIVER, config.bottom_ir_sensor_threshold);
   bottomIRSensor.onChange = bottomSensorChanged;
 
   // Initialise the WiFi Engine (if enabled)

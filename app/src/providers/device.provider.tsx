@@ -36,6 +36,7 @@ type DeviceContextProps = Pick<
   pressButton: (button: A_VIRTUAL_BUTTON) => void;
   reboot: () => void;
   resetToFactoryDefaults: () => void;
+  setSensorThreshold: (sensorType: 'TOP' | 'BOTTOM', threshold: number) => void;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -68,6 +69,8 @@ export class DeviceProvider extends React.Component<DeviceProviderProps, DeviceP
         mqtt_password: null,
         mqtt_topic: null,
         mqtt_state_topic: null,
+        top_ir_sensor_threshold: 0,
+        bottom_ir_sensor_threshold: 0,
       },
       sensorData: {
         topIRSensorDetected: false,
@@ -206,6 +209,19 @@ export class DeviceProvider extends React.Component<DeviceProviderProps, DeviceP
 
 
   /**
+   * Fired when the user wants to set the threshold of one of the sensors
+   * @param sensorType 'TOP' or 'BOTTOM'
+   * @param threshold a number between 0 and 4095
+   */
+  handleSetSensorThreshold = (sensorType: 'TOP' | 'BOTTOM', threshold: number): void => {
+    socketClient.sendMessage(SOCKET_CLIENT_MESSAGE.SOCKET_CLIENT_MESSAGE_SET_SENSOR_THRESHOLD, {
+      s: sensorType,
+      t: threshold,
+    });
+  }
+
+
+  /**
    * Render
    */
   render(): JSX.Element {
@@ -232,6 +248,7 @@ export class DeviceProvider extends React.Component<DeviceProviderProps, DeviceP
           pressButton: this.handleButtonPress,
           reboot: this.handleReboot,
           resetToFactoryDefaults: this.handleResetToFactoryDefaults,
+          setSensorThreshold: this.handleSetSensorThreshold,
         }}
       >
         {children}

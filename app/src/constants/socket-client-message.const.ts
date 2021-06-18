@@ -7,6 +7,9 @@ export const SOCKET_CLIENT_MESSAGE = {
   // Simulate the pressing of a button
   BUTTON_PRESS: 'BP',
 
+  // Set the threshold of a sensor
+  SOCKET_CLIENT_MESSAGE_SET_SENSOR_THRESHOLD: 'ST',
+
   // Reboot the device
   REBOOT: 'RB',
 

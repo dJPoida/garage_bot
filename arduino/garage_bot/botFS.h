@@ -17,6 +17,7 @@ class BotFS {
     bool resetWiFiConfig(bool enableWiFi);
     bool factoryReset();
     void setWiFiSettings(String newSSID, String newPassword);
+    void setIRSensorThreshold(String sensorType, int newThreshold);
     void registerRFCode(unsigned long newCode);
 
   private:

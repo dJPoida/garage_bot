@@ -127,6 +127,10 @@ bool BotFS::loadConfig() {
   for (byte i = 0; i < 5; i++) {
     config.rf_codes[i] = rfCodes.getElement(i);
   }
+  JsonVariant topIrSensorThreshold = doc["top_ir_sensor_threshold"];
+  config.top_ir_sensor_threshold = topIrSensorThreshold.isNull() ? config.top_ir_sensor_threshold : topIrSensorThreshold.as<int>();
+  JsonVariant bottomIrSensorThreshold = doc["bottom_ir_sensor_threshold"];
+  config.bottom_ir_sensor_threshold = bottomIrSensorThreshold.isNull() ? config.bottom_ir_sensor_threshold : bottomIrSensorThreshold.as<int>();
 
   if (rfCodes) {
     copyArray(rfCodes, config.rf_codes);
@@ -189,19 +193,21 @@ bool BotFS::saveConfig() {
   StaticJsonDocument<CONFIG_FILE_MAX_SIZE> doc;
 
   // Set the values in the document
-  doc["network_device_name"]    = config.network_device_name;
-  doc["wifi_enabled"]           = config.wifi_enabled;
-  doc["wifi_ssid"]              = config.wifi_ssid;
-  doc["wifi_password"]          = config.wifi_password;
-  doc["mqtt_enabled"]           = config.mqtt_enabled;
-  doc["mqtt_broker_address"]    = config.mqtt_broker_address;
-  doc["mqtt_broker_port"]       = config.mqtt_broker_port;
-  doc["mqtt_device_id"]         = config.mqtt_device_id;
-  doc["mqtt_username"]          = config.mqtt_username;
-  doc["mqtt_password"]          = config.mqtt_password;
-  doc["mqtt_topic"]             = config.mqtt_topic;
-  doc["mqtt_state_topic"]       = config.mqtt_state_topic;
-  doc["stored_rf_code_count"]   = config.stored_rf_code_count;
+  doc["network_device_name"]        = config.network_device_name;
+  doc["wifi_enabled"]               = config.wifi_enabled;
+  doc["wifi_ssid"]                  = config.wifi_ssid;
+  doc["wifi_password"]              = config.wifi_password;
+  doc["mqtt_enabled"]               = config.mqtt_enabled;
+  doc["mqtt_broker_address"]        = config.mqtt_broker_address;
+  doc["mqtt_broker_port"]           = config.mqtt_broker_port;
+  doc["mqtt_device_id"]             = config.mqtt_device_id;
+  doc["mqtt_username"]              = config.mqtt_username;
+  doc["mqtt_password"]              = config.mqtt_password;
+  doc["mqtt_topic"]                 = config.mqtt_topic;
+  doc["mqtt_state_topic"]           = config.mqtt_state_topic;
+  doc["stored_rf_code_count"]       = config.stored_rf_code_count;
+  doc["top_ir_sensor_threshold"]    = config.top_ir_sensor_threshold;
+  doc["bottom_ir_sensor_threshold"] = config.bottom_ir_sensor_threshold;
   JsonArray rfCodes = doc.createNestedArray("rf_codes");
   for (byte i = 0; i < 5; i++) {
     rfCodes.add(config.rf_codes[i]);
@@ -323,4 +329,22 @@ void BotFS::registerRFCode(unsigned long newCode) {
 
   // Reboot the device
   reboot();
+}
+
+
+/**
+ * Change the threshold of an IR Sensor
+ * 
+ * @param String sensorType "TOP" or "BOTTOM"
+ * @param int newThreshold the new threshold to store in the config
+ */
+void BotFS::setIRSensorThreshold(String sensorType, int newThreshold) {
+  if (sensorType == "TOP") {
+    config.top_ir_sensor_threshold = newThreshold;
+  } else if (sensorType == "BOTTOM") {
+    config.bottom_ir_sensor_threshold = newThreshold;
+  }
+
+  // Save the updated config.
+  saveConfig();
 }

@@ -373,17 +373,19 @@ void WiFiEngine::sendConfigToClients(AsyncWebSocketClient *client) {
   DynamicJsonDocument doc(MAX_SOCKET_SERVER_MESSAGE_SIZE);
   doc["m"] = SOCKET_SERVER_MESSAGE_CONFIG_CHANGE;
   JsonObject payload = doc.createNestedObject("p");
-  payload["ip_address"]             = ipAddress;
-  payload["mdns_name"]              = config.mdns_name;
-  payload["network_device_name"]    = config.network_device_name;
-  payload["wifi_ssid"]              = config.wifi_ssid;
-  payload["mqtt_enabled"]           = config.mqtt_enabled;
-  payload["mqtt_broker_address"]    = config.mqtt_broker_address;
-  payload["mqtt_broker_port"]       = config.mqtt_broker_port;
-  payload["mqtt_device_id"]         = config.mqtt_device_id;
-  payload["mqtt_username"]          = config.mqtt_username;
-  payload["mqtt_topic"]             = config.mqtt_topic;
-  payload["mqtt_state_topic"]       = config.mqtt_state_topic;
+  payload["ip_address"]                 = ipAddress;
+  payload["mdns_name"]                  = config.mdns_name;
+  payload["network_device_name"]        = config.network_device_name;
+  payload["wifi_ssid"]                  = config.wifi_ssid;
+  payload["mqtt_enabled"]               = config.mqtt_enabled;
+  payload["mqtt_broker_address"]        = config.mqtt_broker_address;
+  payload["mqtt_broker_port"]           = config.mqtt_broker_port;
+  payload["mqtt_device_id"]             = config.mqtt_device_id;
+  payload["mqtt_username"]              = config.mqtt_username;
+  payload["mqtt_topic"]                 = config.mqtt_topic;
+  payload["mqtt_state_topic"]           = config.mqtt_state_topic;
+  payload["top_ir_sensor_threshold"]    = config.top_ir_sensor_threshold;
+  payload["bottom_ir_sensor_threshold"] = config.bottom_ir_sensor_threshold;
   
   char json[MAX_SOCKET_SERVER_MESSAGE_SIZE];
   serializeJsonPretty(doc, json);
@@ -661,6 +663,22 @@ void WiFiEngine::handleWebSocketData(AsyncWebSocketClient *client, void *arg, ui
       // SOCKET_CLIENT_MESSAGE_REBOOT
       else if (message == SOCKET_CLIENT_MESSAGE_REBOOT) {
         reboot();
+      }
+
+      // SOCKET_CLIENT_SET_SENSOR_THRESHOLD
+      else if (message == SOCKET_CLIENT_MESSAGE_SET_SENSOR_THRESHOLD) {
+        String sensorType = payload["s"];
+        JsonVariant newThresholdVariant = payload["t"];
+        int newThreshold = newThresholdVariant.isNull() ? 0 : newThresholdVariant.as<int>();
+        // int newThreshold = payload["t"] || 0;
+
+        if (sensorType == "TOP") {
+          _topIRSensor->setThreshold(newThreshold);
+          sendConfigToClients();
+        } else if (sensorType == "BOTTOM") {
+          _bottomIRSensor->setThreshold(newThreshold);
+          sendConfigToClients();
+        }
       }
     }
   }

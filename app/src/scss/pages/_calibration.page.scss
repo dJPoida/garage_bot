@@ -1,3 +1,14 @@
 .page.calibration {
+  p {
+    text-align: center;
+  }
 
+  .sensors {
+    display: flex;
+    margin: var(--universal-margin);
+
+    .vertical-slider {
+      margin: 0 var(--universal-margin);
+    }
+  }
 }

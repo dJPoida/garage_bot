@@ -9,7 +9,7 @@
 #include "Arduino.h"
 #include "_config.h"
 #include "irsensor.h"
-
+#include "botFS.h"
 
 /**
  * Constructor
@@ -114,4 +114,20 @@ void IRSensor::run(unsigned long currentMillis) {
       } 
     }
   }
+}
+
+/**
+ * Set the the detection threshold of the IR sensor
+ */
+void IRSensor::setThreshold(int newThreshold) {
+  #ifdef SERIAL_DEBUG
+  Serial.print("IRSensor '");
+  Serial.print(_name);
+  Serial.print("' threshold changed to: ");
+  Serial.println(newThreshold);
+  #endif
+  
+  _threshold = newThreshold;
+
+  botFS.setIRSensorThreshold(_name, newThreshold);  
 }
