@@ -1,12 +1,8 @@
-.app-header {
+.app-title {
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
-
-  @media screen and (max-width: 767px) {
-    margin-top: calc(var(--universal-margin) * 4);
-  }
 
   .app-icon {
     max-width: 4rem;

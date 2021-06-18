@@ -1,5 +1,6 @@
 // These are lifted directly from the MiniCSS docs
 // @see https://minicss.org/docs#grid
+$viewport-sm-min: 320px;
 $viewport-sm-max: 767px;
 $viewport-md-min: 768px;
 $viewport-md-max: 1279px;
@@ -7,13 +8,15 @@ $viewport-lg-min: 1280px;
 
 @import "/node_modules/mini.css/dist/mini-dark.css";
 @import "components/.components";
+@import "pages/.pages";
 
 :root {
   --a-link-color: #cc7641;
   --a-visited-color: #c7703a;
   --nav-link-color: #cc7641;
   --color-success: #1cb729;
-  --color-warning: #dabf28;
+  --color-warning: #daab28;
+  --color-danger: #c22b2b;
 }
 
 body {
@@ -24,7 +27,7 @@ body {
   height: 100vh;
   width: 100vw;
   min-height: 100vh;
-  min-width: 320px;
+  min-width: $viewport-sm-min;
   overflow-x: hidden;
 }
 
@@ -46,47 +49,22 @@ body {
   margin-top: var(--universal-padding);
 }
 
-.footer {
-  text-align: center;
-}
-
 .please-wait {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+p {
+  overflow: hidden;
+  white-space: normal;
+  word-break: break-word;
+}
+
 .card.success {
   --card-back-color: var(--color-success);
   --card-fore-color: #f8f8f8;
   --card-border-color: #1cb729;
-}
-
-.app-menu {
-  .drawer-toggle,
-  .drawer-close {
-    border: 0.15rem solid var(--button-back-color);
-    position: absolute;
-    top: var(--universal-margin);
-    right: var(--universal-margin);
-    width: 2rem;
-    height: 2rem;
-    border-radius: var(--universal-border-radius);
-    padding: var(--universal-padding);
-    margin: 0;
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    &:hover {
-      border-color: var(--button-hover-back-color);
-    }
-  }
-
-  .drawer-toggle {
-    font-size: 1.15em;
-  }
 }
 
 span[class^="icon-"] {
@@ -100,5 +78,24 @@ span[class^="icon-"] + span {
 button {
   &:disabled {
     pointer-events: none;
+    opacity: 0.5;
   }
+}
+
+form {
+  width: calc(
+    100% - (var(--universal-margin) * 2) - (var(--universal-padding) * 2)
+  );
+}
+
+hr {
+  background: var(--form-border-color);
+  width: calc(100% - (var(--universal-margin) * 2));
+}
+
+// Override some modal properties
+[type="checkbox"].modal + div .card {
+  max-height: 90vh;
+  max-width: calc(100% - (var(--universal-margin) * 4));
+  width: $viewport-sm-max;
 }

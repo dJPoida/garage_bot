@@ -30,6 +30,7 @@ module.exports = merge(common, {
     contentBase: paths.dist,
     compress: true,
     hot: true,
+    host: process.env.APP_ADDRESS,
     port: 3000,
     stats: 'errors-only',
   },

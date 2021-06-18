@@ -1,12 +1,23 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
+
 import { DeviceContext } from '../../providers/device.provider';
+
 import { useIsDirty } from '../../react-hooks/use-is-dirty.hook';
 import { usePreviousValue } from '../../react-hooks/use-previous-value.hook';
+
 import { IConfig } from '../../types/config.interface';
+import { PageProps } from '../../types/page.props';
+
 import { FormField } from '../form-field';
 import { FormFieldGroup } from '../form-field-group';
+import { PageTitle } from '../page-title';
 
-export const ConfigPage: React.FC = () => {
+export const ConfigPage: React.FC<PageProps> = (props) => {
+  const {
+    title,
+    icon,
+  } = props;
+
   const { config, configChecksum } = useContext(DeviceContext);
 
   const [isDirty, setDirty] = useIsDirty();
@@ -82,8 +93,8 @@ export const ConfigPage: React.FC = () => {
   // Render
   return (
     <div className="page card config">
-      <h2>Config</h2>
-      <p>Use this form to change the configuration of the Garage Bot</p>
+      <PageTitle title={title} icon={icon} />
+      <p>Use this form to change the configuration of the GarageBot</p>
       {/* Config Form */}
       {!isSubmitting && !submitSuccess && (
         <form>

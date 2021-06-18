@@ -1,12 +1,23 @@
 import React, { useContext } from 'react';
+
 import { DeviceContext } from '../../providers/device.provider';
 
-export const CalibrationPage: React.FC = () => {
+import { PageProps } from '../../types/page.props';
+
+import { PageTitle } from '../page-title';
+
+export const CalibrationPage: React.FC<PageProps> = (props) => {
+  const {
+    title,
+    icon,
+  } = props;
+
   const { sensorData } = useContext(DeviceContext);
 
   // TODO: calibration page
   return (
     <div className="page calibration">
+      <PageTitle title={title} icon={icon} />
       <div className="sensor-data">
         {/* Headings */}
         <div />

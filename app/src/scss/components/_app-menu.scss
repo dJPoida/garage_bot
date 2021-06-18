@@ -1,4 +1,43 @@
 .app-menu {
+  z-index: 1;
+  position: fixed;
+  top: 0;
+  right: 0;
+
+  .drawer-toggle,
+  .drawer-close {
+    border: 0.15rem solid var(--button-back-color);
+    position: absolute;
+    top: var(--universal-margin);
+    right: var(--universal-margin);
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--universal-border-radius);
+    padding: var(--universal-padding);
+    margin: 0;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    &:hover {
+      border-color: var(--button-hover-back-color);
+    }
+  }
+
+  .drawer-toggle {
+    font-size: 1.15em;
+  }
+
+  .drawer-wrapper {
+    border-top: none;
+    border-right: none;
+    border-bottom: none;
+    @media screen and (max-width: $viewport-sm-min) {
+      border: 0;
+    }
+  }
+
   .drawer {
     position: relative;
 

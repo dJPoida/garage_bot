@@ -8,12 +8,12 @@ import {
 
 import { DeviceContext } from '../../providers/device.provider';
 
-import { AppHeader } from '../app-header';
 import { AppMenu } from '../app-menu';
 
 import { SOCKET_CLIENT_STATE } from '../../constants/socket-client-state.const';
 import { A_CONTROL_PAGE, ControlPageConfig, CONTROL_PAGE } from '../../constants/control-page.const';
 import { usePreviousValue } from '../../react-hooks/use-previous-value.hook';
+import { ConnectionStatus } from '../connection-status';
 
 export const ControlApp: React.FC = () => {
   const { rebooting, socketClientState } = useContext(DeviceContext);
@@ -53,65 +53,42 @@ export const ControlApp: React.FC = () => {
   // Render
   return (
     <div className="app control">
-      <AppMenu
-        pages={[
-          CONTROL_PAGE.CONTROL,
-          CONTROL_PAGE.CONFIG,
-          CONTROL_PAGE.CALIBRATION,
-          CONTROL_PAGE.ABOUT,
-        ]}
-        currentPage={currentPage}
-      />
+      <ConnectionStatus />
 
-      {/* AppHeader */}
-      <AppHeader />
-
-      {/* Device is rebooting */}
-      {rebooting && (
-        <div className="connection please-wait">
-          <span className="spinner" />
-          <span>Device is rebooting...</span>
-        </div>
-      )}
-
-      {!rebooting && (
+      {/* Connected - render the appropriate page */}
+      {!rebooting && (socketClientState === SOCKET_CLIENT_STATE.CONNECTED) && (
         <>
-          {/* Connecting to the device */}
-          {socketClientState === SOCKET_CLIENT_STATE.CONNECTING && (
-            <div className="connection please-wait">
-              <span className="spinner" />
-              <span>Connecting to device...</span>
-            </div>
-          )}
+          <AppMenu
+            pages={[
+              CONTROL_PAGE.CONTROL,
+              CONTROL_PAGE.CONFIG,
+              CONTROL_PAGE.CALIBRATION,
+              CONTROL_PAGE.ABOUT,
+            ]}
+            currentPage={currentPage}
+          />
 
-          {/* Disconnected */}
-          {socketClientState === SOCKET_CLIENT_STATE.DISCONNECTED && (
-            <div className="connection disconnected">
-              <span className="icon-alert" />
-              <span>Disconnected!</span>
-              <br />
-              <small>Interact with the page to re-connect.</small>
-            </div>
-          )}
-
-          {/* Connected - render the appropriate page */}
-          {socketClientState === SOCKET_CLIENT_STATE.CONNECTED && (
-            <Switch>
-              {Object.values(CONTROL_PAGE).map((controlPageKey) => {
-                const config = ControlPageConfig[controlPageKey];
-                return (
-                  <Route
-                    exact
-                    key={controlPageKey}
-                    path={config.route}
-                    component={config.pageComponent}
+          <Switch>
+            {Object.values(CONTROL_PAGE).map((controlPageKey) => {
+              const config = ControlPageConfig[controlPageKey];
+              const PageComponent = config.pageComponent;
+              return (
+                <Route
+                  exact
+                  key={controlPageKey}
+                  path={config.route}
+                >
+                  <PageComponent
+                    {...config}
                   />
-                );
-              })}
-            </Switch>
-          )}
+                </Route>
+              );
+            })}
+          </Switch>
         </>
       )}
+
+
     </div>
   );
 };

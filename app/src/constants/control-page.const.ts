@@ -4,6 +4,7 @@ import { AboutPage } from '../components/pages/about.page';
 import { CalibrationPage } from '../components/pages/calibration.page';
 import { ConfigPage } from '../components/pages/config.page';
 import { ControlPage } from '../components/pages/control.page';
+import { PageProps } from '../types/page.props';
 
 import { AN_ICON, ICON } from './icon.const';
 
@@ -23,7 +24,7 @@ interface IControlPageConfig {
   title: string;
   icon: AN_ICON;
   route: string;
-  pageComponent: React.FC;
+  pageComponent: React.FC<PageProps>;
 }
 
 /**

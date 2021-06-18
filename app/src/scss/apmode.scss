@@ -1,1 +1,16 @@
 @import "style";
+
+.app.ap-mode {
+  p {
+    text-align: center;
+  }
+
+  .app-title {
+    margin: var(--universal-margin);
+  }
+  .page.ap-mode {
+    padding-top: 0;
+  }
+}
+
+

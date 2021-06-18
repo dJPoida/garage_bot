@@ -1,9 +1,21 @@
 import React, { useContext, useState } from 'react';
-import { prettyFileSize } from '../../helpers/pretty-file-size.helper';
-import { DeviceContext } from '../../providers/device.provider';
-import { Modal } from '../modal';
 
-export const AboutPage: React.FC = () => {
+import { DeviceContext } from '../../providers/device.provider';
+
+import { PageProps } from '../../types/page.props';
+
+import { Modal } from '../modal';
+import { PageTitle } from '../page-title';
+
+import { prettyFileSize } from '../../helpers/pretty-file-size.helper';
+import { AppFooter } from '../app-footer';
+
+export const AboutPage: React.FC<PageProps> = (props) => {
+  const {
+    title,
+    icon,
+  } = props;
+
   const { config, sensorData, reboot } = useContext(DeviceContext);
 
   const [confirmRebootVisible, setConfirmRebootVisible] = useState<boolean>(false);
@@ -11,17 +23,7 @@ export const AboutPage: React.FC = () => {
 
   return (
     <div className="page card about">
-      <section>
-        <img src="img/dJP.svg" alt="dJP" />
-        <p>
-          The garage bot is the brainchild of Peter Eldred (dJPoida) to smartenize
-          and improve the functionality of a legacy up and down garage door. Check out&nbsp;
-          <span><a href="https://github.com/dJPoida/garage_bot" target="_blank" rel="noreferrer">https://github.com/dJPoida/garage_bot</a></span>
-          &nbsp;for all the details.
-        </p>
-      </section>
-
-      <hr />
+      <PageTitle title={title} icon={icon} />
 
       <section>
         <h2>Device Status</h2>
@@ -51,6 +53,11 @@ export const AboutPage: React.FC = () => {
           </button>
         </div>
       </section>
+
+      <hr />
+
+      {/* Footer */}
+      <AppFooter />
 
       <Modal
         id="confirm_reboot"

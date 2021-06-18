@@ -15,9 +15,11 @@
     "appicon",
     "arduino",
     "camelcase",
+    "djpoida",
     "entrypoints",
     "filemanager",
     "fullscreen",
+    "linebreak",
     "msapplication",
     "readonly",
     "setwifi"

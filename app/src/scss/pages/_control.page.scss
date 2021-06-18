@@ -1,0 +1,35 @@
+.page.control {
+  // Control page has no page title
+  padding-top: 0;
+
+  .app-title {
+    margin-bottom: calc(var(--universal-margin) * 4);
+  }
+    
+  .control-wrapper {
+    display: flex;
+    justify-content: stretch;
+    width: 20rem;
+    max-width: calc(100vw - (var(--universal-padding) * 2));
+  }
+
+  // When the height of the screen is less than the typical width of a mobile display
+  @media screen and (orientation: landscape) and (max-height: $viewport-sm-max) {
+    flex-direction: row;
+    justify-content: space-around;
+
+    .app-title {
+      flex-direction: column;
+      margin-right: var(--universal-margin);
+    
+      .headers {
+        margin: 0;
+        align-items: center;
+        
+        h1, h2, h3, h4, h5, h6 {
+          text-align: center;
+        }
+      }
+    }
+  }
+}

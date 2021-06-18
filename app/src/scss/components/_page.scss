@@ -9,14 +9,10 @@
   max-width: #{$viewport-sm-max};
   margin: 0;
 
+  padding-top: calc(3rem + var(--universal-padding));
+
   &.card {
     border: none;
-  }
-
-  form {
-    width: calc(
-      100% - (var(--universal-margin) * 2) - (var(--universal-padding) * 2)
-    );
   }
 
   section {

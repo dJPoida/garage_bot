@@ -2,8 +2,8 @@ import React from 'react';
 import { globals } from '../singletons/globals.singleton';
 import { AppIcon } from './app-icon';
 
-export const AppHeader: React.FC = () => (
-  <div className="app-header">
+export const AppTitle: React.FC = () => (
+  <div className="app-title">
     <AppIcon />
     <div className="headers">
       <h1>{globals.appTitle}</h1>

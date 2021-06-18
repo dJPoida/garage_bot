@@ -9,6 +9,9 @@ export type AppMenuProps = {
   currentPage: A_CONTROL_PAGE;
 };
 
+/**
+ * This component encompasses the menu button and the menu item drawer
+ */
 export const AppMenu: React.FC<AppMenuProps> = (props) => {
   const { pages, currentPage } = props;
   const [visible, setVisible] = useState<boolean>(false);
@@ -23,7 +26,6 @@ export const AppMenu: React.FC<AppMenuProps> = (props) => {
   // Render
   return (
     <div className="app-menu">
-      {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
       <label htmlFor="drawer-control" className="drawer-toggle persistent" />
       <input
         type="checkbox"
@@ -36,7 +38,6 @@ export const AppMenu: React.FC<AppMenuProps> = (props) => {
       />
       <div className="drawer-wrapper">
         <div className="drawer">
-          {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
           <label htmlFor="drawer-control" className="drawer-close" />
           <div className="app-title">
             <AppIcon />
