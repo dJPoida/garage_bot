@@ -42,11 +42,10 @@ export const AboutPage: React.FC<PageProps> = (props) => {
       <hr />
 
       <section>
-        <h2>Cool Commands</h2>
         <div>
           <button
             type="button"
-            className="secondary"
+            className="warning"
             onClick={() => setConfirmRebootVisible(true)}
           >
             Reboot
@@ -63,7 +62,7 @@ export const AboutPage: React.FC<PageProps> = (props) => {
         id="confirm_reboot"
         visible={confirmRebootVisible}
         confirmLabel="Yes, Reboot"
-        confirmClass="secondary"
+        confirmClass="warning"
         onClose={() => setConfirmRebootVisible(false)}
         onConfirm={reboot}
       >

@@ -1,3 +1,9 @@
 .page.about {
-
+  .app-footer {
+    img {
+      @media screen and (min-width: $viewport-md-min) {
+        max-width: 15vmin;
+      }
+    }
+  }
 }

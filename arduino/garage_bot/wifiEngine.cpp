@@ -68,6 +68,7 @@ bool WiFiEngine::init(AsyncWebServer *webServer, AsyncWebSocket *webSocket, DNSS
   
   // Some default headers for handling CORS problems in javascript
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "content-type");
   
   // Setup the routes
   initRoutes();
@@ -279,8 +280,8 @@ void WiFiEngine::initRoutes() {
   });
 
   // Set the config
-  _webServer->on("/setConfig", HTTP_POST, [&](AsyncWebServerRequest *request){}, NULL, [&](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
-    _handleSetWiFi(request, data);
+  _webServer->on("/setconfig", HTTP_POST, [&](AsyncWebServerRequest *request){}, NULL, [&](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
+    _handleSetConfig(request, data);
   });
 
   // All other Files / Routes
@@ -600,13 +601,25 @@ void WiFiEngine::_handleSetConfig(AsyncWebServerRequest *request, uint8_t *body)
   DynamicJsonDocument doc(MAX_SOCKET_CLIENT_MESSAGE_SIZE);
   deserializeJson(doc, (const char*)body);
 
-  // TODO: update the config
+  JsonVariant mqttEnabledValue = doc["mqtt_enabled"];
+  bool mqttEnabled = mqttEnabledValue.isNull() ? config.mqtt_enabled : mqttEnabledValue.as<bool>();
+  String mqttBrokerAddres = doc["mqtt_broker_address"] | config.mqtt_broker_address;
+  JsonVariant mqttBrokerPortValue = doc["mqtt_broker_port"];
+  unsigned int mqttBrokerPort = mqttBrokerPortValue.isNull() ? config.mqtt_broker_port : mqttBrokerPortValue.as<int>();
+  String mqttDeviceId = doc["mqtt_device_id"] | config.mqtt_device_id;
+  String mqttUsername = doc["mqtt_username"] | config.mqtt_username;
+  String mqttPassword = doc["mqtt_password"] | config.mqtt_password;
+  String mqttTopic = doc["mqtt_topic"] | config.mqtt_topic;
+  String mqttStateTopic = doc["mqtt_state_topic"] | config.mqtt_state_topic;
+  String mdnsName = doc["mdns_name"];
+  String networkDeviceName = doc["network_device_name"];
 
-  // String wifiSSID = doc["wifiSSID"];
-  // String wifiPassword = doc["wifiPassword"];
+  // Call the FileSystem methods responsible for updating the config
+  botFS.setMQTTConfig(mqttEnabled, mqttBrokerAddres, mqttBrokerPort, mqttDeviceId, mqttUsername, mqttPassword, mqttTopic, mqttStateTopic);
+  botFS.setNetworkConfig(mdnsName, networkDeviceName);
 
-  // // Call the FileSystem method responsible for updating the WiFi config
-  // botFS.setWiFiSettings(wifiSSID, wifiPassword);
+  // Reboot the device
+  reboot();
 
   // Return a 200 - Success
   request->send(200, "text/json", "{\"success\":true}");

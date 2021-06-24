@@ -80,7 +80,7 @@ module.exports = merge(common, {
     // Provide some global variables to the client
     new webpack.DefinePlugin({
       // Put: 'client side variables here'
-      __ENVIRONMENT__: JSON.stringify('development'),
+      __ENVIRONMENT__: JSON.stringify('development'), 
       __DEVICE_ADDRESS__: JSON.stringify(process.env.DEVICE_ADDRESS),
     }),
 

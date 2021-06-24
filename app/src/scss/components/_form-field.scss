@@ -1,2 +1,5 @@
 .form-field {
+  &[type="checkbox"] {
+    cursor: pointer;
+  }
 }

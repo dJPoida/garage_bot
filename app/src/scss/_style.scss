@@ -6,18 +6,25 @@ $viewport-md-min: 768px;
 $viewport-md-max: 1279px;
 $viewport-lg-min: 1280px;
 
+$color-primary: #cc7641;
+$color-info: #0277bd;
+$color-success: #1cb729;
+$color-warning: #daab28;
+$color-danger: #c22b2b;
+
 @import "/node_modules/mini.css/dist/mini-dark.css";
 @import "components/.components";
 @import "pages/.pages";
 
 :root {
-  --a-link-color: #cc7641;
-  --a-visited-color: #c7703a;
-  --nav-link-color: #cc7641;
-  --color-info: #0277bd;
-  --color-success: #1cb729;
-  --color-warning: #daab28;
-  --color-danger: #c22b2b;
+  --a-link-color: #{$color-primary};
+  --a-visited-color: adjust($color-primary, $lightness: -10%);
+  --nav-link-color: #{$color-primary};
+  --color-primary: #{$color-primary};
+  --color-info: #{$color-info};
+  --color-success: #{$color-success};
+  --color-warning: #{$color-warning}; 
+  --color-danger: #{$color-danger};
 }
 
 body {
@@ -65,7 +72,7 @@ p {
 .card.success {
   --card-back-color: var(--color-success);
   --card-fore-color: #f8f8f8;
-  --card-border-color: #1cb729;
+  --card-border-color: var(--color-success);
 }
 
 span[class^="icon-"] {
@@ -99,4 +106,23 @@ hr {
   max-height: 90vh;
   max-width: calc(100% - (var(--universal-margin) * 4));
   width: $viewport-sm-max;
+}
+
+// Add additional button styles
+button.danger, [type="button"].danger, [type="submit"].danger, [type="reset"].danger, .button.danger, [role="button"].danger {
+  --button-back-color: #{$color-danger};
+  --button-fore-color: #f8f8f8;
+}
+
+button.danger:hover, button.danger:focus, [type="button"].danger:hover, [type="button"].danger:focus, [type="submit"].danger:hover, [type="submit"].danger:focus, [type="reset"].danger:hover, [type="reset"].danger:focus, .button.danger:hover, .button.danger:focus, [role="button"].danger:hover, [role="button"].danger:focus {
+  --button-hover-back-color: darken($color-danger, 10);
+}
+
+button.warning, [type="button"].warning, [type="submit"].warning, [type="reset"].warning, .button.warning, [role="button"].warning {
+  --button-back-color: #{$color-warning};
+  --button-fore-color: #f8f8f8;
+}
+
+button.warning:hover, button.warning:focus, [type="button"].warning:hover, [type="button"].warning:focus, [type="submit"].warning:hover, [type="submit"].warning:focus, [type="reset"].warning:hover, [type="reset"].warning:focus, .button.warning:hover, .button.warning:focus, [role="button"].warning:hover, [role="button"].warning:focus {
+  --button-hover-back-color: #{darken($color-warning, 10)};
 }

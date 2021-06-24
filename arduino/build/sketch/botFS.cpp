@@ -302,6 +302,88 @@ void BotFS::setWiFiSettings(String newSSID, String newPassword) {
 
 
 /**
+ * Change the current Wifi Settings (triggered from the Configuration Website)
+ * 
+ * @param bool mqttEnabled Whether the device should attempt to integrate with an MQTT broker
+ * @param String mqttBrokerAddres The IP address of the MQTT Broker
+ * @param unsigned int mqttBrokerPort The MQTT Broker Port Number
+ * @param String mqttDeviceId The Device ID to use when connecting to the MQTT Broker
+ * @param String mqttUsername The username when connecting to the MQTT broker
+ * @param String mqttPassword The password when connecting to the MQTT broker
+ * @param String mqttTopic The MQTT topic used for communicating instructions (open / close etc)
+ * @param String mqttStateTopic The MQTT topic used for communicating the state of the door (opened / closed / etc)
+ */
+void BotFS::setMQTTConfig(
+  bool mqttEnabled,
+  String mqttBrokerAddres,
+  unsigned int mqttBrokerPort,
+  String mqttDeviceId,
+  String mqttUsername,
+  String mqttPassword,
+  String mqttTopic,
+  String mqttStateTopic
+) {
+    config.mqtt_enabled = mqttEnabled;
+    config.mqtt_broker_address = mqttBrokerAddres;
+    config.mqtt_broker_port = mqttBrokerPort;
+    config.mqtt_device_id = mqttEnabled;
+    config.mqtt_username = mqttUsername;
+    config.mqtt_password = mqttPassword;
+    config.mqtt_topic = mqttTopic;
+    config.mqtt_state_topic = mqttStateTopic;
+    
+    #ifdef SERIAL_DEBUG
+    Serial.println("Configuring and saving new MQTT details:");
+    Serial.print(" + MQTT: ");
+    Serial.println(config.mqtt_enabled ? "Enabled" : "Disabled");
+
+    if (config.mqtt_enabled) {
+      Serial.print("   - Broker Address: ");
+      Serial.println(config.mqtt_broker_address);
+      Serial.print("   - Broker Port: ");
+      Serial.println(config.mqtt_broker_port);
+      Serial.print("   - Device ID: ");
+      Serial.println(config.mqtt_device_id);
+      Serial.print("   - Username: ");
+      Serial.println(config.mqtt_username);
+      Serial.print("   - Password: ");
+      Serial.println(config.mqtt_password);
+      Serial.print("   - Topic: ");
+      Serial.println(config.mqtt_topic);
+      Serial.print("   - State Topic: ");
+      Serial.println(config.mqtt_state_topic);
+    }
+    #endif
+
+    // Save the updated config.
+    saveConfig();
+}
+
+
+/**
+ * Change the current Network config (triggered from the Configuration Website)
+ * 
+ * @param String mdnsName The name to use in the mdns address that clients can use to connect to the device without the IP (i.e. http://garagebot.local)
+ * @param String networkDeviceName The device name to display to other devices on the network
+ */
+void BotFS::setNetworkConfig(String mdnsName, String networkDeviceName) {
+    config.mdns_name = mdnsName;
+    config.network_device_name = networkDeviceName;
+
+    #ifdef SERIAL_DEBUG
+    Serial.println("Configuring and saving new network details:");
+    Serial.print(" - MDNS name: '");
+    Serial.println(config.mdns_name);
+    Serial.print(" - Network Device Name: '");
+    Serial.println(config.network_device_name);
+    #endif
+
+    // Save the updated config.
+    saveConfig();
+}
+
+
+/**
  * Register a new RF Code
  */
 void BotFS::registerRFCode(unsigned long newCode) {

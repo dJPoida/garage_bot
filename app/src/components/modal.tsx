@@ -4,7 +4,7 @@ export type ModalProps = {
   id: string,
   visible: boolean,
   title?: string,
-  confirmClass?: 'primary' | 'secondary' | 'tertiary' | 'inverse',
+  confirmClass?: 'primary' | 'info' | 'success' | 'warning' | 'danger',
   confirmLabel: string,
   onClose: () => void,
   onConfirm: () => void,

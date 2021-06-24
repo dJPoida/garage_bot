@@ -1,5 +1,7 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 
+import { globals } from '../../singletons/globals.singleton';
+
 import { DeviceContext } from '../../providers/device.provider';
 
 import { useIsDirty } from '../../react-hooks/use-is-dirty.hook';
@@ -10,7 +12,34 @@ import { PageProps } from '../../types/page.props';
 
 import { FormField } from '../form-field';
 import { FormFieldGroup } from '../form-field-group';
+import { Modal } from '../modal';
 import { PageTitle } from '../page-title';
+
+export type ConfigTransport = Pick<IConfig,
+  'mdns_name' |
+  'mqtt_enabled' |
+  'mqtt_broker_address' |
+  'mqtt_broker_port' |
+  'mqtt_device_id' |
+  'mqtt_state_topic' |
+  'mqtt_topic' |
+  'mqtt_username' |
+  'mqtt_password' |
+  'network_device_name'
+>;
+
+const getConfigTransportFromConfig = (config: IConfig): ConfigTransport => ({
+  mdns_name: config.mdns_name,
+  mqtt_enabled: config.mqtt_enabled,
+  mqtt_broker_address: config.mqtt_broker_address,
+  mqtt_broker_port: config.mqtt_broker_port,
+  mqtt_device_id: config.mqtt_device_id,
+  mqtt_state_topic: config.mqtt_state_topic,
+  mqtt_topic: config.mqtt_topic,
+  mqtt_username: config.mqtt_username,
+  mqtt_password: config.mqtt_password,
+  network_device_name: config.network_device_name,
+});
 
 export const ConfigPage: React.FC<PageProps> = (props) => {
   const {
@@ -27,16 +56,20 @@ export const ConfigPage: React.FC<PageProps> = (props) => {
   const [submitSuccess, setSubmitSuccess] = useState<null | boolean>(null);
   const [submitErrorMessage, setSubmitErrorMessage] = useState<null | string>(null);
 
-  const [configValues, setConfigValues] = useState<IConfig>(config);
+  const [configValues, setConfigValues] = useState<ConfigTransport>(getConfigTransportFromConfig(config));
+
+  const [confirmSubmitVisible, setConfirmSubmitVisible] = useState<boolean>(false);
 
   /**
    * Fired when the user clicks the submit button
    */
   const handleSubmit = useCallback(async () => {
     setISubmitting(true);
+    setSubmitSuccess(null);
+    setConfirmSubmitVisible(false);
 
     try {
-      const response = await fetch('/setwifi', {
+      const response = await fetch(`http://${globals.deviceAddress}/setconfig`, {
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -78,7 +111,7 @@ export const ConfigPage: React.FC<PageProps> = (props) => {
    */
   const handleReset = useCallback(async () => {
     setDirty(false);
-    setConfigValues(config);
+    setConfigValues(getConfigTransportFromConfig(config));
   }, [config, setDirty]);
 
   /**
@@ -86,7 +119,7 @@ export const ConfigPage: React.FC<PageProps> = (props) => {
    */
   useEffect(() => {
     if (configChecksum !== oldConfigChecksum) {
-      setConfigValues(config);
+      setConfigValues(getConfigTransportFromConfig(config));
     }
   }, [config, configChecksum, oldConfigChecksum]);
 
@@ -231,7 +264,7 @@ export const ConfigPage: React.FC<PageProps> = (props) => {
           <div className="button-row">
             {/* Reset Button */}
             {isDirty && (
-              <button type="button" className="secondary" onClick={handleReset}>
+              <button type="button" className="info" onClick={handleReset}>
                 Cancel
               </button>
             )}
@@ -240,7 +273,7 @@ export const ConfigPage: React.FC<PageProps> = (props) => {
             <button
               type="button"
               className="primary"
-              onClick={handleSubmit}
+              onClick={() => setConfirmSubmitVisible(true)}
               disabled={!isDirty}
             >
               Submit
@@ -249,10 +282,10 @@ export const ConfigPage: React.FC<PageProps> = (props) => {
         </form>
       )}
 
-      {/* TODO: Submitting Spinner */}
+      {/* Submitting Spinner */}
       {isSubmitting && (
         <div>
-          <p>Assigning WiFi Credentials</p>
+          <p>Submitting new configuration</p>
           <div className="please-wait">
             <span className="spinner" />
             <span>Please wait...</span>
@@ -260,38 +293,34 @@ export const ConfigPage: React.FC<PageProps> = (props) => {
         </div>
       )}
 
-      {/* TODO: Submit Error */}
+      {/* Submit Error */}
       {submitSuccess === false && (
         <div className="card fluid error">
           <h4>
-            <span>Failed to set new WiFi Details</span>
+            <span>Failed to set new configuration</span>
             <br />
           </h4>
           <p>{submitErrorMessage}</p>
         </div>
       )}
 
-      {/* TODO: Submit Success */}
-      {submitSuccess === true && (
-        <div className="card fluid success">
-          <h4>
-            <span>Successfully applied new WiFi details.</span>
-          </h4>
-          <p>
-            <span>
-              The device will now reboot. In 15 seconds, this page will attempt
-              <br />
-              to connect to it via the URL below. If it does not, you may need
-              <br />
-              to locate the IP address of the device using your router console.
-              <br />
-            </span>
-          </p>
-          <p>
-            <a href="http://garagebot.local">http://garagebot.local</a>
-          </p>
-        </div>
-      )}
+      <Modal
+        id="confirm_submit"
+        visible={confirmSubmitVisible}
+        confirmLabel="Update"
+        confirmClass="primary"
+        onClose={() => setConfirmSubmitVisible(false)}
+        onConfirm={() => handleSubmit()}
+        title="Update device config?"
+      >
+        <p>
+          Submit the new configuration to the GarageBot?
+        </p>
+        <p>
+          This will reboot the device.
+        </p>
+      </Modal>
+
     </div>
   );
 };
