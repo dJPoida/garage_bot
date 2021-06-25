@@ -96,6 +96,9 @@
 // The maximum size of the config file in bytes
 #define CONFIG_FILE_MAX_SIZE 1024
 
+// When assuming a door state - ignore sensors for this duration
+#define ASSUMED_DOOR_STATE_EXPIRY 5000
+
 /**
  * Config struct for storing and loading data from the SPIFFS partition
  */

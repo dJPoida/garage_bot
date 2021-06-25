@@ -57,6 +57,13 @@ enum RFReceiverMode {
   RF_RECEIVER_MODE_REGISTERING,  // Waiting for new remotes to be registered
 };
 
+// Used to determine the state of the sensors
+enum SensorDetectionState {
+  SENSOR_DETECTION_UNKNOWN, // Unknown / no detection data yet
+  SENSOR_NOT_DETECTED,      // No detection       
+  SENSOR_DETECTED,          // Detection
+};
+
 
 typedef void (*eventFiredFunction)();
 
@@ -71,6 +78,8 @@ typedef void (*receiverModeChangedFunction)(RFReceiverMode);
 typedef void (*errorFunction)(String);
 
 typedef void (*virtualButtonPressedFunction)(VirtualButtonType);
+
+typedef void (*sensorDetectionStateChangedFunction)(SensorDetectionState);
 
 /**
  * Determine the Mime Type of a file based on its extension

@@ -189,6 +189,7 @@ void loop() {
     panelButton.run(currentMillis);
     rfReceiver.run(currentMillis);
     remoteRepeater.run(currentMillis);
+    doorControl.run(currentMillis);
     
     // Wifi functions
     if (config.wifi_enabled) {
@@ -208,14 +209,14 @@ void loop() {
  * 
  * @param detected whether an object is being detected by the sensor
  */
-void topSensorChanged(bool detected) {
-  topSensorLED.setState(!detected);
+void topSensorChanged(SensorDetectionState detected) {
+  topSensorLED.setState(detected == SENSOR_NOT_DETECTED);
 
   doorControl.setSensorStates(detected, bottomIRSensor.detected);
 
   #ifdef SERIAL_DEBUG
   Serial.print("Top: ");
-  Serial.println(detected);
+  Serial.println(detected == SENSOR_DETECTED ? "Detected" : "Not Detected");
   #endif
 }
 
@@ -225,14 +226,14 @@ void topSensorChanged(bool detected) {
  * 
  * @param detected whether an object is being detected by the sensor
  */
-void bottomSensorChanged(bool detected) {
-  bottomSensorLED.setState(!detected);
+void bottomSensorChanged(SensorDetectionState detected) {
+  bottomSensorLED.setState(detected == SENSOR_NOT_DETECTED);
 
   doorControl.setSensorStates(topIRSensor.detected, detected);
 
   #ifdef SERIAL_DEBUG
   Serial.print("Bottom: ");
-  Serial.println(detected);
+  Serial.println(detected == SENSOR_DETECTED ? "Detected" : "Not Detected");
   #endif
 }
 
@@ -267,8 +268,8 @@ void rfReceiverButtonPressed(bool down) {
     Serial.println("Pressed");
     #endif
 
-    // Activate the remote repeater
-    remoteRepeater.activate();
+    // Activate the garage door control
+    doorControl.activate();
   } else {
     #ifdef SERIAL_DEBUG
     Serial.println("Released");
@@ -335,7 +336,7 @@ void panelButtonReleased(ButtonPressType buttonPressType) {
       #ifdef SERIAL_DEBUG
       Serial.println("Simple Button Press Detected");
       #endif
-      remoteRepeater.activate();
+      doorControl.activate();
       break;
 
     case REGISTER_REMOTE:
@@ -445,28 +446,28 @@ void handleWiFiConnectedChanged(bool newConnected) {
  * Fired when a virtual button is pressed
  */
 void handleVirtualButtonPressed(VirtualButtonType virtualButton) {
+  DoorState currentDoorState = doorControl.getDoorState();
+
   switch (virtualButton) {
     case ACTIVATE:
       #ifdef SERIAL_DEBUG
       Serial.println("Virtual Activate Button Press Detected");
       #endif
-      remoteRepeater.activate();
+      doorControl.activate();
       break;
 
     case OPEN:
       #ifdef SERIAL_DEBUG
       Serial.println("Virtual Open Button Press Detected");
       #endif
-
-      // TODO: do something on virtual OPEN press
+      doorControl.open();
       break;
 
     case CLOSE:
       #ifdef SERIAL_DEBUG
       Serial.println("Virtual Close Button Press Detected");
       #endif
-
-      // TODO: do something on virtual CLOSE press
+      doorControl.close();
       break;
   }
 }

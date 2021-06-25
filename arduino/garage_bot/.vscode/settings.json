@@ -15,7 +15,11 @@
     "uninitialised"
   ],
   "files.associations": {
-    "array": "cpp"
+    "array": "cpp",
+    "*.tcc": "cpp",
+    "istream": "cpp",
+    "ostream": "cpp",
+    "typeinfo": "cpp"
   },
   "todo-tree.general.tags": [
     "todo",

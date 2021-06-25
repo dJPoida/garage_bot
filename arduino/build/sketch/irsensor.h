@@ -22,11 +22,11 @@ class IRSensor {
     
     void setThreshold(int newThreshold);                        // Set the detection threshold
 
-    bool detected = false;                                      // Whether the difference between ambient and activated readings constitutes a detection
+    SensorDetectionState detected = SENSOR_DETECTION_UNKNOWN;   // Whether the difference between ambient and activated readings constitutes a detection
     int averageAmbientReading = 0;                              // The average ambient reading
     int averageActiveReading = 0;                               // The average reading with the IR emitter activated
 
-    boolValueChangedFunction onChange;
+    sensorDetectionStateChangedFunction onChange;
   private:
     String _name;                                               // The name of the Sensor (for debugging)
 
