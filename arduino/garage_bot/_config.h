@@ -101,7 +101,7 @@
  */
 struct Config {
   String mdns_name                          = "garagebot";          // The name to use in the mdns address that clients can use to connect to the device without the IP (i.e. http://garagebot.local)
-  String network_device_name                = "GarageBot";          // The device name to display to other devices on the network
+  String device_name                        = "GarageBot";          // The device name to display to other devices on the network and in the app
   bool wifi_enabled                         = false;                // Whether WiFi is enabled
   String wifi_ssid                          = "";                   // The SSID of the wifi network that the garage bot is configured to connect to
   String wifi_password                      = "";                   // The Password of the wifi network that the garage bot is configured to connect to
@@ -129,6 +129,7 @@ extern Config config;
 #define SOCKET_CLIENT_MESSAGE_BUTTON_PRESS "BP"
 #define SOCKET_CLIENT_MESSAGE_SET_SENSOR_THRESHOLD "ST"
 #define SOCKET_CLIENT_MESSAGE_REBOOT "RB"
+#define SOCKET_CLIENT_MESSAGE_FORGET_WIFI "FW"
 #define SOCKET_CLIENT_MESSAGE_RESET_TO_FACTORY_DEFAULTS "RF"
 #define SOCKET_SERVER_MESSAGE_STATUS_CHANGE "SC"
 #define SOCKET_SERVER_MESSAGE_CONFIG_CHANGE "CC"

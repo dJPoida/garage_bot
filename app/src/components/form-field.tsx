@@ -46,22 +46,33 @@ export const FormField: React.FC<FormFieldProps> = (props) => {
 
   return (
     <>
-      <label className={classNames('form-field', labelClassName)} htmlFor={id}>
+      {/* eslint-disable-next-line jsx-a11y/anchor-is-valid, jsx-a11y/interactive-supports-focus, jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions */}
+      <label
+        className={classNames('form-field', labelClassName)}
+        htmlFor={id}
+        onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
+      >
         <span>{label}</span>
-        {toolTip && <ToolTip tip={toolTip} />}
+        {toolTip && <ToolTip id={`tooltip_${id}`} tip={toolTip} />}
       </label>
 
       {/* Checkbox */}
       {type === 'checkbox' && (
-        <input
-          key={id}
-          className={classNames('form-field', className)}
-          id={id}
-          name={fieldName}
-          type={type}
-          checked={(value as null | boolean) ?? false}
-          onChange={(e) => (onChange as CheckboxChangeFunction)(fieldName, e.target.checked)}
-        />
+        <label
+          className={classNames('checkbox form-field', className)}
+        >
+          <input
+            key={id}
+            id={id}
+            name={fieldName}
+            type={type}
+            checked={(value as null | boolean) ?? false}
+            onChange={(e) => (onChange as CheckboxChangeFunction)(fieldName, e.target.checked)}
+          />
+          <span>
+            {(value as null | boolean) ?? false ? 'Yep' : 'Nup'}
+          </span>
+        </label>
       )}
 
       {/* Textbox */}

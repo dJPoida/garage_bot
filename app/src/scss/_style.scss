@@ -67,6 +67,7 @@ p {
   overflow: hidden;
   white-space: normal;
   word-break: break-word;
+  text-align: center;
 }
 
 .card.success {
@@ -115,7 +116,7 @@ button.danger, [type="button"].danger, [type="submit"].danger, [type="reset"].da
 }
 
 button.danger:hover, button.danger:focus, [type="button"].danger:hover, [type="button"].danger:focus, [type="submit"].danger:hover, [type="submit"].danger:focus, [type="reset"].danger:hover, [type="reset"].danger:focus, .button.danger:hover, .button.danger:focus, [role="button"].danger:hover, [role="button"].danger:focus {
-  --button-hover-back-color: darken($color-danger, 10);
+  --button-hover-back-color: #{darken($color-danger, 10)};
 }
 
 button.warning, [type="button"].warning, [type="submit"].warning, [type="reset"].warning, .button.warning, [role="button"].warning {

@@ -120,7 +120,7 @@ bool WiFiEngine::connectToHotSpot() {
       #endif
 
       // Set the host name so that other devices recognise this device as the garage bot
-      WiFi.hostname(config.network_device_name.c_str());
+      WiFi.hostname(config.device_name.c_str());
       WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
 
       wifiEngineMode = WEM_CLIENT;
@@ -215,7 +215,7 @@ void WiFiEngine::_handleWiFiConnected() {
   Serial.print(" - MAC address: ");
   Serial.println(macAddress);
   Serial.print(" - Device name: ");
-  Serial.println(config.network_device_name);
+  Serial.println(config.device_name);
   Serial.print(" - Web address: http://");
   Serial.print(config.mdns_name);
   Serial.println(".local");
@@ -374,9 +374,11 @@ void WiFiEngine::sendConfigToClients(AsyncWebSocketClient *client) {
   DynamicJsonDocument doc(MAX_SOCKET_SERVER_MESSAGE_SIZE);
   doc["m"] = SOCKET_SERVER_MESSAGE_CONFIG_CHANGE;
   JsonObject payload = doc.createNestedObject("p");
+  payload["firmware_version"]           = FIRMWARE_VERSION;
   payload["ip_address"]                 = ipAddress;
+  payload["mac_address"]                = macAddress;
   payload["mdns_name"]                  = config.mdns_name;
-  payload["network_device_name"]        = config.network_device_name;
+  payload["device_name"]                = config.device_name;
   payload["wifi_ssid"]                  = config.wifi_ssid;
   payload["mqtt_enabled"]               = config.mqtt_enabled;
   payload["mqtt_broker_address"]        = config.mqtt_broker_address;
@@ -557,6 +559,8 @@ String WiFiEngine::templateProcessor(const String& var){
     return FIRMWARE_VERSION;
   } else if (var == "DEVICE_ADDRESS") {
     return wifiEngine.ipAddress;
+  } else if (var == "DEVICE_NAME") {
+    return config.device_name;
   } else {
     #ifdef SERIAL_DEBUG
     Serial.print("Unhandled HTML template variable: '");
@@ -601,6 +605,8 @@ void WiFiEngine::_handleSetConfig(AsyncWebServerRequest *request, uint8_t *body)
   DynamicJsonDocument doc(MAX_SOCKET_CLIENT_MESSAGE_SIZE);
   deserializeJson(doc, (const char*)body);
 
+  String mdnsName = doc["mdns_name"];
+  String deviceName = doc["device_name"];
   JsonVariant mqttEnabledValue = doc["mqtt_enabled"];
   bool mqttEnabled = mqttEnabledValue.isNull() ? config.mqtt_enabled : mqttEnabledValue.as<bool>();
   String mqttBrokerAddres = doc["mqtt_broker_address"] | config.mqtt_broker_address;
@@ -611,15 +617,9 @@ void WiFiEngine::_handleSetConfig(AsyncWebServerRequest *request, uint8_t *body)
   String mqttPassword = doc["mqtt_password"] | config.mqtt_password;
   String mqttTopic = doc["mqtt_topic"] | config.mqtt_topic;
   String mqttStateTopic = doc["mqtt_state_topic"] | config.mqtt_state_topic;
-  String mdnsName = doc["mdns_name"];
-  String networkDeviceName = doc["network_device_name"];
 
   // Call the FileSystem methods responsible for updating the config
-  botFS.setMQTTConfig(mqttEnabled, mqttBrokerAddres, mqttBrokerPort, mqttDeviceId, mqttUsername, mqttPassword, mqttTopic, mqttStateTopic);
-  botFS.setNetworkConfig(mdnsName, networkDeviceName);
-
-  // Reboot the device
-  reboot();
+  botFS.setGeneralConfig(mdnsName, deviceName, mqttEnabled, mqttBrokerAddres, mqttBrokerPort, mqttDeviceId, mqttUsername, mqttPassword, mqttTopic, mqttStateTopic);
 
   // Return a 200 - Success
   request->send(200, "text/json", "{\"success\":true}");
@@ -676,6 +676,11 @@ void WiFiEngine::handleWebSocketData(AsyncWebSocketClient *client, void *arg, ui
       // SOCKET_CLIENT_MESSAGE_REBOOT
       else if (message == SOCKET_CLIENT_MESSAGE_REBOOT) {
         reboot();
+      }
+
+      // SOCKET_CLIENT_MESSAGE_FORGET_WIFI
+      else if (message == SOCKET_CLIENT_MESSAGE_FORGET_WIFI) {
+        botFS.resetWiFiConfig(true);
       }
 
       // SOCKET_CLIENT_SET_SENSOR_THRESHOLD

@@ -17,6 +17,7 @@ import { PageTitle } from '../page-title';
 
 export type ConfigTransport = Pick<IConfig,
   'mdns_name' |
+  'device_name' |
   'mqtt_enabled' |
   'mqtt_broker_address' |
   'mqtt_broker_port' |
@@ -24,12 +25,12 @@ export type ConfigTransport = Pick<IConfig,
   'mqtt_state_topic' |
   'mqtt_topic' |
   'mqtt_username' |
-  'mqtt_password' |
-  'network_device_name'
+  'mqtt_password'
 >;
 
 const getConfigTransportFromConfig = (config: IConfig): ConfigTransport => ({
   mdns_name: config.mdns_name,
+  device_name: config.device_name,
   mqtt_enabled: config.mqtt_enabled,
   mqtt_broker_address: config.mqtt_broker_address,
   mqtt_broker_port: config.mqtt_broker_port,
@@ -38,7 +39,6 @@ const getConfigTransportFromConfig = (config: IConfig): ConfigTransport => ({
   mqtt_topic: config.mqtt_topic,
   mqtt_username: config.mqtt_username,
   mqtt_password: config.mqtt_password,
-  network_device_name: config.network_device_name,
 });
 
 export const ConfigPage: React.FC<PageProps> = (props) => {
@@ -127,55 +127,60 @@ export const ConfigPage: React.FC<PageProps> = (props) => {
   return (
     <div className="page card config">
       <PageTitle title={title} icon={icon} />
-      <p>Use this form to change the configuration of the GarageBot</p>
+      <p>
+        {`Use this form to change the configuration of the ${globals.appTitle}`}
+      </p>
       {/* Config Form */}
       {!isSubmitting && !submitSuccess && (
-        <form>
-          <FormFieldGroup legend="Network Config">
-            {/* MDNS Name */}
-            <FormField
-              id="mdns_name"
-              fieldName="mdns_name"
-              type="text"
-              label="MDNS Name"
-              value={configValues.mdns_name}
-              onChange={fieldChanged}
-              toolTip={[
-                'The name to use in the mdns address that clients',
-                'can use to connect to the device without the IP',
-                '(i.e. http://garagebot.local)',
-              ].join(' <br/>')}
-            />
+        <>
+          <form>
+            <FormFieldGroup legend="Network Config">
+              {/* MDNS Name */}
+              <FormField
+                id="mdns_name"
+                fieldName="mdns_name"
+                type="text"
+                label="MDNS Name"
+                value={configValues.mdns_name}
+                onChange={fieldChanged}
+                toolTip={[
+                  'The name to use in the mdns address that clients',
+                  'can use to connect to the device without the IP',
+                  '(i.e. http://garagebot.local)',
+                ].join(' <br/>')}
+              />
 
-            {/* Network Device Name */}
-            <FormField
-              id="network_device_name"
-              fieldName="network_device_name"
-              type="text"
-              label="Device Name"
-              value={configValues.network_device_name}
-              onChange={fieldChanged}
-              toolTip={[
-                'The device name to display',
-                'to other devices on the network',
-              ].join(' <br/>')}
-            />
-          </FormFieldGroup>
+              {/* Device Name */}
+              <FormField
+                id="device_name"
+                fieldName="device_name"
+                type="text"
+                label="Device Name"
+                value={configValues.device_name}
+                onChange={fieldChanged}
+                toolTip={[
+                  'The device name to display',
+                  'to other devices on the network.',
+                  'This also changes the name of the app,',
+                  'but you may need to refresh the page.',
+                ].join(' <br/>')}
+              />
+            </FormFieldGroup>
 
-          {/* MQTT Config */}
-          <FormFieldGroup legend="MQTT Config">
-            {/* MQTT Enabled */}
-            <FormField
-              id="mqtt_enabled"
-              fieldName="mqtt_enabled"
-              label="MQTT Enabled"
-              value={configValues.mqtt_enabled}
-              onChange={fieldChanged}
-              type="checkbox"
-              toolTip={['Disable or Enable MQTT'].join(' <br/>')}
-            />
-            {/* All of the MQTT Config values */}
-            {configValues.mqtt_enabled && (
+            {/* MQTT Config */}
+            <FormFieldGroup legend="MQTT Config">
+              {/* MQTT Enabled */}
+              <FormField
+                id="mqtt_enabled"
+                fieldName="mqtt_enabled"
+                label="Enable MQTT"
+                value={configValues.mqtt_enabled}
+                onChange={fieldChanged}
+                type="checkbox"
+                toolTip={['Disable or Enable MQTT'].join(' <br/>')}
+              />
+              {/* All of the MQTT Config values */}
+              {configValues.mqtt_enabled && (
               <>
                 {/* MQTT Broker Address */}
                 <FormField
@@ -259,14 +264,15 @@ export const ConfigPage: React.FC<PageProps> = (props) => {
                   ].join(' <br/>')}
                 />
               </>
-            )}
-          </FormFieldGroup>
+              )}
+            </FormFieldGroup>
+          </form>
           <div className="button-row">
             {/* Reset Button */}
             {isDirty && (
-              <button type="button" className="info" onClick={handleReset}>
-                Cancel
-              </button>
+            <button type="button" className="info" onClick={handleReset}>
+              Cancel
+            </button>
             )}
 
             {/* Submit Button */}
@@ -279,7 +285,7 @@ export const ConfigPage: React.FC<PageProps> = (props) => {
               Submit
             </button>
           </div>
-        </form>
+        </>
       )}
 
       {/* Submitting Spinner */}
@@ -314,7 +320,7 @@ export const ConfigPage: React.FC<PageProps> = (props) => {
         title="Update device config?"
       >
         <p>
-          Submit the new configuration to the GarageBot?
+          {`Submit the new configuration to the ${globals.appTitle}?`}
         </p>
         <p>
           This will reboot the device.

@@ -11,6 +11,7 @@ import { A_SOCKET_SERVER_MESSAGE, SOCKET_SERVER_MESSAGE } from '../constants/soc
 import { A_VIRTUAL_BUTTON } from '../constants/device-button.const';
 import { SOCKET_CLIENT_EVENT } from '../constants/socket-client-event.const';
 import { SOCKET_CLIENT_MESSAGE } from '../constants/socket-client-message.const';
+import { globals } from '../singletons/globals.singleton';
 
 type DeviceProviderProps = Record<string, unknown>;
 type DeviceProviderState = {
@@ -35,6 +36,7 @@ type DeviceContextProps = Pick<
 > & {
   pressButton: (button: A_VIRTUAL_BUTTON) => void;
   reboot: () => void;
+  forgetWiFi: () => void;
   resetToFactoryDefaults: () => void;
   setSensorThreshold: (sensorType: 'TOP' | 'BOTTOM', threshold: number) => void;
 };
@@ -57,10 +59,12 @@ export class DeviceProvider extends React.Component<DeviceProviderProps, DeviceP
       configChecksum: 0,
       rebooting: false,
       config: {
+        firmware_version: globals.firmwareVersion,
         mdns_name: null,
-        network_device_name: null,
+        device_name: null,
         wifi_ssid: null,
         ip_address: null,
+        mac_address: null,
         mqtt_enabled: false,
         mqtt_broker_address: null,
         mqtt_broker_port: null,
@@ -146,6 +150,15 @@ export class DeviceProvider extends React.Component<DeviceProviderProps, DeviceP
         this.setState({
           config: mapPayloadToConfig(payload),
           configChecksum: configChecksum + 1,
+        }, () => {
+          const {
+            config: {
+              device_name,
+              firmware_version,
+            },
+          } = this.state;
+          globals.appTitle = device_name ?? globals.appTitle;
+          globals.firmwareVersion = firmware_version ?? globals.firmwareVersion;
         });
         return;
       }
@@ -201,6 +214,16 @@ export class DeviceProvider extends React.Component<DeviceProviderProps, DeviceP
   /**
    * Fired when the user wants to reset the device to factory defaults
    */
+  handleForgetWifi = (): void => {
+    this.setState({ rebooting: true }, () => {
+      socketClient.sendMessage(SOCKET_CLIENT_MESSAGE.FORGET_WIFI, {});
+    });
+  };
+
+
+  /**
+   * Fired when the user wants to reset the device to factory defaults
+   */
   handleResetToFactoryDefaults = (): void => {
     this.setState({ rebooting: true }, () => {
       socketClient.sendMessage(SOCKET_CLIENT_MESSAGE.RESET_TO_FACTORY_DEFAULTS, {});
@@ -247,6 +270,7 @@ export class DeviceProvider extends React.Component<DeviceProviderProps, DeviceP
           sensorData,
           pressButton: this.handleButtonPress,
           reboot: this.handleReboot,
+          forgetWiFi: this.handleForgetWifi,
           resetToFactoryDefaults: this.handleResetToFactoryDefaults,
           setSensorThreshold: this.handleSetSensorThreshold,
         }}

@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { useIsDirty } from '../../react-hooks/use-is-dirty.hook';
+import { globals } from '../../singletons/globals.singleton';
 import { AppFooter } from '../app-footer';
 import { AppTitle } from '../app-title';
 import { FormField } from '../form-field';
@@ -125,11 +126,11 @@ export const APModeApp: React.FC = () => {
           <>
             <div>
               <p>
-                Your GarageBot was unable to connect to its previously configured
-                WiFi hot-spot or has recently been reset to factory defaults.
+                {`Your ${globals.appTitle} was unable to connect to its previously configured
+                WiFi hot-spot or has recently been reset to factory defaults.`}
               </p>
               <p>
-                If you want to connect the GarageBot to your WiFi, provide the details below.
+                {`If you want to connect the ${globals.appTitle} to your WiFi, provide the details below.`}
               </p>
             </div>
 
@@ -191,7 +192,7 @@ export const APModeApp: React.FC = () => {
           onConfirm={handleSubmit}
         >
           <p>
-            After submitting your local WiFi credentials to the GarageBot it will reboot and attempt to connect to your network.
+            {`After submitting your local WiFi credentials to the ${globals.appTitle} it will reboot and attempt to connect to your network.`}
           </p>
           <p>
             Once rebooted, you may attempt to connect to it on the following URL or access your local router to determine it&apos;s IP address.

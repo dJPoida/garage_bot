@@ -100,13 +100,13 @@ void generalErrorOccurred(String errorMessage);
 void panelButtonPressed();
 #line 329 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void panelButtonReleased(ButtonPressType buttonPressType);
-#line 391 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 388 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void updateLEDFlashes();
-#line 401 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 398 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void doorControlStateChanged(DoorState newDoorState);
-#line 432 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 429 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void handleWiFiConnectedChanged(bool newConnected);
-#line 450 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 447 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void handleVirtualButtonPressed(VirtualButtonType virtualButton);
 #line 81 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void setup() {
@@ -382,7 +382,6 @@ void panelButtonReleased(ButtonPressType buttonPressType) {
       #endif
       // Reset the WiFi config
       botFS.resetWiFiConfig(true);
-      reboot();
       break;
 
     case DISABLE_WIFI:
@@ -391,7 +390,6 @@ void panelButtonReleased(ButtonPressType buttonPressType) {
       #endif
       // Disable the WiFi
       botFS.resetWiFiConfig(false);
-      reboot();
       break;
 
     case FACTORY_RESET:
@@ -407,7 +405,6 @@ void panelButtonReleased(ButtonPressType buttonPressType) {
       bottomSensorLED.set(true);
       delay(3000);
       botFS.factoryReset();
-      reboot();
       break;
 
     default:

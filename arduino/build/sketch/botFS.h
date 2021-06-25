@@ -14,12 +14,12 @@ class BotFS {
     BotFS();
     bool init();
     bool saveConfig();
-    bool resetWiFiConfig(bool enableWiFi);
-    bool factoryReset();
+    void resetWiFiConfig(bool enableWiFi);
+    void factoryReset();
     void setWiFiSettings(String newSSID, String newPassword);
     void setIRSensorThreshold(String sensorType, int newThreshold);
-    void setMQTTConfig(bool mqttEnabled, String mqttBrokerAddres, unsigned int mqttBrokerPort, String mqttDeviceId, String mqttUsername, String mqttPassword, String mqttTopic, String mqttStateTopic);
-    void setNetworkConfig(String mdnsName, String networkDeviceName);
+    void setGeneralConfig(String mdnsName, String deviceName, bool mqttEnabled, String mqttBrokerAddres, unsigned int mqttBrokerPort, String mqttDeviceId, String mqttUsername, String mqttPassword, String mqttTopic, String mqttStateTopic);
+    void setNetworkConfig(String mdnsName, String deviceName);
     void registerRFCode(unsigned long newCode);
 
   private:

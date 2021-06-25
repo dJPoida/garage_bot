@@ -14,7 +14,7 @@
   }
 
   // When the height of the screen is less than the typical width of a mobile display
-  @media screen and (orientation: landscape) and (max-height: $viewport-sm-max) {
+  @media screen and (orientation: landscape) and (max-height: ($viewport-sm-min + 150px)) {
     flex-direction: row;
     justify-content: space-around;
 

@@ -6,4 +6,11 @@
       }
     }
   }
+
+  .button-wrapper {
+    margin-top: calc(var(--universal-margin) * 4);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 }

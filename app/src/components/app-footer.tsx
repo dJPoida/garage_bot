@@ -4,7 +4,7 @@ import { globals } from '../singletons/globals.singleton';
 export const AppFooter: React.FC = (props) => (
   <div className="app-footer">
     <p>
-      <span>{`${globals.appTitle} v${globals.version}`}</span>
+      <span>{`GarageBot v${globals.version}`}</span>
     </p>
     <p className="djpoida">
       <img src="img/dJP.svg" alt="dJP" />

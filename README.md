@@ -96,11 +96,5 @@ This LED indicates whether the bottom sensor on the garage door can detect the p
 - On: Door cannot be detected (i.e. open)
 
 ## Developer TODO
-- User Interface
-    - Provide a form to configure the MQTT settings
-    - Provide a form to configure the sensitivity of the sensors
-- Improve reliability
-    - When the client socket disconnects, attempt to re-connect
-    - When the WiFi on the device is disconnected, attempt to re-connect
 - REST API
     - Provide access to activate Virtual Buttons from an HTTP POST endpoint (perhaps add creds)

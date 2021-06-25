@@ -351,7 +351,6 @@ void panelButtonReleased(ButtonPressType buttonPressType) {
       #endif
       // Reset the WiFi config
       botFS.resetWiFiConfig(true);
-      reboot();
       break;
 
     case DISABLE_WIFI:
@@ -360,7 +359,6 @@ void panelButtonReleased(ButtonPressType buttonPressType) {
       #endif
       // Disable the WiFi
       botFS.resetWiFiConfig(false);
-      reboot();
       break;
 
     case FACTORY_RESET:
@@ -376,7 +374,6 @@ void panelButtonReleased(ButtonPressType buttonPressType) {
       bottomSensorLED.set(true);
       delay(3000);
       botFS.factoryReset();
-      reboot();
       break;
 
     default:

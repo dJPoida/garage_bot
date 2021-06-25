@@ -1,9 +1,11 @@
 export interface IConfig
   extends Record<string, null | string | number | boolean> {
+  firmware_version: null | string;
   mdns_name: null | string;
-  network_device_name: null | string;
+  device_name: null | string;
   wifi_ssid: null | string;
   ip_address: null | string;
+  mac_address: null | string;
   mqtt_enabled: boolean;
   mqtt_broker_address: null | string;
   mqtt_broker_port: null | number;
@@ -17,10 +19,12 @@ export interface IConfig
 }
 
 export const mapPayloadToConfig = (payload: Record<string, unknown>): IConfig => ({
+  firmware_version: payload.firmware_version as string,
   mdns_name: payload.mdns_name as string,
-  network_device_name: payload.network_device_name as string,
+  device_name: payload.device_name as string,
   wifi_ssid: payload.wifi_ssid as string,
   ip_address: payload.ip_address as string,
+  mac_address: payload.mac_address as string,
   mqtt_enabled: (payload.mqtt_enabled ?? false) as boolean,
   mqtt_broker_address: payload.mqtt_broker_address as string,
   mqtt_broker_port: payload.mqtt_broker_port as number,

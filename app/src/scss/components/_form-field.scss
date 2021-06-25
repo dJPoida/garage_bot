@@ -1,5 +1,18 @@
 .form-field {
-  &[type="checkbox"] {
+  &.checkbox { 
+    display: flex;
     cursor: pointer;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0;
+    margin: calc(var(--universal-margin) / 2);
+
+    input {
+      cursor: pointer;
+      margin-left: 0;
+      margin-right: var(--universal-margin);
+    }
   }
 }
+
+

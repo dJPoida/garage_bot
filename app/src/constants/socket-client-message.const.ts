@@ -13,6 +13,9 @@ export const SOCKET_CLIENT_MESSAGE = {
   // Reboot the device
   REBOOT: 'RB',
 
+  // Forget the WiFi credentials
+  FORGET_WIFI: 'FW',
+
   // Reset the device to factory defaults
   RESET_TO_FACTORY_DEFAULTS: 'RF',
 } as const;

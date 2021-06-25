@@ -107,7 +107,8 @@ bool BotFS::loadConfig() {
   }
 
   // Update the global variables from the json doc
-  config.network_device_name = doc["network_device_name"] | config.network_device_name;
+  config.mdns_name = doc["mdns_name"] | config.mdns_name;
+  config.device_name = doc["device_name"] | config.device_name;
   JsonVariant wifiEnabled = doc["wifi_enabled"];
   config.wifi_enabled = wifiEnabled.isNull() ? config.wifi_enabled : wifiEnabled.as<bool>();
   config.wifi_ssid = doc["wifi_ssid"] | config.wifi_ssid;
@@ -140,6 +141,10 @@ bool BotFS::loadConfig() {
     
   #ifdef SERIAL_DEBUG
   Serial.println(" - Current Config:");
+  Serial.print("   + mDNS Name: ");
+  Serial.println(config.mdns_name);
+  Serial.print("   + Device Name: ");
+  Serial.println(config.device_name);
   Serial.print("   + WiFi: ");
   Serial.println(config.wifi_enabled ? "Enabled" : "Disabled");
   if (config.wifi_enabled) {
@@ -158,6 +163,22 @@ bool BotFS::loadConfig() {
   }
   Serial.print("   + MQTT: ");
   Serial.println(config.mqtt_enabled ? "Enabled" : "Disabled");
+  if (config.mqtt_enabled) {
+    Serial.print("   - Broker Address: ");
+    Serial.println(config.mqtt_broker_address);
+    Serial.print("   - Broker Port: ");
+    Serial.println(config.mqtt_broker_port);
+    Serial.print("   - Device ID: ");
+    Serial.println(config.mqtt_device_id);
+    Serial.print("   - Username: ");
+    Serial.println(config.mqtt_username);
+    Serial.print("   - Password: ");
+    Serial.println(config.mqtt_password);
+    Serial.print("   - Topic: ");
+    Serial.println(config.mqtt_topic);
+    Serial.print("   - State Topic: ");
+    Serial.println(config.mqtt_state_topic);
+  }
   #endif
     
   return true;
@@ -193,7 +214,8 @@ bool BotFS::saveConfig() {
   StaticJsonDocument<CONFIG_FILE_MAX_SIZE> doc;
 
   // Set the values in the document
-  doc["network_device_name"]        = config.network_device_name;
+  doc["mdns_name"]                  = config.mdns_name;
+  doc["device_name"]                = config.device_name;
   doc["wifi_enabled"]               = config.wifi_enabled;
   doc["wifi_ssid"]                  = config.wifi_ssid;
   doc["wifi_password"]              = config.wifi_password;
@@ -234,7 +256,7 @@ bool BotFS::saveConfig() {
  * 
  * @param {bool} enableWiFi whether to enable the WiFi or not
  */
-bool BotFS::resetWiFiConfig(bool enableWiFi) {
+void BotFS::resetWiFiConfig(bool enableWiFi) {
   #ifdef SERIAL_DEBUG
   Serial.println(enableWiFi ? "Resetting (and/or enabling) WiFi Config..." : "Disabling WiFi...");
   #endif
@@ -243,14 +265,16 @@ bool BotFS::resetWiFiConfig(bool enableWiFi) {
   config.wifi_ssid = "";
   config.wifi_password = "";
   
-  return saveConfig();
+  saveConfig();
+
+  reboot();
 }
 
 
 /**
  * Reset the entire config to the defaults (just delete it from the file system)
  */
-bool BotFS::factoryReset() {
+void BotFS::factoryReset() {
   // Wait for any current write operations to finish
   while (_writingConfig) {
     delay(1);
@@ -271,7 +295,7 @@ bool BotFS::factoryReset() {
 
   _writingConfig = false;
   
-  return true;
+  reboot();
 }
 
 
@@ -304,6 +328,8 @@ void BotFS::setWiFiSettings(String newSSID, String newPassword) {
 /**
  * Change the current Wifi Settings (triggered from the Configuration Website)
  * 
+ * @param String mdnsName The name to use in the mdns address that clients can use to connect to the device without the IP (i.e. http://garagebot.local)
+ * @param String deviceName The device name to display to other devices on the network
  * @param bool mqttEnabled Whether the device should attempt to integrate with an MQTT broker
  * @param String mqttBrokerAddres The IP address of the MQTT Broker
  * @param unsigned int mqttBrokerPort The MQTT Broker Port Number
@@ -313,7 +339,9 @@ void BotFS::setWiFiSettings(String newSSID, String newPassword) {
  * @param String mqttTopic The MQTT topic used for communicating instructions (open / close etc)
  * @param String mqttStateTopic The MQTT topic used for communicating the state of the door (opened / closed / etc)
  */
-void BotFS::setMQTTConfig(
+void BotFS::setGeneralConfig(
+  String mdnsName,
+  String deviceName,
   bool mqttEnabled,
   String mqttBrokerAddres,
   unsigned int mqttBrokerPort,
@@ -323,63 +351,49 @@ void BotFS::setMQTTConfig(
   String mqttTopic,
   String mqttStateTopic
 ) {
-    config.mqtt_enabled = mqttEnabled;
-    config.mqtt_broker_address = mqttBrokerAddres;
-    config.mqtt_broker_port = mqttBrokerPort;
-    config.mqtt_device_id = mqttEnabled;
-    config.mqtt_username = mqttUsername;
-    config.mqtt_password = mqttPassword;
-    config.mqtt_topic = mqttTopic;
-    config.mqtt_state_topic = mqttStateTopic;
-    
-    #ifdef SERIAL_DEBUG
-    Serial.println("Configuring and saving new MQTT details:");
-    Serial.print(" + MQTT: ");
-    Serial.println(config.mqtt_enabled ? "Enabled" : "Disabled");
+  config.mdns_name = mdnsName;
+  config.device_name = deviceName;
+  config.mqtt_enabled = mqttEnabled;
+  config.mqtt_broker_address = mqttBrokerAddres;
+  config.mqtt_broker_port = mqttBrokerPort;
+  config.mqtt_device_id = mqttDeviceId;
+  config.mqtt_username = mqttUsername;
+  config.mqtt_password = mqttPassword;
+  config.mqtt_topic = mqttTopic;
+  config.mqtt_state_topic = mqttStateTopic;
+  
+  #ifdef SERIAL_DEBUG
+  Serial.println("Configuring and saving General Config:");
+  Serial.print(" - MDNS name: '");
+  Serial.println(config.mdns_name);
+  Serial.print(" - Device Name: '");
+  Serial.println(config.device_name);
+  Serial.print(" + MQTT: ");
+  Serial.println(config.mqtt_enabled ? "Enabled" : "Disabled");
 
-    if (config.mqtt_enabled) {
-      Serial.print("   - Broker Address: ");
-      Serial.println(config.mqtt_broker_address);
-      Serial.print("   - Broker Port: ");
-      Serial.println(config.mqtt_broker_port);
-      Serial.print("   - Device ID: ");
-      Serial.println(config.mqtt_device_id);
-      Serial.print("   - Username: ");
-      Serial.println(config.mqtt_username);
-      Serial.print("   - Password: ");
-      Serial.println(config.mqtt_password);
-      Serial.print("   - Topic: ");
-      Serial.println(config.mqtt_topic);
-      Serial.print("   - State Topic: ");
-      Serial.println(config.mqtt_state_topic);
-    }
-    #endif
+  if (config.mqtt_enabled) {
+    Serial.print("   - Broker Address: ");
+    Serial.println(config.mqtt_broker_address);
+    Serial.print("   - Broker Port: ");
+    Serial.println(config.mqtt_broker_port);
+    Serial.print("   - Device ID: ");
+    Serial.println(config.mqtt_device_id);
+    Serial.print("   - Username: ");
+    Serial.println(config.mqtt_username);
+    Serial.print("   - Password: ");
+    Serial.println(config.mqtt_password);
+    Serial.print("   - Topic: ");
+    Serial.println(config.mqtt_topic);
+    Serial.print("   - State Topic: ");
+    Serial.println(config.mqtt_state_topic);
+  }
+  #endif
 
-    // Save the updated config.
-    saveConfig();
-}
+  // Save the updated config.
+  saveConfig();
 
-
-/**
- * Change the current Network config (triggered from the Configuration Website)
- * 
- * @param String mdnsName The name to use in the mdns address that clients can use to connect to the device without the IP (i.e. http://garagebot.local)
- * @param String networkDeviceName The device name to display to other devices on the network
- */
-void BotFS::setNetworkConfig(String mdnsName, String networkDeviceName) {
-    config.mdns_name = mdnsName;
-    config.network_device_name = networkDeviceName;
-
-    #ifdef SERIAL_DEBUG
-    Serial.println("Configuring and saving new network details:");
-    Serial.print(" - MDNS name: '");
-    Serial.println(config.mdns_name);
-    Serial.print(" - Network Device Name: '");
-    Serial.println(config.network_device_name);
-    #endif
-
-    // Save the updated config.
-    saveConfig();
+  // Reboot the device
+  reboot();
 }
 
 
