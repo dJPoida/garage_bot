@@ -14,6 +14,7 @@ import { FormField } from '../form-field';
 import { FormFieldGroup } from '../form-field-group';
 import { Modal } from '../modal';
 import { PageTitle } from '../page-title';
+import { MQTT_CLIENT_STATE } from '../../constants/mqtt-client-state.const';
 
 export type ConfigTransport = Pick<IConfig,
   'mdns_name' |
@@ -47,7 +48,7 @@ export const ConfigPage: React.FC<PageProps> = (props) => {
     icon,
   } = props;
 
-  const { config, configChecksum } = useContext(DeviceContext);
+  const { config, configChecksum, mqttClientError, mqttClientState } = useContext(DeviceContext);
 
   const [isDirty, setDirty] = useIsDirty();
   const oldConfigChecksum = usePreviousValue(configChecksum);
@@ -169,6 +170,20 @@ export const ConfigPage: React.FC<PageProps> = (props) => {
 
             {/* MQTT Config */}
             <FormFieldGroup legend="MQTT Config">
+
+              {/* If the MQTT Client is in error, display it here to assist with correcting the config */}
+              {mqttClientState === MQTT_CLIENT_STATE.ERROR && (
+                <div className="card fluid error">
+                  <h4>MQTT Client Error</h4>
+                  <p>
+                    <span>The device attempted to use the provided configuration but encountered the following error:</span>
+                    <br />
+                    <br />
+                    <span>{mqttClientError}</span>
+                  </p>
+                </div>
+              )}
+
               {/* MQTT Enabled */}
               <FormField
                 id="mqtt_enabled"

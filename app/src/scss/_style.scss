@@ -70,10 +70,21 @@ p {
   text-align: center;
 }
 
-.card.success {
-  --card-back-color: var(--color-success);
-  --card-fore-color: #f8f8f8;
-  --card-border-color: var(--color-success);
+.card.fluid {
+  padding: var(--universal-padding);
+
+  &.success {
+    --card-back-color: var(--color-success);
+    --card-fore-color: #f8f8f8;
+    --card-border-color: var(--color-success);
+  }
+
+  &.error,
+  &.danger {
+    --card-back-color: var(--color-danger);
+    --card-fore-color: #f8f8f8;
+    --card-border-color: var(--color-danger);
+  }
 }
 
 span[class^="icon-"] {

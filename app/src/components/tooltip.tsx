@@ -20,7 +20,7 @@ export const ToolTip: React.FC<ToolTipProps> = (props) => {
       >
         <span className={ICON.INFO} />
       </a>
-      <ReactTooltip id={id} place="top" type="light" effect="solid" multiline>
+      <ReactTooltip className="tool-tip-inner" id={id} place="top" type="light" effect="solid" multiline html>
         {tip}
       </ReactTooltip>
     </>

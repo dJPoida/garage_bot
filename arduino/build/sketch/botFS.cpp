@@ -32,7 +32,7 @@ bool BotFS::init() {
   // Start the SPI Flash Files System
   if (!LITTLEFS.begin(true)) {
     #ifdef SERIAL_DEBUG
-    Serial.println(" ! Failed to mount file system");
+    Serial.println("  ! Failed to mount file system");
     #endif
     return false;
   }
@@ -41,20 +41,20 @@ bool BotFS::init() {
   delay(250);
   
   #ifdef SERIAL_DEBUG
-  Serial.println(" - LITTLEFS initialised.");
+  Serial.println("  - LITTLEFS initialised.");
   #endif
 
   // Load the config from the onboard SPI File System
   if (!loadConfig()) {
     #ifdef SERIAL_DEBUG
-    Serial.println(" - Creating new Config File... ");
+    Serial.println("  - Creating new Config File... ");
     #endif
   }
 
   // Save the config back to the SPI File System
   if (!saveConfig()) {
     #ifdef SERIAL_DEBUG
-    Serial.println(" ! Failed to create new config file on LITTLEFS.");
+    Serial.println("  ! Failed to create new config file on LITTLEFS.");
     #endif
     
     return false;
@@ -75,7 +75,7 @@ bool BotFS::loadConfig() {
   File configFile = LITTLEFS.open("/config.json", "r");
   if (!configFile) {
     #ifdef SERIAL_DEBUG
-    Serial.println(" ! Failed to open config file");
+    Serial.println("  ! Failed to open config file");
     #endif
     return false;
   }
@@ -83,7 +83,7 @@ bool BotFS::loadConfig() {
   size_t size = configFile.size();
   if (size > CONFIG_FILE_MAX_SIZE) {
     #ifdef SERIAL_DEBUG
-    Serial.println(" ! Error - config file size is too large");
+    Serial.println("  ! Error - config file size is too large");
     #endif
     return false;
   }
@@ -96,15 +96,13 @@ bool BotFS::loadConfig() {
   // Deserialize the JSON document
   DeserializationError error = deserializeJson(doc, configFile);
 
+  #ifdef SERIAL_DEBUG
   if (error) {
-    #ifdef SERIAL_DEBUG
-    Serial.println(" ! Failed to read file, using default configuration: ");
-    #endif
+    Serial.println("  ! Failed to read file, using default configuration: ");
   } else {
-    #ifdef SERIAL_DEBUG
-    Serial.println(" - Config loaded from 'LITTLEFS/config.json': ");
-    #endif
+    Serial.println("  - Config loaded from 'LITTLEFS/config.json': ");
   }
+  #endif
 
   // Update the global variables from the json doc
   config.mdns_name = doc["mdns_name"] | config.mdns_name;
@@ -140,43 +138,43 @@ bool BotFS::loadConfig() {
   configFile.close();
     
   #ifdef SERIAL_DEBUG
-  Serial.println(" - Current Config:");
-  Serial.print("   + mDNS Name: ");
+  Serial.println("  - Current Config:");
+  Serial.print("    + mDNS Name: ");
   Serial.println(config.mdns_name);
-  Serial.print("   + Device Name: ");
+  Serial.print("    + Device Name: ");
   Serial.println(config.device_name);
-  Serial.print("   + WiFi: ");
+  Serial.print("    + WiFi: ");
   Serial.println(config.wifi_enabled ? "Enabled" : "Disabled");
   if (config.wifi_enabled) {
-    Serial.print("   + WiFi SSID: ");
+    Serial.print("    + WiFi SSID: ");
     Serial.println(config.wifi_ssid);
-    Serial.print("   + WiFi Password: ");
+    Serial.print("    + WiFi Password: ");
     Serial.println(config.wifi_password);
   }
-  Serial.print("   + ");
+  Serial.print("    + ");
   Serial.print(config.stored_rf_code_count);
   Serial.println(" Registered RF Codes: ");
   for (byte i = 0; i < config.stored_rf_code_count; i++) {
-    Serial.print("     '");
+    Serial.print("      '");
     Serial.print(config.rf_codes[i]);
     Serial.println("'");
   }
-  Serial.print("   + MQTT: ");
+  Serial.print("    + MQTT: ");
   Serial.println(config.mqtt_enabled ? "Enabled" : "Disabled");
   if (config.mqtt_enabled) {
-    Serial.print("   - Broker Address: ");
+    Serial.print("    - Broker Address: ");
     Serial.println(config.mqtt_broker_address);
-    Serial.print("   - Broker Port: ");
+    Serial.print("    - Broker Port: ");
     Serial.println(config.mqtt_broker_port);
-    Serial.print("   - Device ID: ");
+    Serial.print("    - Device ID: ");
     Serial.println(config.mqtt_device_id);
-    Serial.print("   - Username: ");
+    Serial.print("    - Username: ");
     Serial.println(config.mqtt_username);
-    Serial.print("   - Password: ");
+    Serial.print("    - Password: ");
     Serial.println(config.mqtt_password);
-    Serial.print("   - Topic: ");
+    Serial.print("    - Topic: ");
     Serial.println(config.mqtt_topic);
-    Serial.print("   - State Topic: ");
+    Serial.print("    - State Topic: ");
     Serial.println(config.mqtt_state_topic);
   }
   #endif
@@ -196,14 +194,14 @@ bool BotFS::saveConfig() {
   _writingConfig = true;
   
   #ifdef SERIAL_DEBUG
-  Serial.println(" - Writing configuration to 'LITTLEFS/config.json'...");
+  Serial.println("  - Writing configuration to 'LITTLEFS/config.json'...");
   #endif
 
   // Open file for writing
   File configFile = LITTLEFS.open("/config.json", "w");
   if (!configFile) {
     #ifdef SERIAL_DEBUG
-    Serial.println(" ! Failed to create 'LITTLEFS/config.json'!");
+    Serial.println("  ! Failed to create 'LITTLEFS/config.json'!");
     #endif
     return false;
   }
@@ -238,7 +236,7 @@ bool BotFS::saveConfig() {
   // Serialize JSON to file
   if (serializeJson(doc, configFile) == 0) {
     #ifdef SERIAL_DEBUG
-    Serial.println(" ! Failed to write to 'LITTLEFS/config.json'");
+    Serial.println("  ! Failed to write to 'LITTLEFS/config.json'");
     #endif
   }
 
@@ -283,14 +281,14 @@ void BotFS::factoryReset() {
   
   #ifdef SERIAL_DEBUG
   Serial.println("Factory Reset:");
-  Serial.println(" - Deleteing 'LITTLEFS/config.json'...");
+  Serial.println("  - Deleteing 'LITTLEFS/config.json'...");
   #endif
 
   // Delete the file
   LITTLEFS.remove("/config.json");
 
   #ifdef SERIAL_DEBUG
-  Serial.println(" - Done");
+  Serial.println("  - Done");
   #endif
 
   _writingConfig = false;
@@ -364,27 +362,27 @@ void BotFS::setGeneralConfig(
   
   #ifdef SERIAL_DEBUG
   Serial.println("Configuring and saving General Config:");
-  Serial.print(" - MDNS name: '");
+  Serial.print("  - MDNS name: '");
   Serial.println(config.mdns_name);
-  Serial.print(" - Device Name: '");
+  Serial.print("  - Device Name: '");
   Serial.println(config.device_name);
-  Serial.print(" + MQTT: ");
+  Serial.print("  + MQTT: ");
   Serial.println(config.mqtt_enabled ? "Enabled" : "Disabled");
 
   if (config.mqtt_enabled) {
-    Serial.print("   - Broker Address: ");
+    Serial.print("    - Broker Address: ");
     Serial.println(config.mqtt_broker_address);
-    Serial.print("   - Broker Port: ");
+    Serial.print("    - Broker Port: ");
     Serial.println(config.mqtt_broker_port);
-    Serial.print("   - Device ID: ");
+    Serial.print("    - Device ID: ");
     Serial.println(config.mqtt_device_id);
-    Serial.print("   - Username: ");
+    Serial.print("    - Username: ");
     Serial.println(config.mqtt_username);
-    Serial.print("   - Password: ");
+    Serial.print("    - Password: ");
     Serial.println(config.mqtt_password);
-    Serial.print("   - Topic: ");
+    Serial.print("    - Topic: ");
     Serial.println(config.mqtt_topic);
-    Serial.print("   - State Topic: ");
+    Serial.print("    - State Topic: ");
     Serial.println(config.mqtt_state_topic);
   }
   #endif

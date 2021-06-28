@@ -8,6 +8,10 @@
     background-color: var(--table-body-alt-back-color);
   }
 
+  .card.fluid {
+    text-align: center;
+  }
+
   &:first-of-type {
     legend {
       margin-top: 0;
@@ -17,7 +21,8 @@
   @media screen and (min-width: $viewport-md-min) {
     grid-template-columns: 2fr 5fr;
 
-    legend {
+    legend,
+    .card.fluid {
       grid-column-start: span 2;
     }
 

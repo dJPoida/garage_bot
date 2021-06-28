@@ -63,17 +63,14 @@
 // The number of milliseconds to wait in between sensor data broadcast to the connected socket clients
 #define SENSOR_BROADCAST_INTERVAL 1000
 
-// The difference between the ambient reading and the active reading require before a detection event is triggered (0 - 4095)
-#define DEFAULT_IR_THRESHOLD 150
-
 // The SSID and network domain name when the device is running in Access Point mode
 #define AP_SSID "garagebot"
 
 // The port that the web server is served on.
 #define WEB_SERVER_PORT 80          
 
-// How often the WiFi should attempt to re-connect when disconnected
-#define WIFI_RECONNECT_INTERVAL 30000
+// How often the WiFi and MQTT clients should attempt to re-connect when disconnected
+#define RECONNECT_INTERVAL 30000
 
 // How many milliseconds for each interval/tick in the LED timer
 #define LED_TIMER_CYCLE_MS 125
@@ -99,27 +96,69 @@
 // When assuming a door state - ignore sensors for this duration
 #define ASSUMED_DOOR_STATE_EXPIRY 5000
 
+// Defaults for some config values
+#define DEFAULT_IR_THRESHOLD 150
+#define DEFAULT_CONFIG_MDNS_NAME "garagebot"
+#define DEFAULT_CONFIG_DEVICE_NAME "GarageBot"
+#define DEFAULT_CONFIG_MQTT_BROKER_PORT 1833
+#define DEFAULT_CONFIG_MQTT_DEVICE_ID "Garage_Bot"
+#define DEFAULT_CONFIG_MQTT_DEVICE_TOPIC "garage/door"
+#define DEFAULT_CONFIG_MQTT_DEVICE_STATE_TOPIC "garage/door/state"
+
 /**
  * Config struct for storing and loading data from the SPIFFS partition
  */
 struct Config {
-  String mdns_name                          = "garagebot";          // The name to use in the mdns address that clients can use to connect to the device without the IP (i.e. http://garagebot.local)
-  String device_name                        = "GarageBot";          // The device name to display to other devices on the network and in the app
-  bool wifi_enabled                         = false;                // Whether WiFi is enabled
-  String wifi_ssid                          = "";                   // The SSID of the wifi network that the garage bot is configured to connect to
-  String wifi_password                      = "";                   // The Password of the wifi network that the garage bot is configured to connect to
-  bool mqtt_enabled                         = false;                // Whether the device should attempt to integrate with an MQTT broker
-  String mqtt_broker_address                = "";                   // The IP address of the MQTT Broker
-  unsigned int mqtt_broker_port             = 1833;                 // The MQTT Broker Port Number
-  String mqtt_device_id                     = "Garage_Bot";         // The Device ID to use when connecting to the MQTT Broker
-  String mqtt_username                      = "";                   // The username when connecting to the MQTT broker
-  String mqtt_password                      = "";                   // The password when connecting to the MQTT broker
-  String mqtt_topic                         = "garage/door";        // The MQTT topic used for communicating instructions (open / close etc)
-  String mqtt_state_topic                   = "garage/door/state";  // The MQTT topic used for communicating the state of the door (opened / closed / etc)
-  byte stored_rf_code_count                 = 0;                    // The number of registered RF remote codes (5 Max)
-  unsigned long rf_codes[5]                 = {0, 0, 0, 0, 0};      // 5 RF codes can be stored
-  unsigned int top_ir_sensor_threshold      = DEFAULT_IR_THRESHOLD; // The threshold for detection for the Top IR Sensor  
-  unsigned int bottom_ir_sensor_threshold   = DEFAULT_IR_THRESHOLD; // The threshold for detection for the Bottom IR Sensor  
+  // The name to use in the mdns address that clients can use to connect to the device without the IP (i.e. http://garagebot.local)
+  String mdns_name                          = DEFAULT_CONFIG_MDNS_NAME;
+
+  // The device name to display to other devices on the network and in the app
+  String device_name                        = DEFAULT_CONFIG_DEVICE_NAME;
+  
+  // Whether WiFi is enabled
+  bool wifi_enabled                         = false;
+  
+  // The SSID of the wifi network that the garage bot is configured to connect to
+  String wifi_ssid                          = "";
+  
+  // The Password of the wifi network that the garage bot is configured to connect to
+  String wifi_password                      = "";
+  
+  // Whether the device should attempt to integrate with an MQTT broker
+  bool mqtt_enabled                         = false;
+  
+  // The IP address of the MQTT Broker
+  String mqtt_broker_address                = "";
+
+  // The MQTT Broker Port Number
+  unsigned int mqtt_broker_port             = DEFAULT_CONFIG_MQTT_BROKER_PORT;
+
+  // The Device ID to use when connecting to the MQTT Broker
+  String mqtt_device_id                     = DEFAULT_CONFIG_MQTT_DEVICE_ID;
+  
+  // The username when connecting to the MQTT broker
+  String mqtt_username                      = "";
+
+  // The password when connecting to the MQTT broker
+  String mqtt_password                      = "";
+  
+  // The MQTT topic used for communicating instructions (open / close etc)
+  String mqtt_topic                         = DEFAULT_CONFIG_MQTT_DEVICE_TOPIC;
+  
+  // The MQTT topic used for communicating the state of the door (opened / closed / etc)
+  String mqtt_state_topic                   = DEFAULT_CONFIG_MQTT_DEVICE_STATE_TOPIC;
+  
+  // The number of registered RF remote codes (5 Max)
+  byte stored_rf_code_count                 = 0;
+  
+  // 5 RF codes can be stored
+  unsigned long rf_codes[5]                 = {0, 0, 0, 0, 0};
+  
+  // The threshold for detection for the Top IR Sensor  
+  unsigned int top_ir_sensor_threshold      = DEFAULT_IR_THRESHOLD;
+
+  // The threshold for detection for the Bottom IR Sensor  
+  unsigned int bottom_ir_sensor_threshold   = DEFAULT_IR_THRESHOLD;
 };
 
 extern Config config;

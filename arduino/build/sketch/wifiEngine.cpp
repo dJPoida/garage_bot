@@ -26,6 +26,7 @@
 #include "wifiCaptivePortalHandler.h"
 #include "botFS.h"
 #include "doorControl.h"
+#include "mqttClient.h"
 #include "irsensor.h"
 #include "reboot.h"
 
@@ -43,7 +44,7 @@ bool WiFiEngine::init(AsyncWebServer *webServer, AsyncWebSocket *webSocket, DNSS
   Serial.println("Initialising WiFi engine...");
   #endif
 
-  // Keep a pointer to the AsyncWebServer, AsyncWebSocket and DNS Server
+  // Keep a pointer to some of the important global objects
   _webServer = webServer;
   _webSocket = webSocket;
   _dnsServer = dnsServer;
@@ -115,7 +116,7 @@ bool WiFiEngine::connectToHotSpot() {
     // Don't bother if we don't have a configuration yet
     if (!config.wifi_ssid.equals("")) {
       #ifdef SERIAL_DEBUG
-      Serial.print(" - Connecting to: "); 
+      Serial.print("  - Connecting to: "); 
       Serial.println(config.wifi_ssid);
       #endif
 
@@ -132,7 +133,7 @@ bool WiFiEngine::connectToHotSpot() {
       // Wait for the connect result
       if (WiFi.waitForConnectResult() != WL_CONNECTED) {
           #ifdef SERIAL_DEBUG
-          Serial.println(" ! Failed to connect!");
+          Serial.println("  ! Failed to connect!");
           #endif
           _lastReconnectAttempt = millis();
           connected = false;
@@ -154,7 +155,7 @@ bool WiFiEngine::connectToHotSpot() {
  */
 bool WiFiEngine::broadcastAP() {
   #ifdef SERIAL_DEBUG
-  Serial.println(" - Attempting to Broadcast dedicated Access Point...");
+  Serial.println("  - Attempting to Broadcast dedicated Access Point...");
   #endif
 
   WiFi.mode(WIFI_AP_STA);
@@ -162,7 +163,7 @@ bool WiFiEngine::broadcastAP() {
   if (!WiFi.softAP(AP_SSID)) {
     // The adapter was not able to set the desired SSID for the acces point
     #ifdef SERIAL_DEBUG
-    Serial.println(" ! Failed to assign the softAP SSID.");
+    Serial.println("  ! Failed to assign the softAP SSID.");
     #endif
     return false;
   }
@@ -172,12 +173,12 @@ bool WiFiEngine::broadcastAP() {
   macAddress = WiFi.softAPmacAddress();
 
   #ifdef SERIAL_DEBUG
-  Serial.print(" - Access Point broadcasting on SSID: '");
+  Serial.print("  - Access Point broadcasting on SSID: '");
   Serial.print(AP_SSID);
   Serial.println("'");
-  Serial.print(" - IP address: ");
+  Serial.print("  - IP address: ");
   Serial.println(ipAddress);
-  Serial.print(" - MAC address: ");
+  Serial.print("  - MAC address: ");
   Serial.println(macAddress);
   #endif
 
@@ -209,14 +210,14 @@ void WiFiEngine::_handleWiFiConnected() {
   ipAddress = WiFi.localIP().toString();
 
   #ifdef SERIAL_DEBUG
-  Serial.print(" - WiFi connected."); 
-  Serial.print(" - IP address: "); 
+  Serial.print("  - WiFi connected."); 
+  Serial.print("  - IP address: "); 
   Serial.println(ipAddress);
-  Serial.print(" - MAC address: ");
+  Serial.print("  - MAC address: ");
   Serial.println(macAddress);
-  Serial.print(" - Device name: ");
+  Serial.print("  - Device name: ");
   Serial.println(config.device_name);
-  Serial.print(" - Web address: http://");
+  Serial.print("  - Web address: http://");
   Serial.print(config.mdns_name);
   Serial.println(".local");
   #endif
@@ -224,7 +225,7 @@ void WiFiEngine::_handleWiFiConnected() {
   // Start the mDNS service to broadcast the device's location on the network
   if(!MDNS.begin(config.mdns_name.c_str())) {
     #ifdef SERIAL_DEBUG
-    Serial.println(" ! Error starting mDNS!");
+    Serial.println("  ! Error starting mDNS!");
     #endif
   }
 
@@ -299,7 +300,7 @@ void WiFiEngine::initRoutes() {
     // Return a 404 if the file wasn't found
     else {
       #ifdef SERIAL_DEBUG
-      Serial.print(" - 404: ");
+      Serial.print("  - 404: ");
       Serial.print(request->methodToString());
       Serial.print(" '");
       Serial.print(request->url());
@@ -423,6 +424,8 @@ void WiFiEngine::sendStatusToClients(AsyncWebSocketClient *client) {
   
   // Add the door status
   payload["door_state"] = doorControl.getDoorStateAsString();
+  payload["mqtt_client_state"] = mqttClient.getMQTTClientStateAsString();
+  payload["mqtt_client_error"] = mqttClient.getMQTTClientError();
   
   char json[MAX_SOCKET_SERVER_MESSAGE_SIZE];
   serializeJsonPretty(doc, json);
@@ -520,7 +523,7 @@ void WiFiEngine::run (unsigned long currentMillis) {
   // If the wifiEngine is in normal wifi client mode
   else {
     // evaluate the state of the WiFi connection and establish if it needs to be re-connected etc...
-    if ((WiFi.status() != WL_CONNECTED) && ((currentMillis - _lastReconnectAttempt) >= WIFI_RECONNECT_INTERVAL)) {
+    if ((WiFi.status() != WL_CONNECTED) && ((currentMillis - _lastReconnectAttempt) >= RECONNECT_INTERVAL)) {
       // To our knowledge, are we supposed to be connected?!
       if (connected) {
         _handleWiFiDisconnected();
@@ -605,19 +608,23 @@ void WiFiEngine::_handleSetConfig(AsyncWebServerRequest *request, uint8_t *body)
   DynamicJsonDocument doc(MAX_SOCKET_CLIENT_MESSAGE_SIZE);
   deserializeJson(doc, (const char*)body);
 
-  String mdnsName = doc["mdns_name"];
-  String deviceName = doc["device_name"];
+  String mdnsName = (doc.containsKey("mdns_name") && !doc["mdns_name"].isNull() && (doc["mdns_name"] != "")) ? doc["mdns_name"] : DEFAULT_CONFIG_MDNS_NAME;
+  String deviceName = (doc.containsKey("device_name") && !doc["device_name"].isNull() && (doc["device_name"] != "")) ? doc["device_name"] : DEFAULT_CONFIG_DEVICE_NAME;
+
   JsonVariant mqttEnabledValue = doc["mqtt_enabled"];
   bool mqttEnabled = mqttEnabledValue.isNull() ? config.mqtt_enabled : mqttEnabledValue.as<bool>();
-  String mqttBrokerAddres = doc["mqtt_broker_address"] | config.mqtt_broker_address;
-  JsonVariant mqttBrokerPortValue = doc["mqtt_broker_port"];
-  unsigned int mqttBrokerPort = mqttBrokerPortValue.isNull() ? config.mqtt_broker_port : mqttBrokerPortValue.as<int>();
-  String mqttDeviceId = doc["mqtt_device_id"] | config.mqtt_device_id;
-  String mqttUsername = doc["mqtt_username"] | config.mqtt_username;
-  String mqttPassword = doc["mqtt_password"] | config.mqtt_password;
-  String mqttTopic = doc["mqtt_topic"] | config.mqtt_topic;
-  String mqttStateTopic = doc["mqtt_state_topic"] | config.mqtt_state_topic;
 
+  String mqttBrokerAddres = (doc.containsKey("mqtt_broker_address") && !doc["mqtt_broker_address"].isNull() && (doc["mqtt_broker_address"] != "")) ? doc["mqtt_broker_address"] : "";
+
+  JsonVariant mqttBrokerPortValue = doc["mqtt_broker_port"];
+  unsigned int mqttBrokerPort = mqttBrokerPortValue.isNull() ? DEFAULT_CONFIG_MQTT_BROKER_PORT : mqttBrokerPortValue.as<int>();
+
+  String mqttDeviceId = (doc.containsKey("mqtt_device_id") && !doc["mqtt_device_id"].isNull() && (doc["mqtt_device_id"] != "")) ? doc["mqtt_device_id"] : DEFAULT_CONFIG_MQTT_DEVICE_ID;
+  String mqttUsername = (doc.containsKey("mqtt_username") && !doc["mqtt_username"].isNull() && (doc["mqtt_username"] != "")) ? doc["mqtt_username"] : "";
+  String mqttPassword = (doc.containsKey("mqtt_password") && !doc["mqtt_password"].isNull() && (doc["mqtt_password"] != "")) ? doc["mqtt_password"] : "";
+  String mqttTopic = (doc.containsKey("mqtt_topic") && !doc["mqtt_topic"].isNull() && (doc["mqtt_topic"] != "")) ? doc["mqtt_topic"] : DEFAULT_CONFIG_MQTT_DEVICE_TOPIC;
+  String mqttStateTopic = (doc.containsKey("mqtt_state_topic") && !doc["mqtt_state_topic"].isNull() && (doc["mqtt_state_topic"] != "")) ? doc["mqtt_state_topic"] : DEFAULT_CONFIG_MQTT_DEVICE_STATE_TOPIC;
+  
   // Call the FileSystem methods responsible for updating the config
   botFS.setGeneralConfig(mdnsName, deviceName, mqttEnabled, mqttBrokerAddres, mqttBrokerPort, mqttDeviceId, mqttUsername, mqttPassword, mqttTopic, mqttStateTopic);
 

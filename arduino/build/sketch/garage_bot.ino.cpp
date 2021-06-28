@@ -20,6 +20,7 @@
  *  - Async TCP Library for ESP32 Arduino (https://github.com/me-no-dev/AsyncTCP)
  *  - ESP Async Web Server (https://github.com/me-no-dev/ESPAsyncWebServer)
  *  - RCSwitch for 433mhz Receiver (https://github.com/sui77/rc-switch)
+ *  - PubSubClient for MQTT Messaging (https://github.com/knolleary/pubsubclient)
 \*============================================================================*/
 
 
@@ -74,41 +75,45 @@ DoorControl doorControl = DoorControl();                                  // The
 LEDTimer ledTimer = LEDTimer();                                           // A Timer to help with the flashing LEDs
 MQTTClient mqttClient = MQTTClient();                                     // The client which manages MQTT broadcasts and subscriptions
 WiFiEngine wifiEngine = WiFiEngine();                                     // The Garage Bot's WiFi engine
+WiFiClient espClient;                                                     // Used by the MQTT PubSubClient
+PubSubClient pubSubClient = PubSubClient(espClient);                      // The MQTT PubSubClient
 
 bool inError = false;                                                     // Whether the device is in an error state
 
 /**
  * Setup
  */
-#line 81 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 84 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void setup();
-#line 181 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 186 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void loop();
-#line 212 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 217 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void topSensorChanged(SensorDetectionState detected);
-#line 229 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 234 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void bottomSensorChanged(SensorDetectionState detected);
-#line 246 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 251 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void remoteRepeaterActivationChanged(bool activated);
-#line 261 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 266 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void rfReceiverButtonPressed(bool down);
-#line 285 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 290 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void rfReceiverModeChanged(RFReceiverMode newMode);
-#line 300 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 305 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void generalErrorOccurred(String errorMessage);
-#line 318 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 323 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void panelButtonPressed();
-#line 330 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 335 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void panelButtonReleased(ButtonPressType buttonPressType);
-#line 389 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 394 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void updateLEDFlashes();
-#line 399 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 404 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void doorControlStateChanged(DoorState newDoorState);
-#line 430 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 435 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void handleWiFiConnectedChanged(bool newConnected);
-#line 448 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 453 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void handleVirtualButtonPressed(VirtualButtonType virtualButton);
-#line 81 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+#line 484 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
+void handleMQTTClientStateChanged(MQTTClientState newState, String error);
+#line 84 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void setup() {
   // Serial Initialisation
   #ifdef SERIAL_DEBUG
@@ -185,8 +190,10 @@ void setup() {
     // IF the wifi engine is in regular mode
     else {
       // Initialise the MQTT Client
-      mqttClient.init();
-      // TODO: handlers for MQTT subscriptions
+      if (config.mqtt_enabled) {
+        mqttClient.init(&pubSubClient);
+        // TODO: handlers for MQTT subscriptions
+      }
 
       // Listen to changes in the WiFi client's connectivity
       wifiEngine.onConnectedChanged = handleWiFiConnectedChanged;
@@ -500,5 +507,16 @@ void handleVirtualButtonPressed(VirtualButtonType virtualButton) {
       #endif
       doorControl.close();
       break;
+  }
+}
+
+
+/**
+ * Fired by the MQTT Client when its state changes
+ */
+void handleMQTTClientStateChanged(MQTTClientState newState, String error) {
+  // Notify any connected clients of the MQTT Client state change
+  if (config.wifi_enabled) {
+    wifiEngine.sendStatusToClients();
   }
 }

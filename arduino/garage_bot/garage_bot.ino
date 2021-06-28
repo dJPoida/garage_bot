@@ -18,6 +18,7 @@
  *  - Async TCP Library for ESP32 Arduino (https://github.com/me-no-dev/AsyncTCP)
  *  - ESP Async Web Server (https://github.com/me-no-dev/ESPAsyncWebServer)
  *  - RCSwitch for 433mhz Receiver (https://github.com/sui77/rc-switch)
+ *  - PubSubClient for MQTT Messaging (https://github.com/knolleary/pubsubclient)
 \*============================================================================*/
 
 
@@ -72,6 +73,8 @@ DoorControl doorControl = DoorControl();                                  // The
 LEDTimer ledTimer = LEDTimer();                                           // A Timer to help with the flashing LEDs
 MQTTClient mqttClient = MQTTClient();                                     // The client which manages MQTT broadcasts and subscriptions
 WiFiEngine wifiEngine = WiFiEngine();                                     // The Garage Bot's WiFi engine
+WiFiClient espClient;                                                     // Used by the MQTT PubSubClient
+PubSubClient pubSubClient = PubSubClient(espClient);                      // The MQTT PubSubClient
 
 bool inError = false;                                                     // Whether the device is in an error state
 
@@ -154,8 +157,10 @@ void setup() {
     // IF the wifi engine is in regular mode
     else {
       // Initialise the MQTT Client
-      mqttClient.init();
-      // TODO: handlers for MQTT subscriptions
+      if (config.mqtt_enabled) {
+        mqttClient.init(&pubSubClient);
+        // TODO: handlers for MQTT subscriptions
+      }
 
       // Listen to changes in the WiFi client's connectivity
       wifiEngine.onConnectedChanged = handleWiFiConnectedChanged;
@@ -469,5 +474,16 @@ void handleVirtualButtonPressed(VirtualButtonType virtualButton) {
       #endif
       doorControl.close();
       break;
+  }
+}
+
+
+/**
+ * Fired by the MQTT Client when its state changes
+ */
+void handleMQTTClientStateChanged(MQTTClientState newState, String error) {
+  // Notify any connected clients of the MQTT Client state change
+  if (config.wifi_enabled) {
+    wifiEngine.sendStatusToClients();
   }
 }

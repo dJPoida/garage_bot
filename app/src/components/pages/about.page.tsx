@@ -1,4 +1,7 @@
 import React, { useContext, useState } from 'react';
+import classNames from 'classnames';
+
+import { globals } from '../../singletons/globals.singleton';
 
 import { DeviceContext } from '../../providers/device.provider';
 
@@ -6,10 +9,11 @@ import { PageProps } from '../../types/page.props';
 
 import { Modal } from '../modal';
 import { PageTitle } from '../page-title';
+import { AppFooter } from '../app-footer';
 
 import { prettyFileSize } from '../../helpers/pretty-file-size.helper';
-import { AppFooter } from '../app-footer';
-import { globals } from '../../singletons/globals.singleton';
+
+import { MQTT_CLIENT_STATE } from '../../constants/mqtt-client-state.const';
 
 export const AboutPage: React.FC<PageProps> = (props) => {
   const {
@@ -17,7 +21,7 @@ export const AboutPage: React.FC<PageProps> = (props) => {
     icon,
   } = props;
 
-  const { config, sensorData, reboot, forgetWiFi, resetToFactoryDefaults } = useContext(DeviceContext);
+  const { config, sensorData, mqttClientState, mqttClientError, reboot, forgetWiFi, resetToFactoryDefaults } = useContext(DeviceContext);
 
   const [confirmRebootVisible, setConfirmRebootVisible] = useState<boolean>(false);
   const [confirmForgetWiFiVisible, setConfirmForgetWiFiVisible] = useState<boolean>(false);
@@ -42,6 +46,10 @@ export const AboutPage: React.FC<PageProps> = (props) => {
           <div className="key">Available Memory:</div>
           <div className="value">
             {prettyFileSize(sensorData.availableMemory as number)}
+          </div>
+          <div className="key">MQTT Client:</div>
+          <div className={classNames('value', { error: mqttClientState === MQTT_CLIENT_STATE.ERROR })}>
+            {`${mqttClientState}${mqttClientState === MQTT_CLIENT_STATE.ERROR ? `: "${mqttClientError}"` : ''}`}
           </div>
         </div>
       </section>
