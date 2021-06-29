@@ -6,6 +6,10 @@ export type TextboxChangeFunction = (
   fieldName: string,
   newValue: null | string
 ) => void;
+export type NumberChangeFunction = (
+  fieldName: string,
+  newValue: null | number,
+) => void;
 export type CheckboxChangeFunction = (
   fieldName: string,
   newValue: boolean
@@ -22,11 +26,25 @@ export type FormFieldProps = {
   | {
       type: 'text';
       value: null | string;
+      nullable?: undefined,
+      minValue?: undefined,
+      maxValue?: undefined,
       onChange: TextboxChangeFunction;
+    }
+  | {
+      type: 'number';
+      value: null | number;
+      nullable?: boolean,
+      minValue?: number,
+      maxValue?: number,
+      onChange: NumberChangeFunction;
     }
   | {
       type: 'checkbox';
       value: boolean;
+      nullable?: undefined,
+      minValue?: undefined,
+      maxValue?: undefined,
       onChange: CheckboxChangeFunction;
     }
 );
@@ -41,6 +59,9 @@ export const FormField: React.FC<FormFieldProps> = (props) => {
     type,
     value,
     toolTip,
+    nullable = false,
+    minValue,
+    maxValue,
     onChange,
   } = props;
 
@@ -75,6 +96,33 @@ export const FormField: React.FC<FormFieldProps> = (props) => {
         </label>
       )}
 
+      {/* Numeric Input */}
+      {type === 'number' && (
+        <input
+          key={id}
+          className={classNames('form-field', className)}
+          id={id}
+          name={fieldName}
+          type="number"
+          value={(value ?? '').toString()}
+          onChange={(e) => {
+            const newInputValue: null | string = e.target.value ?? (nullable ? null : '0');
+            let newValue: null | number = (newInputValue ? Number(newInputValue) : null);
+
+            if (newValue && (maxValue !== undefined)) {
+              newValue = Math.min(newValue, maxValue);
+            }
+            if (newValue && (minValue !== undefined)) {
+              newValue = Math.max(newValue, minValue);
+            }
+            (onChange as NumberChangeFunction)(
+              fieldName,
+              newValue,
+            );
+          }}
+        />
+      )}
+
       {/* Textbox */}
       {type === 'text' && (
         <input
@@ -82,7 +130,7 @@ export const FormField: React.FC<FormFieldProps> = (props) => {
           className={classNames('form-field', className)}
           id={id}
           name={fieldName}
-          type={type}
+          type="text"
           value={(value ?? '').toString()}
           onChange={(e) => (onChange as TextboxChangeFunction)(
             fieldName,

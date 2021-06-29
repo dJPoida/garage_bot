@@ -36,10 +36,10 @@ const getConfigTransportFromConfig = (config: IConfig): ConfigTransport => ({
   mqtt_broker_address: config.mqtt_broker_address,
   mqtt_broker_port: config.mqtt_broker_port,
   mqtt_device_id: config.mqtt_device_id,
-  mqtt_state_topic: config.mqtt_state_topic,
-  mqtt_topic: config.mqtt_topic,
   mqtt_username: config.mqtt_username,
   mqtt_password: config.mqtt_password,
+  mqtt_topic: config.mqtt_topic,
+  mqtt_state_topic: config.mqtt_state_topic,
 });
 
 export const ConfigPage: React.FC<PageProps> = (props) => {
@@ -148,6 +148,7 @@ export const ConfigPage: React.FC<PageProps> = (props) => {
                   'The name to use in the mdns address that clients',
                   'can use to connect to the device without the IP',
                   '(i.e. http://garagebot.local)',
+                  'Default = "garagebot"',
                 ].join(' <br/>')}
               />
 
@@ -164,6 +165,7 @@ export const ConfigPage: React.FC<PageProps> = (props) => {
                   'to other devices on the network.',
                   'This also changes the name of the app,',
                   'but you may need to refresh the page.',
+                  'Default = "GarageBot"',
                 ].join(' <br/>')}
               />
             </FormFieldGroup>
@@ -210,7 +212,21 @@ export const ConfigPage: React.FC<PageProps> = (props) => {
                   ].join(' <br/>')}
                 />
 
-                {/* TODO: MQTT Broker Port */}
+                {/* MQTT Broker Port */}
+                <FormField
+                  id="mqtt_broker_port"
+                  fieldName="mqtt_broker_port"
+                  type="number"
+                  label="MQTT Broker Port"
+                  value={configValues.mqtt_broker_port}
+                  minValue={0}
+                  maxValue={65535}
+                  onChange={fieldChanged}
+                  toolTip={[
+                    'The Port Number to use to the MQTT Broker',
+                    'Default = "1833"',
+                  ].join(' <br/>')}
+                />
 
                 {/* MQTT Device ID */}
                 <FormField
@@ -222,6 +238,7 @@ export const ConfigPage: React.FC<PageProps> = (props) => {
                   onChange={fieldChanged}
                   toolTip={[
                     'The Device ID to use when connecting to the MQTT Broker',
+                    'Default = "Garage_Bot"',
                   ].join(' <br/>')}
                 />
 
@@ -262,6 +279,7 @@ export const ConfigPage: React.FC<PageProps> = (props) => {
                   toolTip={[
                     'The MQTT topic used for communicating',
                     'instructions (open / close etc)',
+                    'Default = "garage/door"',
                   ].join(' <br/>')}
                 />
 
@@ -276,6 +294,7 @@ export const ConfigPage: React.FC<PageProps> = (props) => {
                   toolTip={[
                     'The MQTT topic used for communicating the state',
                     'of the door (opened / closed / etc)',
+                    'Default = "garage/door/state"',
                   ].join(' <br/>')}
                 />
               </>

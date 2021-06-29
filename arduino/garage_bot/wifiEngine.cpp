@@ -277,12 +277,12 @@ void WiFiEngine::initRoutes() {
 
   // Set the wifi access point details
   _webServer->on("/setwifi", HTTP_POST, [&](AsyncWebServerRequest *request){}, NULL, [&](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
-    _handleSetWiFi(request, data);
+    _handleSetWiFi(request, data, len);
   });
 
   // Set the config
   _webServer->on("/setconfig", HTTP_POST, [&](AsyncWebServerRequest *request){}, NULL, [&](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
-    _handleSetConfig(request, data);
+    _handleSetConfig(request, data, len);
   });
 
   // All other Files / Routes
@@ -582,10 +582,29 @@ String WiFiEngine::templateProcessor(const String& var){
  * @param request   - the incoming HTTP Post Request that triggered the action
  * @param body      - the body of the HTTP Post Request
  */
-void WiFiEngine::_handleSetWiFi(AsyncWebServerRequest *request, uint8_t *body){
-  // Parse the new config details out of the document
-  DynamicJsonDocument doc(MAX_SOCKET_CLIENT_MESSAGE_SIZE);
-  deserializeJson(doc, (const char*)body);
+void WiFiEngine::_handleSetWiFi(AsyncWebServerRequest *request, uint8_t *data, size_t len){
+  // Make sure we only capture a string of the exact message size. Also add a null terminator to the end.
+  char body[len + 1];
+  memcpy( body, data, len );
+  body[len] = '\0';
+
+  // Deserialize the message
+  DynamicJsonDocument doc(CONFIG_FILE_MAX_SIZE);
+  DeserializationError error = deserializeJson(doc, body);
+
+  // Check for an error parsing the json
+  if (error) {
+    #ifdef SERIAL_DEBUG
+    Serial.print(F("deserializeJson() failed: "));
+    Serial.println(error.f_str());
+    #endif
+
+    // TODO: embed the error in the JSON
+    request->send(400, "text/json", "{\"success\":false}");
+    return;
+  }
+
+  // Apply the new config  
   String wifiSSID = doc["wifiSSID"];
   String wifiPassword = doc["wifiPassword"];
 
@@ -603,28 +622,48 @@ void WiFiEngine::_handleSetWiFi(AsyncWebServerRequest *request, uint8_t *body){
  * @param request   - the incoming HTTP Post Request that triggered the action
  * @param body      - the body of the HTTP Post Request
  */
-void WiFiEngine::_handleSetConfig(AsyncWebServerRequest *request, uint8_t *body){
-  // Parse the new config details out of the document
-  DynamicJsonDocument doc(MAX_SOCKET_CLIENT_MESSAGE_SIZE);
-  deserializeJson(doc, (const char*)body);
+void WiFiEngine::_handleSetConfig(AsyncWebServerRequest *request, uint8_t *data, size_t len){
+  // Make sure we only capture a string of the exact message size. Also add a null terminator to the end.
+  char body[len + 1];
+  memcpy( body, data, len );
+  body[len] = '\0';
 
-  String mdnsName = (doc.containsKey("mdns_name") && !doc["mdns_name"].isNull() && (doc["mdns_name"] != "")) ? doc["mdns_name"] : DEFAULT_CONFIG_MDNS_NAME;
-  String deviceName = (doc.containsKey("device_name") && !doc["device_name"].isNull() && (doc["device_name"] != "")) ? doc["device_name"] : DEFAULT_CONFIG_DEVICE_NAME;
+  // Deserialize the message
+  DynamicJsonDocument doc(CONFIG_FILE_MAX_SIZE);
+  DeserializationError error = deserializeJson(doc, body);
+
+  // Check for an error parsing the json
+  if (error) {
+    #ifdef SERIAL_DEBUG
+    Serial.print(F("deserializeJson() failed: "));
+    Serial.println(error.f_str());
+    #endif
+
+    // TODO: embed the error in the JSON
+    request->send(400, "text/json", "{\"success\":false}");
+    return;
+  }
+  
+  // TODO: create a static helper to "get a string value from a json doc + return default value if not specified"
+
+  // Extract the new config
+  String mdnsName = (doc.containsKey("mdns_name") && !doc["mdns_name"].isNull() && (doc["mdns_name"].as<String>() != "")) ? doc["mdns_name"].as<String>() : DEFAULT_CONFIG_MDNS_NAME;
+  String deviceName = (doc.containsKey("device_name") && !doc["device_name"].isNull() && (doc["device_name"].as<String>() != "")) ? doc["device_name"].as<String>() : DEFAULT_CONFIG_DEVICE_NAME;
 
   JsonVariant mqttEnabledValue = doc["mqtt_enabled"];
   bool mqttEnabled = mqttEnabledValue.isNull() ? config.mqtt_enabled : mqttEnabledValue.as<bool>();
 
-  String mqttBrokerAddres = (doc.containsKey("mqtt_broker_address") && !doc["mqtt_broker_address"].isNull() && (doc["mqtt_broker_address"] != "")) ? doc["mqtt_broker_address"] : "";
+  String mqttBrokerAddres = (doc.containsKey("mqtt_broker_address") && !doc["mqtt_broker_address"].isNull() && (doc["mqtt_broker_address"].as<String>() != "")) ? doc["mqtt_broker_address"].as<String>() : "";
 
   JsonVariant mqttBrokerPortValue = doc["mqtt_broker_port"];
   unsigned int mqttBrokerPort = mqttBrokerPortValue.isNull() ? DEFAULT_CONFIG_MQTT_BROKER_PORT : mqttBrokerPortValue.as<int>();
 
-  String mqttDeviceId = (doc.containsKey("mqtt_device_id") && !doc["mqtt_device_id"].isNull() && (doc["mqtt_device_id"] != "")) ? doc["mqtt_device_id"] : DEFAULT_CONFIG_MQTT_DEVICE_ID;
-  String mqttUsername = (doc.containsKey("mqtt_username") && !doc["mqtt_username"].isNull() && (doc["mqtt_username"] != "")) ? doc["mqtt_username"] : "";
-  String mqttPassword = (doc.containsKey("mqtt_password") && !doc["mqtt_password"].isNull() && (doc["mqtt_password"] != "")) ? doc["mqtt_password"] : "";
-  String mqttTopic = (doc.containsKey("mqtt_topic") && !doc["mqtt_topic"].isNull() && (doc["mqtt_topic"] != "")) ? doc["mqtt_topic"] : DEFAULT_CONFIG_MQTT_DEVICE_TOPIC;
-  String mqttStateTopic = (doc.containsKey("mqtt_state_topic") && !doc["mqtt_state_topic"].isNull() && (doc["mqtt_state_topic"] != "")) ? doc["mqtt_state_topic"] : DEFAULT_CONFIG_MQTT_DEVICE_STATE_TOPIC;
-  
+  String mqttDeviceId = (doc.containsKey("mqtt_device_id") && !doc["mqtt_device_id"].isNull() && (doc["mqtt_device_id"].as<String>() != "")) ? doc["mqtt_device_id"].as<String>() : DEFAULT_CONFIG_MQTT_DEVICE_ID;
+  String mqttUsername = (doc.containsKey("mqtt_username") && !doc["mqtt_username"].isNull() && (doc["mqtt_username"].as<String>() != "")) ? doc["mqtt_username"].as<String>() : "";
+  String mqttPassword = (doc.containsKey("mqtt_password") && !doc["mqtt_password"].isNull() && (doc["mqtt_password"].as<String>() != "")) ? doc["mqtt_password"].as<String>() : "";
+  String mqttTopic = (doc.containsKey("mqtt_topic") && !doc["mqtt_topic"].isNull() && (doc["mqtt_topic"].as<String>() != "")) ? doc["mqtt_topic"].as<String>() : DEFAULT_CONFIG_MQTT_DEVICE_TOPIC;
+  String mqttStateTopic = (doc.containsKey("mqtt_state_topic") && !doc["mqtt_state_topic"].isNull() && (doc["mqtt_state_topic"].as<String>() != "")) ? doc["mqtt_state_topic"].as<String>() : DEFAULT_CONFIG_MQTT_DEVICE_STATE_TOPIC;
+
   // Call the FileSystem methods responsible for updating the config
   botFS.setGeneralConfig(mdnsName, deviceName, mqttEnabled, mqttBrokerAddres, mqttBrokerPort, mqttDeviceId, mqttUsername, mqttPassword, mqttTopic, mqttStateTopic);
 

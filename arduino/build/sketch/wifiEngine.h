@@ -64,8 +64,8 @@ class WiFiEngine {
     void onWsEvent(AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len); // Handle websocket events
     void handleWebSocketData(AsyncWebSocketClient *client, void *arg, uint8_t *data, size_t len);     // Handle a websocket data message
     
-    void _handleSetWiFi(AsyncWebServerRequest *request, uint8_t *body);  // Handle calls to set the WiFi Access Point
-    void _handleSetConfig(AsyncWebServerRequest *request, uint8_t *body);  // Handle calls to set the device config
+    void _handleSetWiFi(AsyncWebServerRequest *request, uint8_t *body, size_t len);  // Handle calls to set the WiFi Access Point
+    void _handleSetConfig(AsyncWebServerRequest *request, uint8_t *body, size_t len);  // Handle calls to set the device config
 
     // References to other objects required during broadcasts and message handling
     IRSensor *_topIRSensor;       // The Top IR sensor
