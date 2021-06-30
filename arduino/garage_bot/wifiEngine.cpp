@@ -424,8 +424,8 @@ void WiFiEngine::sendStatusToClients(AsyncWebSocketClient *client) {
   
   // Add the door status
   payload["door_state"] = doorControl.getDoorStateAsString();
-  payload["mqtt_client_state"] = mqttClient.getMQTTClientStateAsString();
-  payload["mqtt_client_error"] = mqttClient.getMQTTClientError();
+  payload["mqtt_client_state"] = mqttClient.getMQTTStateAsString();
+  payload["mqtt_client_error"] = mqttClient.getMQTTError();
   
   char json[MAX_SOCKET_SERVER_MESSAGE_SIZE];
   serializeJsonPretty(doc, json);

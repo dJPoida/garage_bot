@@ -424,8 +424,8 @@ void WiFiEngine::sendStatusToClients(AsyncWebSocketClient *client) {
   
   // Add the door status
   payload["door_state"] = doorControl.getDoorStateAsString();
-  payload["mqtt_client_state"] = mqttClient.getMQTTClientStateAsString();
-  payload["mqtt_client_error"] = mqttClient.getMQTTClientError();
+  payload["mqtt_client_state"] = mqttClient.getMQTTStateAsString();
+  payload["mqtt_client_error"] = mqttClient.getMQTTError();
   
   char json[MAX_SOCKET_SERVER_MESSAGE_SIZE];
   serializeJsonPretty(doc, json);
@@ -644,6 +644,8 @@ void WiFiEngine::_handleSetConfig(AsyncWebServerRequest *request, uint8_t *data,
     return;
   }
   
+  // TODO: create a static helper to "get a string value from a json doc + return default value if not specified"
+
   // Extract the new config
   String mdnsName = (doc.containsKey("mdns_name") && !doc["mdns_name"].isNull() && (doc["mdns_name"].as<String>() != "")) ? doc["mdns_name"].as<String>() : DEFAULT_CONFIG_MDNS_NAME;
   String deviceName = (doc.containsKey("device_name") && !doc["device_name"].isNull() && (doc["device_name"].as<String>() != "")) ? doc["device_name"].as<String>() : DEFAULT_CONFIG_DEVICE_NAME;

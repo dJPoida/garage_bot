@@ -12,14 +12,14 @@ import { A_VIRTUAL_BUTTON } from '../constants/device-button.const';
 import { SOCKET_CLIENT_EVENT } from '../constants/socket-client-event.const';
 import { SOCKET_CLIENT_MESSAGE } from '../constants/socket-client-message.const';
 import { globals } from '../singletons/globals.singleton';
-import { AN_MQTT_CLIENT_STATE, MQTT_CLIENT_STATE } from '../constants/mqtt-client-state.const';
+import { AN_MQTT_STATE, MQTT_STATE } from '../constants/mqtt-client-state.const';
 
 type DeviceProviderProps = Record<string, unknown>;
 type DeviceProviderState = {
   socketClientState: A_SOCKET_CLIENT_STATE;
   error: null | Error;
   doorState: A_DOOR_STATE;
-  mqttClientState: AN_MQTT_CLIENT_STATE;
+  mqttClientState: AN_MQTT_STATE;
   mqttClientError: string,
   rebooting: boolean,
   config: IConfig;
@@ -60,7 +60,7 @@ export class DeviceProvider extends React.Component<DeviceProviderProps, DeviceP
     this.state = {
       socketClientState: socketClient.state,
       doorState: DOOR_STATE.UNKNOWN,
-      mqttClientState: MQTT_CLIENT_STATE.DISABLED,
+      mqttClientState: MQTT_STATE.DISCONNECTED,
       mqttClientError: '',
       error: socketClient.error,
       configChecksum: 0,
@@ -148,7 +148,7 @@ export class DeviceProvider extends React.Component<DeviceProviderProps, DeviceP
       case SOCKET_SERVER_MESSAGE.STATUS_CHANGE:
         this.setState({
           doorState: payload.door_state as A_DOOR_STATE,
-          mqttClientState: payload.mqtt_client_state as AN_MQTT_CLIENT_STATE,
+          mqttClientState: payload.mqtt_client_state as AN_MQTT_STATE,
           mqttClientError: payload.mqtt_client_error as string,
         });
         return;

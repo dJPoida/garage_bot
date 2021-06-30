@@ -14,7 +14,7 @@ import { FormField } from '../form-field';
 import { FormFieldGroup } from '../form-field-group';
 import { Modal } from '../modal';
 import { PageTitle } from '../page-title';
-import { MQTT_CLIENT_STATE } from '../../constants/mqtt-client-state.const';
+import { MQTT_STATE } from '../../constants/mqtt-client-state.const';
 
 export type ConfigTransport = Pick<IConfig,
   'mdns_name' |
@@ -174,7 +174,7 @@ export const ConfigPage: React.FC<PageProps> = (props) => {
             <FormFieldGroup legend="MQTT Config">
 
               {/* If the MQTT Client is in error, display it here to assist with correcting the config */}
-              {mqttClientState === MQTT_CLIENT_STATE.ERROR && (
+              {mqttClientState === MQTT_STATE.CONFIG_ERROR && (
                 <div className="card fluid error">
                   <h4>MQTT Client Error</h4>
                   <p>
@@ -224,7 +224,7 @@ export const ConfigPage: React.FC<PageProps> = (props) => {
                   onChange={fieldChanged}
                   toolTip={[
                     'The Port Number to use to the MQTT Broker',
-                    'Default = "1833"',
+                    'Default = "1883"',
                   ].join(' <br/>')}
                 />
 

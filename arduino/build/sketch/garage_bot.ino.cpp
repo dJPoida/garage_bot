@@ -112,7 +112,7 @@ void handleWiFiConnectedChanged(bool newConnected);
 #line 453 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void handleVirtualButtonPressed(VirtualButtonType virtualButton);
 #line 484 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
-void handleMQTTClientStateChanged(MQTTClientState newState, String error);
+void handleMQTTStateChanged(MQTTState newState, String error);
 #line 84 "d:\\Development\\Arduino\\Github\\garage_bot\\arduino\\garage_bot\\garage_bot.ino"
 void setup() {
   // Serial Initialisation
@@ -514,7 +514,7 @@ void handleVirtualButtonPressed(VirtualButtonType virtualButton) {
 /**
  * Fired by the MQTT Client when its state changes
  */
-void handleMQTTClientStateChanged(MQTTClientState newState, String error) {
+void handleMQTTStateChanged(MQTTState newState, String error) {
   // Notify any connected clients of the MQTT Client state change
   if (config.wifi_enabled) {
     wifiEngine.sendStatusToClients();

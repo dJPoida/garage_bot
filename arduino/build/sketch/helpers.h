@@ -64,13 +64,22 @@ enum SensorDetectionState {
   SENSOR_DETECTED,          // Detection
 };
 
-// Used to manage the state of the MQTT client
-enum MQTTClientState {
-  MQTT_STATE_DISABLED,      // MQTT Client is Disabled
-  MQTT_STATE_ERROR,         // MQTT Client is in a state of error
-  MQTT_STATE_CONNECTING,    // MQTT Client is connecting
-  MQTT_STATE_CONNECTED,     // MQTT Client is connected
-  MQTT_STATE_DISCONNECTED,  // MQTT Client is disconnected
+// Wrapper around the MQTT PubSubClient state values
+enum MQTTState {
+  MQTT_STATE_CONNECTION_TIMEOUT,
+  MQTT_STATE_CONNECTION_LOST,
+  MQTT_STATE_CONNECT_FAILED,
+  MQTT_STATE_DISCONNECTED,
+  MQTT_STATE_CONNECTED,
+  MQTT_STATE_CONNECT_BAD_PROTOCOL,
+  MQTT_STATE_CONNECT_BAD_CLIENT_ID,
+  MQTT_STATE_CONNECT_UNAVAILABLE,
+  MQTT_STATE_CONNECT_BAD_CREDENTIALS,
+  MQTT_STATE_CONNECT_UNAUTHORIZED,
+
+  // This one is ours and is used to depict an invalid MQTT Configuration
+  MQTT_STATE_DISABLED,
+  MQTT_STATE_CONFIG_ERROR,
 };
 
 typedef void (*eventFiredFunction)();
@@ -81,7 +90,7 @@ typedef void (*buttonPressedFunction)(ButtonPressType);
 
 typedef void (*doorStateChangedFunction)(DoorState);
 
-typedef void (*mqttClientStateChangedFunction)(MQTTClientState, String);
+typedef void (*mqttStateChangedFunction)(MQTTState, String);
 
 typedef void (*receiverModeChangedFunction)(RFReceiverMode);
 

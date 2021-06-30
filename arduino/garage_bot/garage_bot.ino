@@ -481,7 +481,7 @@ void handleVirtualButtonPressed(VirtualButtonType virtualButton) {
 /**
  * Fired by the MQTT Client when its state changes
  */
-void handleMQTTClientStateChanged(MQTTClientState newState, String error) {
+void handleMQTTStateChanged(MQTTState newState, String error) {
   // Notify any connected clients of the MQTT Client state change
   if (config.wifi_enabled) {
     wifiEngine.sendStatusToClients();
