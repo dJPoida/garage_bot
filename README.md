@@ -1,8 +1,10 @@
 # Garage Bot v1.0
 This project adds some form of IoT capability to my existing garage door.
 
+![Device Photo](photos/device_photo.jpg)
+
 ## Back Story
-At the time of creating this project, we're renting our house. This limits my ability to implement smart technology or change out hardware. For over two years our landlord has not supplied us with a second remote control for the garage door, meaning my wife and I have to plan who is going to take the remote with us based on who is likely to be home first. Couple that with frequent incidents of accidentally leaving the garage door open at night, and voila, motivation to improve our garage door situation.
+At the time of creating this project, we were renting our house. This limited our ability to implement smart technology or change out hardware. For over two years our landlord had not supplied us with a second remote control for the garage door, meaning my wife and I had to plan who was going to take the remote with us based on who was likely to be home first. Couple that with frequent incidents of accidentally leaving the garage door open at night, and voila, I had motivation to improve our garage door situation.
 
 ## Goals
 - Provide 2x remote controls for each car
@@ -13,11 +15,8 @@ At the time of creating this project, we're renting our house. This limits my ab
     - Open / Closed query
 - Avoid drastic modification of the garage door to ensure we don't break our lease agreement when it's time to turn over the remote controls
 
-## System Design
-![System Design](designs/system_overview.png)
-
 ## Getting Started
-TODO: This is the Link that the QR Code on the device points to.
+This is the Link that the QR Code on the device points to.
 
 ## Device Operation
 
@@ -94,6 +93,25 @@ This LED indicates whether the top sensor on the garage door can detect the pres
 This LED indicates whether the bottom sensor on the garage door can detect the presence of the door.
 - Off: Door is detected (i.e. closed)
 - On: Door cannot be detected (i.e. open)
+
+## Home Assistant integration
+If you want to integrate with [Home Assistant](https://www.home-assistant.io/) then you can use the `garage_door.yaml` configuration to create a simple `cover` control.
+
+Simply modify `configuration.yaml` and add
+```
+cover: !include garage_door.yaml
+```
+
+---
+
+## System Design
+![System Design](designs/system_overview.png)
+
+## Schematic
+![Breadboard Design](designs/circuit_design_bb.png)
+![Circuit Design](designs/circuit_design_schem.png)
+
+---
 
 ## Developer TODO
 - REST API

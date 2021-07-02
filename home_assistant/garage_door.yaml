@@ -1,0 +1,43 @@
+- platform: mqtt
+  name: garagedoor_mqtt
+  command_topic: "garage/door/command"
+  payload_open: "open"
+  payload_close: "close"
+  payload_stop: "activate"
+  state_topic: "garage/door/state"
+  state_open: "open"
+  state_closed: "closed"
+  state_opening: "opening"
+  state_closing: "closing"
+  optimistic: false
+  retain: false
+
+- platform: template
+  covers:
+    garagedoor:
+      friendly_name: Garage Door
+      icon_template: '{% if states("cover.garagedoor_mqtt") in ["open","opening","closing"] %}mdi:garage-open{% else %}mdi:garage{% endif %}'
+      value_template: '{{ states("cover.garagedoor_mqtt") in ["open","opening"] }}'
+      
+      open_cover:
+        - condition: or
+          conditions:
+            - condition: state
+              entity_id: cover.garagedoor_mqtt
+              state: "closing"
+            - condition: state
+              entity_id: cover.garagedoor_mqtt
+              state: "closed"
+        - service: cover.open_cover
+          entity_id: cover.garagedoor_mqtt
+      close_cover:
+        - condition: or
+          conditions:
+            - condition: state
+              entity_id: cover.garagedoor_mqtt
+              state: "opening"
+            - condition: state
+              entity_id: cover.garagedoor_mqtt
+              state: "open"
+        - service: cover.close_cover
+          entity_id: cover.garagedoor_mqtt
