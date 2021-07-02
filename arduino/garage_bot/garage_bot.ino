@@ -159,7 +159,7 @@ void setup() {
       // Initialise the MQTT Client
       if (config.mqtt_enabled) {
         mqttClient.init(&pubSubClient);
-        // TODO: handlers for MQTT subscriptions
+        mqttClient.onStateChange = handleMQTTStateChanged;
       }
 
       // Listen to changes in the WiFi client's connectivity
@@ -201,7 +201,13 @@ void loop() {
       // The wifi engine.run will process Access Point requests and check and manage for wifi disconnections
       // This also sends sensor data to any connected socket clients
       wifiEngine.run(currentMillis);
+    
+      // Only run the MQTT loop if the wifi and mqtt services are enabled
+      if (config.mqtt_enabled) {
+        mqttClient.run(currentMillis);
+      }
     }
+
 
     // Check to see if the reboot flag has been tripped
     checkReboot();
@@ -405,26 +411,14 @@ void doorControlStateChanged(DoorState newDoorState) {
   // Notify any connected clients of the door state change
   if (config.wifi_enabled) {
     wifiEngine.sendStatusToClients();
+
+    if (config.mqtt_enabled) {
+      mqttClient.sendDoorStateToBroker();
+    }
   }
 
   #ifdef SERIAL_DEBUG
-  switch (newDoorState) {
-    case DOORSTATE_OPEN:
-      Serial.println("DOOR OPEN");
-      break;
-    case DOORSTATE_CLOSED:
-      Serial.println("DOOR CLOSED");
-      break;
-    case DOORSTATE_OPENING:
-      Serial.println("DOOR OPENING");
-      break;
-    case DOORSTATE_CLOSING:
-      Serial.println("DOOR CLOSING");
-      break;
-    default:
-      Serial.println("DOOR STATE UNKNOWN");
-      break;
-  }
+  Serial.println(doorControl.getDoorStateAsString());
   #endif
 }
 
@@ -482,6 +476,11 @@ void handleVirtualButtonPressed(VirtualButtonType virtualButton) {
  * Fired by the MQTT Client when its state changes
  */
 void handleMQTTStateChanged(MQTTState newState, String error) {
+  #ifdef SERIAL_DEBUG
+  Serial.print("MQTT State Changed: ");
+  Serial.println(mqttClient.getMQTTStateAsString());
+  #endif
+
   // Notify any connected clients of the MQTT Client state change
   if (config.wifi_enabled) {
     wifiEngine.sendStatusToClients();

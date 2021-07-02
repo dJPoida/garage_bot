@@ -53,6 +53,7 @@ bool WiFiEngine::init(AsyncWebServer *webServer, AsyncWebSocket *webSocket, DNSS
 
   // At this point we can consider ourselves uninitialized
   wifiEngineMode = WEM_UNINIT;
+  macAddress = WiFi.macAddress();
   
   // Has the WiFi hotspot been configured?
   if (!config.wifi_ssid.equals("")) {
@@ -125,7 +126,6 @@ bool WiFiEngine::connectToHotSpot() {
       WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
 
       wifiEngineMode = WEM_CLIENT;
-      macAddress = WiFi.macAddress();
 
       // Attempt to connect to the configured wifi hotspot
       WiFi.begin(config.wifi_ssid.c_str(), config.wifi_password.c_str()); 
@@ -306,7 +306,7 @@ void WiFiEngine::initRoutes() {
       Serial.print(request->url());
       Serial.println("'");
       #endif
-      request->send(404, "text/plain", "The content you are looking for was not found.");
+      request->send(404, "text/plain", F("The content you are looking for was not found."));
     }
   });
 }
@@ -386,7 +386,8 @@ void WiFiEngine::sendConfigToClients(AsyncWebSocketClient *client) {
   payload["mqtt_broker_port"]           = config.mqtt_broker_port;
   payload["mqtt_device_id"]             = config.mqtt_device_id;
   payload["mqtt_username"]              = config.mqtt_username;
-  payload["mqtt_topic"]                 = config.mqtt_topic;
+  payload["mqtt_password"]              = config.mqtt_password.equals("") ? "" : "********";
+  payload["mqtt_command_topic"]         = config.mqtt_command_topic;
   payload["mqtt_state_topic"]           = config.mqtt_state_topic;
   payload["top_ir_sensor_threshold"]    = config.top_ir_sensor_threshold;
   payload["bottom_ir_sensor_threshold"] = config.bottom_ir_sensor_threshold;
@@ -600,7 +601,7 @@ void WiFiEngine::_handleSetWiFi(AsyncWebServerRequest *request, uint8_t *data, s
     #endif
 
     // TODO: embed the error in the JSON
-    request->send(400, "text/json", "{\"success\":false}");
+    request->send(400, "text/json", F("{\"success\":false}"));
     return;
   }
 
@@ -612,7 +613,7 @@ void WiFiEngine::_handleSetWiFi(AsyncWebServerRequest *request, uint8_t *data, s
   botFS.setWiFiSettings(wifiSSID, wifiPassword);
 
   // Return a 200 - Success
-  request->send(200, "text/json", "{\"success\":true}");
+  request->send(200, "text/json", F("{\"success\":true}"));
 }
 
 
@@ -640,7 +641,7 @@ void WiFiEngine::_handleSetConfig(AsyncWebServerRequest *request, uint8_t *data,
     #endif
 
     // TODO: embed the error in the JSON
-    request->send(400, "text/json", "{\"success\":false}");
+    request->send(400, "text/json", F("{\"success\":false}"));
     return;
   }
   
@@ -661,14 +662,14 @@ void WiFiEngine::_handleSetConfig(AsyncWebServerRequest *request, uint8_t *data,
   String mqttDeviceId = (doc.containsKey("mqtt_device_id") && !doc["mqtt_device_id"].isNull() && (doc["mqtt_device_id"].as<String>() != "")) ? doc["mqtt_device_id"].as<String>() : DEFAULT_CONFIG_MQTT_DEVICE_ID;
   String mqttUsername = (doc.containsKey("mqtt_username") && !doc["mqtt_username"].isNull() && (doc["mqtt_username"].as<String>() != "")) ? doc["mqtt_username"].as<String>() : "";
   String mqttPassword = (doc.containsKey("mqtt_password") && !doc["mqtt_password"].isNull() && (doc["mqtt_password"].as<String>() != "")) ? doc["mqtt_password"].as<String>() : "";
-  String mqttTopic = (doc.containsKey("mqtt_topic") && !doc["mqtt_topic"].isNull() && (doc["mqtt_topic"].as<String>() != "")) ? doc["mqtt_topic"].as<String>() : DEFAULT_CONFIG_MQTT_DEVICE_TOPIC;
+  String mqttTopic = (doc.containsKey("mqtt_command_topic") && !doc["mqtt_command_topic"].isNull() && (doc["mqtt_command_topic"].as<String>() != "")) ? doc["mqtt_command_topic"].as<String>() : DEFAULT_CONFIG_MQTT_DEVICE_COMMAND_TOPIC;
   String mqttStateTopic = (doc.containsKey("mqtt_state_topic") && !doc["mqtt_state_topic"].isNull() && (doc["mqtt_state_topic"].as<String>() != "")) ? doc["mqtt_state_topic"].as<String>() : DEFAULT_CONFIG_MQTT_DEVICE_STATE_TOPIC;
 
   // Call the FileSystem methods responsible for updating the config
   botFS.setGeneralConfig(mdnsName, deviceName, mqttEnabled, mqttBrokerAddres, mqttBrokerPort, mqttDeviceId, mqttUsername, mqttPassword, mqttTopic, mqttStateTopic);
 
   // Return a 200 - Success
-  request->send(200, "text/json", "{\"success\":true}");
+  request->send(200, "text/json", F("{\"success\":true}"));
 }
 
 

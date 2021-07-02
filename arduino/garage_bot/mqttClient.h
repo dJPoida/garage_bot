@@ -23,8 +23,11 @@ class MQTTClient {
     String getMQTTError();
     String getMQTTStateAsString();
 
+    String deviceId;                              // The configure device id concatenated with the device MAC address to generate a unique ID for the MQTT broker
+
     void run (unsigned long currentMillis);       // Fired every time the main loop on the arduino program is fired
     void handleMessageReceived(char* topic, byte* payload, unsigned int length); // Message received from the MQTT broker
+    void sendDoorStateToBroker();                 // Send the current door state to the MQTT broker
   private:
     PubSubClient *_pubSubClient;                  // A pointer to the PubSubClient passed into the init function
 

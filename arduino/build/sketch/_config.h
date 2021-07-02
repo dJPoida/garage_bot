@@ -102,7 +102,7 @@
 #define DEFAULT_CONFIG_DEVICE_NAME "GarageBot"
 #define DEFAULT_CONFIG_MQTT_BROKER_PORT 1883
 #define DEFAULT_CONFIG_MQTT_DEVICE_ID "Garage_Bot"
-#define DEFAULT_CONFIG_MQTT_DEVICE_TOPIC "garage/door"
+#define DEFAULT_CONFIG_MQTT_DEVICE_COMMAND_TOPIC "garage/door/command"
 #define DEFAULT_CONFIG_MQTT_DEVICE_STATE_TOPIC "garage/door/state"
 
 /**
@@ -143,7 +143,7 @@ struct Config {
   String mqtt_password                      = "";
   
   // The MQTT topic used for communicating instructions (open / close etc)
-  String mqtt_topic                         = DEFAULT_CONFIG_MQTT_DEVICE_TOPIC;
+  String mqtt_command_topic                 = DEFAULT_CONFIG_MQTT_DEVICE_COMMAND_TOPIC;
   
   // The MQTT topic used for communicating the state of the door (opened / closed / etc)
   String mqtt_state_topic                   = DEFAULT_CONFIG_MQTT_DEVICE_STATE_TOPIC;

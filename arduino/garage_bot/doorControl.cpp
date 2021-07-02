@@ -179,15 +179,15 @@ DoorState DoorControl::getDoorState() {
 String DoorControl::getDoorStateAsString() {
   switch (_doorState) {
     case DOORSTATE_OPEN:
-      return "OPEN";
+      return F("OPEN");
     case DOORSTATE_CLOSING:
-      return "CLOSING";
+      return F("CLOSING");
     case DOORSTATE_CLOSED:
-      return "CLOSED";
+      return F("CLOSED");
     case DOORSTATE_OPENING:
-      return "OPENING";
+      return F("OPENING");
     default: 
-      return "UNKNOWN";
+      return F("UNKNOWN");
   }
 }
 

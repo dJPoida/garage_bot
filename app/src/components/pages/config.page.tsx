@@ -24,7 +24,7 @@ export type ConfigTransport = Pick<IConfig,
   'mqtt_broker_port' |
   'mqtt_device_id' |
   'mqtt_state_topic' |
-  'mqtt_topic' |
+  'mqtt_command_topic' |
   'mqtt_username' |
   'mqtt_password'
 >;
@@ -38,7 +38,7 @@ const getConfigTransportFromConfig = (config: IConfig): ConfigTransport => ({
   mqtt_device_id: config.mqtt_device_id,
   mqtt_username: config.mqtt_username,
   mqtt_password: config.mqtt_password,
-  mqtt_topic: config.mqtt_topic,
+  mqtt_command_topic: config.mqtt_command_topic,
   mqtt_state_topic: config.mqtt_state_topic,
 });
 
@@ -69,6 +69,13 @@ export const ConfigPage: React.FC<PageProps> = (props) => {
     setSubmitSuccess(null);
     setConfirmSubmitVisible(false);
 
+    const payload = {
+      ...configValues,
+
+      // Don't submit the password mask as a new password value
+      mqtt_password: configValues.mqtt_password === '********' ? null : configValues.mqtt_password,
+    };
+
     try {
       const response = await fetch(`http://${globals.deviceAddress}/setconfig`, {
         method: 'POST',
@@ -76,7 +83,7 @@ export const ConfigPage: React.FC<PageProps> = (props) => {
           Accept: 'application/json',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(configValues),
+        body: JSON.stringify(payload),
       });
 
       if (response.status === 200) {
@@ -268,18 +275,18 @@ export const ConfigPage: React.FC<PageProps> = (props) => {
                   ].join(' <br/>')}
                 />
 
-                {/* MQTT Topic */}
+                {/* MQTT Command Topic */}
                 <FormField
-                  id="mqtt_topic"
-                  fieldName="mqtt_topic"
+                  id="mqtt_command_topic"
+                  fieldName="mqtt_command_topic"
                   type="text"
-                  label="MQTT Topic"
-                  value={configValues.mqtt_topic}
+                  label="MQTT Command Topic"
+                  value={configValues.mqtt_command_topic}
                   onChange={fieldChanged}
                   toolTip={[
-                    'The MQTT topic used for communicating',
-                    'instructions (open / close etc)',
-                    'Default = "garage/door"',
+                    'The MQTT command topic used for communicating',
+                    'commands & instructions (open / close etc)',
+                    'Default = "garage/door/command"',
                   ].join(' <br/>')}
                 />
 

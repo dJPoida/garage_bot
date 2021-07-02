@@ -16,15 +16,15 @@
 String getMimeType(const String& fileName){
   // TODO: turn this into a mapped array at some point
   if (fileName.endsWith(".html")) {
-    return "text/html";
+    return F("text/html");
   } else if (fileName.endsWith(".css")) {
-    return "text/css";
+    return F("text/css");
   } else if (fileName.endsWith(".js")) {
-    return "text/javascript";
+    return F("text/javascript");
   } else if (fileName.endsWith(".svg")) {
-    return "image/svg+xml";
+    return F("image/svg+xml");
   }
-  return "text/plain";
+  return F("text/plain");
 }
 
 

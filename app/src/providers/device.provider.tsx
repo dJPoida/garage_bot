@@ -78,7 +78,7 @@ export class DeviceProvider extends React.Component<DeviceProviderProps, DeviceP
         mqtt_device_id: null,
         mqtt_username: null,
         mqtt_password: null,
-        mqtt_topic: null,
+        mqtt_command_topic: null,
         mqtt_state_topic: null,
         top_ir_sensor_threshold: 0,
         bottom_ir_sensor_threshold: 0,

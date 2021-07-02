@@ -13,7 +13,7 @@ import { AppFooter } from '../app-footer';
 
 import { prettyFileSize } from '../../helpers/pretty-file-size.helper';
 
-import { MQTT_STATE } from '../../constants/mqtt-client-state.const';
+import { MQTTStateDescriptionMap, MQTT_STATE } from '../../constants/mqtt-client-state.const';
 
 export const AboutPage: React.FC<PageProps> = (props) => {
   const {
@@ -49,7 +49,7 @@ export const AboutPage: React.FC<PageProps> = (props) => {
           </div>
           <div className="key">MQTT Client:</div>
           <div className={classNames('value', { error: mqttClientState === MQTT_STATE.CONFIG_ERROR })}>
-            {`${mqttClientState}${mqttClientState === MQTT_STATE.CONFIG_ERROR ? `: "${mqttClientError}"` : ''}`}
+            {`${MQTTStateDescriptionMap[mqttClientState]}${mqttClientState === MQTT_STATE.CONFIG_ERROR ? `: "${mqttClientError}"` : ''}`}
           </div>
         </div>
       </section>

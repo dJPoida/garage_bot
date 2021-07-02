@@ -119,7 +119,7 @@ bool BotFS::loadConfig() {
   config.mqtt_device_id = doc["mqtt_device_id"] | config.mqtt_device_id;
   config.mqtt_username = doc["mqtt_username"] | config.mqtt_username;
   config.mqtt_password = doc["mqtt_password"] | config.mqtt_password;
-  config.mqtt_topic = doc["mqtt_topic"] | config.mqtt_topic;
+  config.mqtt_command_topic = doc["mqtt_command_topic"] | config.mqtt_command_topic;
   config.mqtt_state_topic = doc["mqtt_state_topic"] | config.mqtt_state_topic;
   config.stored_rf_code_count = doc["stored_rf_code_count"] | config.stored_rf_code_count;
   JsonArray rfCodes = doc["rf_codes"];
@@ -173,7 +173,7 @@ bool BotFS::loadConfig() {
     Serial.print("    - Password: ");
     Serial.println(config.mqtt_password);
     Serial.print("    - Topic: ");
-    Serial.println(config.mqtt_topic);
+    Serial.println(config.mqtt_command_topic);
     Serial.print("    - State Topic: ");
     Serial.println(config.mqtt_state_topic);
   }
@@ -223,7 +223,7 @@ bool BotFS::saveConfig() {
   doc["mqtt_device_id"]             = config.mqtt_device_id;
   doc["mqtt_username"]              = config.mqtt_username;
   doc["mqtt_password"]              = config.mqtt_password;
-  doc["mqtt_topic"]                 = config.mqtt_topic;
+  doc["mqtt_command_topic"]                 = config.mqtt_command_topic;
   doc["mqtt_state_topic"]           = config.mqtt_state_topic;
   doc["stored_rf_code_count"]       = config.stored_rf_code_count;
   doc["top_ir_sensor_threshold"]    = config.top_ir_sensor_threshold;
@@ -357,7 +357,7 @@ void BotFS::setGeneralConfig(
   config.mqtt_device_id = mqttDeviceId;
   config.mqtt_username = mqttUsername;
   config.mqtt_password = mqttPassword;
-  config.mqtt_topic = mqttTopic;
+  config.mqtt_command_topic = mqttTopic;
   config.mqtt_state_topic = mqttStateTopic;
   
   #ifdef SERIAL_DEBUG
@@ -381,7 +381,7 @@ void BotFS::setGeneralConfig(
     Serial.print("    - Password: ");
     Serial.println(config.mqtt_password);
     Serial.print("    - Topic: ");
-    Serial.println(config.mqtt_topic);
+    Serial.println(config.mqtt_command_topic);
     Serial.print("    - State Topic: ");
     Serial.println(config.mqtt_state_topic);
   }

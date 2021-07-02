@@ -8,6 +8,8 @@
 
 #include "_config.h"
 #include "mqttClient.h"
+#include "wifiEngine.h"
+#include "doorControl.h"
 
 
 /**
@@ -46,11 +48,14 @@ void MQTTClient::init(PubSubClient *pubSubClient) {
     setMQTTState(MQTT_STATE_CONFIG_ERROR, "Invalid MQTT Broker Port configured.");
   } else if (config.mqtt_device_id.equals("")) {
     setMQTTState(MQTT_STATE_CONFIG_ERROR, "No MQTT Device ID configured.");
-  } else if (config.mqtt_topic.equals("")) {
-    setMQTTState(MQTT_STATE_CONFIG_ERROR, "No MQTT Topic configured.");
+  } else if (config.mqtt_command_topic.equals("")) {
+    setMQTTState(MQTT_STATE_CONFIG_ERROR, "No MQTT Command Topic configured.");
   } else if (config.mqtt_state_topic.equals("")) {
     setMQTTState(MQTT_STATE_CONFIG_ERROR, "No MQTT State Topic configured.");
   } else {
+    // Calculate the unique device ID by concatenating the last four digits from the mac address with the garage bot prefix
+    deviceId = config.mqtt_device_id + "_" + wifiEngine.macAddress.substring(wifiEngine.macAddress.length() - 5, wifiEngine.macAddress.length() - 3) + wifiEngine.macAddress.substring(wifiEngine.macAddress.length() - 2);
+
     // Connect to the MQTT broker  
     _pubSubClient->setServer(config.mqtt_broker_address.c_str(), config.mqtt_broker_port);
     _pubSubClient->setCallback(staticHandleMessageReceived);  
@@ -87,20 +92,44 @@ bool MQTTClient::connectToBroker() {
   Serial.print(config.mqtt_broker_address);
   Serial.print(":");
   Serial.println(config.mqtt_broker_port);
+  Serial.print("  - Device ID: "); 
+  Serial.println(deviceId);
   #endif
 
-  if (_pubSubClient->connect(config.mqtt_device_id.c_str())) {
+  bool connectSuccessful = false;
+
+  // Attempt to connect with credentials
+  if (!config.mqtt_username.equals("")) {
+    #ifdef SERIAL_DEBUG
+    Serial.print("  - Username: "); 
+    Serial.println(config.mqtt_username);
+    Serial.print("  - Password: "); 
+    Serial.println(config.mqtt_password);
+    #endif
+    connectSuccessful = _pubSubClient->connect(deviceId.c_str(), config.mqtt_username.c_str(), config.mqtt_password.c_str());
+  } 
+  
+  // Attempt to connect without credentials
+  else {
+    connectSuccessful = _pubSubClient->connect(deviceId.c_str());
+  }
+  
+  if (connectSuccessful) {
     // Once connected, publish the current state (messages OUT)
-    _pubSubClient->publish(config.mqtt_topic.c_str(), "hello world");
-    // resubscribe to changes in the state (messages IN)
-    _pubSubClient->subscribe(config.mqtt_state_topic.c_str());
+    _pubSubClient->publish(config.mqtt_state_topic.c_str(), doorControl.getDoorStateAsString().c_str());
+    // resubscribe to the command topic (messages IN)
+    _pubSubClient->subscribe(config.mqtt_command_topic.c_str());
+
+    return true;
   } else {
     #ifdef SERIAL_DEBUG
-    Serial.print("  ! Failed to connect to MQTT Broker. MQTT state "); 
+    Serial.print("  ! Failed to connect to MQTT Broker: "); 
     Serial.println(_getPubSubClientStateAsString());
     #endif
+    setMQTTState(_getPubSubClientStateAsEnum(), "");
+
+    return false;
   }
-  return _pubSubClient->connected();  
 }
 
 
@@ -113,7 +142,6 @@ void MQTTClient::handleMessageReceived(char* topic, byte* data, unsigned int len
   memcpy( message, data, len );
   message[len] = '\0';
 
-  // TODO: handle MQTT message
   #ifdef SERIAL_DEBUG
   Serial.println("MQTT Message Received: ");
   Serial.print("  - Topic: ");
@@ -121,6 +149,21 @@ void MQTTClient::handleMessageReceived(char* topic, byte* data, unsigned int len
   Serial.print("  - Message: ");
   Serial.println(message);
   #endif
+
+  // Open command
+  if (strcmp(message, "open") == 0) {
+    doorControl.open();
+  }
+
+  // Close command
+  else if (strcmp(message, "close") == 0) {
+    doorControl.close();
+  }
+
+  // Activate command
+  else if (strcmp(message, "activate") == 0) {
+    doorControl.activate();
+  }
 }
 
 
@@ -188,7 +231,7 @@ String MQTTClient::_getPubSubClientStateAsString() {
  * Convert the current MQTT state into a string for transport to the client
  */
 String MQTTClient::getMQTTStateAsString() {
-  switch (_pubSubClient->state()) {
+  switch (_mqttState) {
     case MQTT_STATE_CONNECTION_TIMEOUT:
       return F("MQTT_STATE_CONNECTION_TIMEOUT");
     case MQTT_STATE_CONNECTION_LOST:
@@ -247,7 +290,8 @@ String MQTTClient::getMQTTError() {
 void MQTTClient::run (unsigned long currentMillis) {
   // Has the MQTT connection dropped?
   if (!_pubSubClient->connected()) {
-    if (currentMillis - _lastReconnectAttempt > 5000) {
+    // If the reconnect interval has passed AND the wifi client is connected...
+    if (wifiEngine.connected && (currentMillis - _lastReconnectAttempt > RECONNECT_INTERVAL)) {
       _lastReconnectAttempt = currentMillis;
       // Attempt to reconnect
       if (connectToBroker()) {
@@ -264,8 +308,27 @@ void MQTTClient::run (unsigned long currentMillis) {
     _pubSubClient->loop();
 
     // Make sure our knowledge of the MQTT state is up to date
-    if (_pubSubClient->state() != _mqttState) {
+    if (_getPubSubClientStateAsEnum() != _mqttState) {
       setMQTTState(_getPubSubClientStateAsEnum(), "");
     }
+  }
+}
+
+
+/**
+ * Send the current door state to the MQTT broker
+ * Triggered by a change in the door state
+ */
+void MQTTClient::sendDoorStateToBroker() {
+  if (_pubSubClient->connected()) {
+    String doorState = doorControl.getDoorStateAsString();
+
+    #ifdef SERIAL_DEBUG
+    Serial.print("Sending Door State to MQTT Broker: ");
+    Serial.println(doorState);
+    #endif
+
+    doorState.toLowerCase();
+    _pubSubClient->publish(config.mqtt_state_topic.c_str(), doorState.c_str());
   }
 }
