@@ -29,6 +29,7 @@
 #include "mqttClient.h"
 #include "irsensor.h"
 #include "reboot.h"
+#include "Update.h"
 
 /**
  * Constructor
@@ -273,7 +274,6 @@ void WiFiEngine::initRoutes() {
   _webServer->on("/about", HTTP_GET, [&](AsyncWebServerRequest *request) {
     request->send(LITTLEFS, "/index.html", String(), false, templateProcessor);
   });
-
 
   // Set the wifi access point details
   _webServer->on("/setwifi", HTTP_POST, [&](AsyncWebServerRequest *request){}, NULL, [&](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){

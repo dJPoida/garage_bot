@@ -47,6 +47,7 @@
 #include "remoteRepeater.h"
 #include "doorControl.h"
 #include "mqttClient.h"
+#include "otaUpdateManager.h"
 #include "reboot.h"
 
 
@@ -75,6 +76,7 @@ MQTTClient mqttClient = MQTTClient();                                     // The
 WiFiEngine wifiEngine = WiFiEngine();                                     // The Garage Bot's WiFi engine
 WiFiClient espClient;                                                     // Used by the MQTT PubSubClient
 PubSubClient pubSubClient = PubSubClient(espClient);                      // The MQTT PubSubClient
+OTAUpdateManager otaUpdateManager = OTAUpdateManager();                   // The Over The Air (OTA) update manager
 
 bool inError = false;                                                     // Whether the device is in an error state
 
@@ -156,6 +158,9 @@ void setup() {
     
     // IF the wifi engine is in regular mode
     else {
+      // Initialise the OTA manager
+      otaUpdateManager.init();
+
       // Initialise the MQTT Client
       if (config.mqtt_enabled) {
         mqttClient.init(&pubSubClient);
@@ -198,6 +203,9 @@ void loop() {
     
     // Wifi functions
     if (config.wifi_enabled) {
+      // The OTAUpdateManager processes requests to update the software
+      otaUpdateManager.run(currentMillis);
+
       // The wifi engine.run will process Access Point requests and check and manage for wifi disconnections
       // This also sends sensor data to any connected socket clients
       wifiEngine.run(currentMillis);
