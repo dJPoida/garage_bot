@@ -78,6 +78,9 @@
 // How many milliseconds the remote repeater should "hold down the garage remote button" for
 #define REMOTE_REPEATER_DURATION_MS 1000
 
+// How many milliseconds between RF Remote button presses represent a "separate" button press
+#define RF_REMOTE_BUTTON_PRESS_SEPERAION 500
+
 // How many consecutive successful RF receipts are required when registering a new remote
 #define REMOTE_CONSECUTIVE_CODES_FOR_REGISTRATION 10
 

@@ -25,6 +25,10 @@ class RFReceiver {
 
   private:
     RFReceiverMode _mode = RF_RECEIVER_MODE_NORMAL; // Whether the RF Receiver is registering a new remote or simply awaiting input
+    bool _buttonPressed = false;                    // Whether the button on an RF Receiver is depressed
+    unsigned long _lastButtonDown = 0;              // The last time the button was depressed (for determining when to "release" the RF button)
+
+    void _handleButtonPressed(unsigned long currentMillis); // Fired whenever a button press is detected
 
     unsigned long _lastCodeReceived;                // The most recent RF Code received
     int _receivedCodeCount = 0;                     // The number of times that the most recent RF code has been received
