@@ -1,3 +1,4 @@
+
 /*============================================================================*\
  * Garage Bot
  * Author: Peter Eldred
@@ -193,29 +194,32 @@ void loop() {
     unsigned long currentMillis = millis();
 
     // Run each of the delegated object controllers
-    topIRSensor.run(currentMillis);
-    bottomIRSensor.run(currentMillis);
-    ledTimer.run(currentMillis);
-    panelButton.run(currentMillis);
-    rfReceiver.run(currentMillis);
-    remoteRepeater.run(currentMillis);
-    doorControl.run(currentMillis);
+    if (!config.updating_config) {
+      topIRSensor.run(currentMillis);
+      bottomIRSensor.run(currentMillis);
+      ledTimer.run(currentMillis);
+      panelButton.run(currentMillis);
+      rfReceiver.run(currentMillis);
+      remoteRepeater.run(currentMillis);
+      doorControl.run(currentMillis);
+    }
     
     // Wifi functions
     if (config.wifi_enabled) {
       // The OTAUpdateManager processes requests to update the software
-      otaUpdateManager.run(currentMillis);
+      if (!config.updating_config) {
+        otaUpdateManager.run(currentMillis);
+      }
 
       // The wifi engine.run will process Access Point requests and check and manage for wifi disconnections
       // This also sends sensor data to any connected socket clients
       wifiEngine.run(currentMillis);
     
       // Only run the MQTT loop if the wifi and mqtt services are enabled
-      if (config.mqtt_enabled) {
+      if (!config.updating_config && config.mqtt_enabled) {
         mqttClient.run(currentMillis);
       }
     }
-
 
     // Check to see if the reboot flag has been tripped
     checkReboot();

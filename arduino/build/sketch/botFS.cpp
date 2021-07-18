@@ -223,7 +223,7 @@ bool BotFS::saveConfig() {
   doc["mqtt_device_id"]             = config.mqtt_device_id;
   doc["mqtt_username"]              = config.mqtt_username;
   doc["mqtt_password"]              = config.mqtt_password;
-  doc["mqtt_command_topic"]                 = config.mqtt_command_topic;
+  doc["mqtt_command_topic"]         = config.mqtt_command_topic;
   doc["mqtt_state_topic"]           = config.mqtt_state_topic;
   doc["stored_rf_code_count"]       = config.stored_rf_code_count;
   doc["top_ir_sensor_threshold"]    = config.top_ir_sensor_threshold;
@@ -334,7 +334,7 @@ void BotFS::setWiFiSettings(String newSSID, String newPassword) {
  * @param String mqttDeviceId The Device ID to use when connecting to the MQTT Broker
  * @param String mqttUsername The username when connecting to the MQTT broker
  * @param String mqttPassword The password when connecting to the MQTT broker
- * @param String mqttTopic The MQTT topic used for communicating instructions (open / close etc)
+ * @param String mqttCommandTopic The MQTT topic used for communicating instructions (open / close etc)
  * @param String mqttStateTopic The MQTT topic used for communicating the state of the door (opened / closed / etc)
  */
 void BotFS::setGeneralConfig(
@@ -346,7 +346,7 @@ void BotFS::setGeneralConfig(
   String mqttDeviceId,
   String mqttUsername,
   String mqttPassword,
-  String mqttTopic,
+  String mqttCommandTopic,
   String mqttStateTopic
 ) {
   config.mdns_name = mdnsName;
@@ -357,7 +357,7 @@ void BotFS::setGeneralConfig(
   config.mqtt_device_id = mqttDeviceId;
   config.mqtt_username = mqttUsername;
   config.mqtt_password = mqttPassword;
-  config.mqtt_command_topic = mqttTopic;
+  config.mqtt_command_topic = mqttCommandTopic;
   config.mqtt_state_topic = mqttStateTopic;
   
   #ifdef SERIAL_DEBUG

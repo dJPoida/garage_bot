@@ -123,7 +123,7 @@ bool WiFiEngine::connectToHotSpot() {
       #endif
 
       // Set the host name so that other devices recognise this device as the garage bot
-      WiFi.hostname(config.device_name.c_str());
+      WiFi.hostname(config.mdns_name.c_str());
       WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
 
       wifiEngineMode = WEM_CLIENT;
@@ -657,16 +657,16 @@ void WiFiEngine::_handleSetConfig(AsyncWebServerRequest *request, uint8_t *data,
   String mqttBrokerAddres = (doc.containsKey("mqtt_broker_address") && !doc["mqtt_broker_address"].isNull() && (doc["mqtt_broker_address"].as<String>() != "")) ? doc["mqtt_broker_address"].as<String>() : "";
 
   JsonVariant mqttBrokerPortValue = doc["mqtt_broker_port"];
-  unsigned int mqttBrokerPort = mqttBrokerPortValue.isNull() ? DEFAULT_CONFIG_MQTT_BROKER_PORT : mqttBrokerPortValue.as<int>();
+  unsigned int mqttBrokerPort = mqttBrokerPortValue.isNull() ? DEFAULT_CONFIG_MQTT_BROKER_PORT : mqttBrokerPortValue.as<unsigned int>();
 
   String mqttDeviceId = (doc.containsKey("mqtt_device_id") && !doc["mqtt_device_id"].isNull() && (doc["mqtt_device_id"].as<String>() != "")) ? doc["mqtt_device_id"].as<String>() : DEFAULT_CONFIG_MQTT_DEVICE_ID;
   String mqttUsername = (doc.containsKey("mqtt_username") && !doc["mqtt_username"].isNull() && (doc["mqtt_username"].as<String>() != "")) ? doc["mqtt_username"].as<String>() : "";
   String mqttPassword = (doc.containsKey("mqtt_password") && !doc["mqtt_password"].isNull() && (doc["mqtt_password"].as<String>() != "")) ? doc["mqtt_password"].as<String>() : "";
-  String mqttTopic = (doc.containsKey("mqtt_command_topic") && !doc["mqtt_command_topic"].isNull() && (doc["mqtt_command_topic"].as<String>() != "")) ? doc["mqtt_command_topic"].as<String>() : DEFAULT_CONFIG_MQTT_DEVICE_COMMAND_TOPIC;
+  String mqttCommandTopic = (doc.containsKey("mqtt_command_topic") && !doc["mqtt_command_topic"].isNull() && (doc["mqtt_command_topic"].as<String>() != "")) ? doc["mqtt_command_topic"].as<String>() : DEFAULT_CONFIG_MQTT_DEVICE_COMMAND_TOPIC;
   String mqttStateTopic = (doc.containsKey("mqtt_state_topic") && !doc["mqtt_state_topic"].isNull() && (doc["mqtt_state_topic"].as<String>() != "")) ? doc["mqtt_state_topic"].as<String>() : DEFAULT_CONFIG_MQTT_DEVICE_STATE_TOPIC;
 
   // Call the FileSystem methods responsible for updating the config
-  botFS.setGeneralConfig(mdnsName, deviceName, mqttEnabled, mqttBrokerAddres, mqttBrokerPort, mqttDeviceId, mqttUsername, mqttPassword, mqttTopic, mqttStateTopic);
+  botFS.setGeneralConfig(mdnsName, deviceName, mqttEnabled, mqttBrokerAddres, mqttBrokerPort, mqttDeviceId, mqttUsername, mqttPassword, mqttCommandTopic, mqttStateTopic);
 
   // Return a 200 - Success
   request->send(200, "text/json", F("{\"success\":true}"));

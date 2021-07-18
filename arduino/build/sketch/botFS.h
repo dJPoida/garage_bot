@@ -18,8 +18,7 @@ class BotFS {
     void factoryReset();
     void setWiFiSettings(String newSSID, String newPassword);
     void setIRSensorThreshold(String sensorType, int newThreshold);
-    void setGeneralConfig(String mdnsName, String deviceName, bool mqttEnabled, String mqttBrokerAddres, unsigned int mqttBrokerPort, String mqttDeviceId, String mqttUsername, String mqttPassword, String mqttTopic, String mqttStateTopic);
-    void setNetworkConfig(String mdnsName, String deviceName);
+    void setGeneralConfig(String mdnsName, String deviceName, bool mqttEnabled, String mqttBrokerAddres, unsigned int mqttBrokerPort, String mqttDeviceId, String mqttUsername, String mqttPassword, String mqttCommandTopic, String mqttStateTopic);
     void registerRFCode(unsigned long newCode);
 
   private:

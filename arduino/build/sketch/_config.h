@@ -9,10 +9,10 @@
 
 #include "Arduino.h"
 
-#define FIRMWARE_VERSION "0.0.1"
+#define FIRMWARE_VERSION "0.0.3"
 
 // Comment out this line to remove serial debug from all files
-#define SERIAL_DEBUG
+// #define SERIAL_DEBUG
 
 // The five LEDs on the front panel
 #define PIN_LED_POWER 21
@@ -94,7 +94,7 @@
 #define MAX_SOCKET_CONNECTIONS 10
 
 // The maximum size of the config file in bytes
-#define CONFIG_FILE_MAX_SIZE 1024
+#define CONFIG_FILE_MAX_SIZE 2048
 
 // When assuming a door state - ignore sensors for this duration
 #define ASSUMED_DOOR_STATE_EXPIRY 5000

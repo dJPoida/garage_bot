@@ -9,10 +9,10 @@
 
 #include "Arduino.h"
 
-#define FIRMWARE_VERSION "0.0.1"
+#define FIRMWARE_VERSION "0.0.5"
 
 // Comment out this line to remove serial debug from all files
-#define SERIAL_DEBUG
+// #define SERIAL_DEBUG
 
 // The five LEDs on the front panel
 #define PIN_LED_POWER 21
@@ -94,7 +94,7 @@
 #define MAX_SOCKET_CONNECTIONS 10
 
 // The maximum size of the config file in bytes
-#define CONFIG_FILE_MAX_SIZE 1024
+#define CONFIG_FILE_MAX_SIZE 2048
 
 // When assuming a door state - ignore sensors for this duration
 #define ASSUMED_DOOR_STATE_EXPIRY 5000
@@ -112,6 +112,9 @@
  * Config struct for storing and loading data from the SPIFFS partition
  */
 struct Config {
+  // This flag is set when the config is being updated and is referenced to prevent some controllers from running partially configured
+  bool updating_config                      = false;
+
   // The name to use in the mdns address that clients can use to connect to the device without the IP (i.e. http://garagebot.local)
   String mdns_name                          = DEFAULT_CONFIG_MDNS_NAME;
 
@@ -180,6 +183,5 @@ extern Config config;
 #define SOCKET_SERVER_MESSAGE_CONFIG_CHANGE "CC"
 #define SOCKET_SERVER_MESSAGE_SENSOR_DATA "SD"
 #define SOCKET_SERVER_MESSAGE_REBOOTING "RB"
-
 
 #endif
