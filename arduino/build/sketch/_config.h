@@ -9,7 +9,7 @@
 
 #include "Arduino.h"
 
-#define FIRMWARE_VERSION "0.0.3"
+#define FIRMWARE_VERSION "0.0.5"
 
 // Comment out this line to remove serial debug from all files
 // #define SERIAL_DEBUG
@@ -112,6 +112,9 @@
  * Config struct for storing and loading data from the SPIFFS partition
  */
 struct Config {
+  // This flag is set when the config is being updated and is referenced to prevent some controllers from running partially configured
+  bool updating_config                      = false;
+
   // The name to use in the mdns address that clients can use to connect to the device without the IP (i.e. http://garagebot.local)
   String mdns_name                          = DEFAULT_CONFIG_MDNS_NAME;
 
@@ -180,6 +183,5 @@ extern Config config;
 #define SOCKET_SERVER_MESSAGE_CONFIG_CHANGE "CC"
 #define SOCKET_SERVER_MESSAGE_SENSOR_DATA "SD"
 #define SOCKET_SERVER_MESSAGE_REBOOTING "RB"
-
 
 #endif

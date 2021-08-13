@@ -651,28 +651,19 @@ void WiFiEngine::_handleSetConfig(AsyncWebServerRequest *request, uint8_t *data,
   String mdnsName = (doc.containsKey("mdns_name") && !doc["mdns_name"].isNull() && (doc["mdns_name"].as<String>() != "")) ? doc["mdns_name"].as<String>() : DEFAULT_CONFIG_MDNS_NAME;
   String deviceName = (doc.containsKey("device_name") && !doc["device_name"].isNull() && (doc["device_name"].as<String>() != "")) ? doc["device_name"].as<String>() : DEFAULT_CONFIG_DEVICE_NAME;
 
-  // JsonVariant mqttEnabledValue = doc["mqtt_enabled"];
-  // bool mqttEnabled = mqttEnabledValue.isNull() ? config.mqtt_enabled : mqttEnabledValue.as<bool>();
+  JsonVariant mqttEnabledValue = doc["mqtt_enabled"];
+  bool mqttEnabled = mqttEnabledValue.isNull() ? config.mqtt_enabled : mqttEnabledValue.as<bool>();
 
-  // String mqttBrokerAddres = (doc.containsKey("mqtt_broker_address") && !doc["mqtt_broker_address"].isNull() && (doc["mqtt_broker_address"].as<String>() != "")) ? doc["mqtt_broker_address"].as<String>() : "";
+  String mqttBrokerAddres = (doc.containsKey("mqtt_broker_address") && !doc["mqtt_broker_address"].isNull() && (doc["mqtt_broker_address"].as<String>() != "")) ? doc["mqtt_broker_address"].as<String>() : "";
 
-  // JsonVariant mqttBrokerPortValue = doc["mqtt_broker_port"];
-  // unsigned int mqttBrokerPort = mqttBrokerPortValue.isNull() ? DEFAULT_CONFIG_MQTT_BROKER_PORT : mqttBrokerPortValue.as<int>();
+  JsonVariant mqttBrokerPortValue = doc["mqtt_broker_port"];
+  unsigned int mqttBrokerPort = mqttBrokerPortValue.isNull() ? DEFAULT_CONFIG_MQTT_BROKER_PORT : mqttBrokerPortValue.as<unsigned int>();
 
-  // String mqttDeviceId = (doc.containsKey("mqtt_device_id") && !doc["mqtt_device_id"].isNull() && (doc["mqtt_device_id"].as<String>() != "")) ? doc["mqtt_device_id"].as<String>() : DEFAULT_CONFIG_MQTT_DEVICE_ID;
-  // String mqttUsername = (doc.containsKey("mqtt_username") && !doc["mqtt_username"].isNull() && (doc["mqtt_username"].as<String>() != "")) ? doc["mqtt_username"].as<String>() : "";
-  // String mqttPassword = (doc.containsKey("mqtt_password") && !doc["mqtt_password"].isNull() && (doc["mqtt_password"].as<String>() != "")) ? doc["mqtt_password"].as<String>() : "";
+  String mqttDeviceId = (doc.containsKey("mqtt_device_id") && !doc["mqtt_device_id"].isNull() && (doc["mqtt_device_id"].as<String>() != "")) ? doc["mqtt_device_id"].as<String>() : DEFAULT_CONFIG_MQTT_DEVICE_ID;
+  String mqttUsername = (doc.containsKey("mqtt_username") && !doc["mqtt_username"].isNull() && (doc["mqtt_username"].as<String>() != "")) ? doc["mqtt_username"].as<String>() : "";
+  String mqttPassword = (doc.containsKey("mqtt_password") && !doc["mqtt_password"].isNull() && (doc["mqtt_password"].as<String>() != "")) ? doc["mqtt_password"].as<String>() : "";
   String mqttCommandTopic = (doc.containsKey("mqtt_command_topic") && !doc["mqtt_command_topic"].isNull() && (doc["mqtt_command_topic"].as<String>() != "")) ? doc["mqtt_command_topic"].as<String>() : DEFAULT_CONFIG_MQTT_DEVICE_COMMAND_TOPIC;
   String mqttStateTopic = (doc.containsKey("mqtt_state_topic") && !doc["mqtt_state_topic"].isNull() && (doc["mqtt_state_topic"].as<String>() != "")) ? doc["mqtt_state_topic"].as<String>() : DEFAULT_CONFIG_MQTT_DEVICE_STATE_TOPIC;
-
-  bool mqttEnabled = config.mqtt_enabled;
-  String mqttBrokerAddres = config.mqtt_broker_address;
-  unsigned int mqttBrokerPort = config.mqtt_broker_port;
-  String mqttDeviceId = config.mqtt_device_id;
-  String mqttUsername = config.mqtt_username;
-  String mqttPassword = config.mqtt_password;
-  // String mqttCommandTopic = mdnsName;
-  // String mqttStateTopic = deviceName;
 
   // Call the FileSystem methods responsible for updating the config
   botFS.setGeneralConfig(mdnsName, deviceName, mqttEnabled, mqttBrokerAddres, mqttBrokerPort, mqttDeviceId, mqttUsername, mqttPassword, mqttCommandTopic, mqttStateTopic);

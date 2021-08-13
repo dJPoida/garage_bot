@@ -1,0 +1,18 @@
+# Follow Juanmtech's guide on setting up Google Home for Home Assistant
+# https://www.juanmtech.com/integrate-google-assistant-with-home-assistant-without-a-subscription/
+
+project_id: [your_google_apps_project_id]
+service_account:
+  private_key: [your_google_apps_private_key]
+  client_email: [your_google_apps_client_email]
+report_state: true
+exposed_domains:
+  - cover
+entity_config:
+  cover.garage_bot:
+    expose: false
+  cover.garagedoor:
+    aliases:
+      - Garage Door
+      - Garage
+    room: Garage

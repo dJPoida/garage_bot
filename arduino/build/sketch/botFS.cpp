@@ -349,6 +349,9 @@ void BotFS::setGeneralConfig(
   String mqttCommandTopic,
   String mqttStateTopic
 ) {
+  // Prevent critical systens from running while a config update is in progress
+  config.updating_config = true;
+
   config.mdns_name = mdnsName;
   config.device_name = deviceName;
   config.mqtt_enabled = mqttEnabled;

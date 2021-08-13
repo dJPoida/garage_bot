@@ -1,5 +1,6 @@
 - platform: mqtt
-  name: garagedoor_mqtt
+  name: garage_bot
+  unique_id: ChevronSevenGarageDoorMQTT
   command_topic: "garage/door/command"
   payload_open: "open"
   payload_close: "close"
@@ -15,29 +16,32 @@
 - platform: template
   covers:
     garagedoor:
+      unique_id: ChevronSevenGarageDoorState
       friendly_name: Garage Door
-      icon_template: '{% if states("cover.garagedoor_mqtt") in ["open","opening","closing"] %}mdi:garage-open{% else %}mdi:garage{% endif %}'
-      value_template: '{{ states("cover.garagedoor_mqtt") in ["open","opening"] }}'
-      
+      icon_template: '{% if states("cover.garage_bot") in ["open","opening","closing"] %}mdi:garage-open{% else %}mdi:garage{% endif %}'
+      value_template: '{{ states("cover.garage_bot") in ["open","opening"] }}'
+
       open_cover:
         - condition: or
           conditions:
             - condition: state
-              entity_id: cover.garagedoor_mqtt
+              entity_id: cover.garage_bot
               state: "closing"
             - condition: state
-              entity_id: cover.garagedoor_mqtt
+              entity_id: cover.garage_bot
               state: "closed"
         - service: cover.open_cover
-          entity_id: cover.garagedoor_mqtt
+          data:
+            entity_id: cover.garage_bot
       close_cover:
         - condition: or
           conditions:
             - condition: state
-              entity_id: cover.garagedoor_mqtt
+              entity_id: cover.garage_bot
               state: "opening"
             - condition: state
-              entity_id: cover.garagedoor_mqtt
+              entity_id: cover.garage_bot
               state: "open"
         - service: cover.close_cover
-          entity_id: cover.garagedoor_mqtt
+          data:
+            entity_id: cover.garage_bot

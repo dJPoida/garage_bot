@@ -1,0 +1,12 @@
+# Augment / Append these lines to the Home Assistant configuration.yaml where appropriate
+
+google_assistant: !include g_assistant_integration.yaml
+cover: !include garage_door.yaml
+
+mqtt:
+  broker: 192.168.0.XXX-
+
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - XXX.XXX.XXX.XXX # NGINX Reverse Proxy IP Address (Can be found in the log)
