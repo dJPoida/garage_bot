@@ -122,6 +122,47 @@ If you want to integrate the garage door with Google Home for voice commands, fo
 
 ---
 
+## Contributing
+
+If you want to contribute to this repo, feel free!
+
+### Environments
+There are two main environments, the Arduino code that runs the ESP32 and the React web application that runs the WiFi control / setup page.
+
+#### Arduino IDE
+
+
+#### Visual Studio Code
+To work on the Web App you will need the standard [Node.js](https://nodejs.org) kit to develop JS/TS applications.
+- The app codebase is located in the `/app` path
+- This project was setup using the [yarn package manager](https://yarnpkg.com/), but would still work using NPM if you prefer
+- This project uses a custom webpack configuration for build / deploy
+```
+git clone https://github.com/dJPoida/garage_bot.git
+cd app
+yarn
+yarn start
+```
+Browse to `http://localhost:3000` to view the app.
+
+**Important note!:** At the time of writing this documentation no device emulator existed. Therefore, the device must be running before the web socket will confirm connection and display the app.
+
+If you want to publish new code to be served from the device, run the build task and the bundle will be created in the `/app/dist` folder and automatically copied into the `/arduino/garage_bot/data` folder for upload using the ESP Sketch Data Upload utility to the device SPIFFS.
+
+```
+yarn build
+```
+
+---
+
 ## Developer TODO
 - REST API
-    - Provide access to activate Virtual Buttons from an HTTP POST endpoint (perhaps add creds)
+    - Provide access to activate Virtual Buttons from an HTTP POST endpoint (perhaps add credentials)
+- Documentation
+    - Provide a BOM so people can build this themselves
+    - Improve CAD and Schematic documentation
+    - Improve contribution documentation
+        - Describe system dependencies for environments
+        - Provide device emulation documentation
+- Create a Device Emulator for web app development
+
